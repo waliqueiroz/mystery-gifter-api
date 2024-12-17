@@ -59,8 +59,8 @@ func (r *userRepository) GetByID(ctx context.Context, userID string) (*domain.Us
 		return nil, err
 	}
 
-	var userModel UserModel
-	err = r.db.GetContext(ctx, &userModel, query, args...)
+	var user User
+	err = r.db.GetContext(ctx, &user, query, args...)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.NewResourceNotFoundError("user not found")
@@ -68,10 +68,5 @@ func (r *userRepository) GetByID(ctx context.Context, userID string) (*domain.Us
 		return nil, err
 	}
 
-	user, err := mapUserModelToUser(userModel)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
+	return mapUserToDomain(user)
 }

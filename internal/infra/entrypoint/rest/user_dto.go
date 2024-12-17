@@ -22,7 +22,7 @@ func (u *CreateUserDTO) Validate() error {
 	return nil
 }
 
-func mapCreateUserDTOToUser(userDTO CreateUserDTO) (*domain.User, error) {
+func mapCreateUserDTOToDomain(userDTO CreateUserDTO) (*domain.User, error) {
 	if err := userDTO.Validate(); err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (u *UserDTO) Validate() error {
 	return nil
 }
 
-func mapUserToUserDTO(user domain.User) (*UserDTO, error) {
+func mapUserFromDomain(user domain.User) (*UserDTO, error) {
 	userDTO := UserDTO{
 		ID:        user.ID,
 		Name:      user.Name,

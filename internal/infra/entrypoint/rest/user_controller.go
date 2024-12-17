@@ -22,7 +22,7 @@ func (c *UserController) Create(ctx fiber.Ctx) error {
 		return err
 	}
 
-	user, err := mapCreateUserDTOToUser(createUserDTO)
+	user, err := mapCreateUserDTOToDomain(createUserDTO)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (c *UserController) GetByID(ctx fiber.Ctx) error {
 		return err
 	}
 
-	userDTO, err := mapUserToUserDTO(*user)
+	userDTO, err := mapUserFromDomain(*user)
 	if err != nil {
 		return err
 	}

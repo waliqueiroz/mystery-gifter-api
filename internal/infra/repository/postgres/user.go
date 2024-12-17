@@ -6,7 +6,7 @@ import (
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 )
 
-type UserModel struct {
+type User struct {
 	ID        string    `db:"id"`
 	Name      string    `db:"name"`
 	Surname   string    `db:"surname"`
@@ -16,7 +16,7 @@ type UserModel struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-func mapUserModelToUser(model UserModel) (*domain.User, error) {
+func mapUserToDomain(model User) (*domain.User, error) {
 	user := domain.User{
 		ID:        model.ID,
 		Name:      model.Name,
