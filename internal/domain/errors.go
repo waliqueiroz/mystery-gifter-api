@@ -47,3 +47,16 @@ func NewConflictError(message string) error {
 		},
 	}
 }
+
+type ResourceNotFoundError struct {
+	customError
+}
+
+func NewResourceNotFoundError(message string) error {
+	return &ResourceNotFoundError{
+		customError: customError{
+			message:    message,
+			statusCode: http.StatusNotFound,
+		},
+	}
+}

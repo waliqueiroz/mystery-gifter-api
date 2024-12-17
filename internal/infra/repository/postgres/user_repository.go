@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"log"
 
@@ -46,4 +47,31 @@ func (r *userRepository) Create(ctx context.Context, user domain.User) error {
 	}
 
 	return nil
+}
+
+func (r *userRepository) GetByID(ctx context.Context, userID string) (*domain.User, error) {
+	query, args, err := squirrel.Select("*").
+		From("users").
+		Where(squirrel.Eq{"id": userID}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	var userModel UserModel
+	err = r.db.GetContext(ctx, &userModel, query, args...)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, domain.NewResourceNotFoundError("user not found")
+		}
+		return nil, err
+	}
+
+	user, err := mapUserModelToUser(userModel)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }

@@ -8,6 +8,7 @@ import (
 
 type UserService interface {
 	Create(ctx context.Context, user domain.User) error
+	GetByID(ctx context.Context, userID string) (*domain.User, error)
 }
 
 type userService struct {
@@ -21,5 +22,13 @@ func NewUserService(userRepository domain.UserRepository) UserService {
 }
 
 func (s *userService) Create(ctx context.Context, user domain.User) error {
+	if err := user.Validate(); err != nil {
+		return err
+	}
+
 	return s.userRepository.Create(ctx, user)
+}
+
+func (s *userService) GetByID(ctx context.Context, userID string) (*domain.User, error) {
+	return s.userRepository.GetByID(ctx, userID)
 }

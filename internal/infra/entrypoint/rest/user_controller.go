@@ -34,3 +34,22 @@ func (c *UserController) Create(ctx fiber.Ctx) error {
 
 	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{"id": user.ID})
 }
+
+func (c *UserController) GetByID(ctx fiber.Ctx) error {
+	userID := ctx.Params("userID")
+	if userID == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "you should pass a valid user ID")
+	}
+
+	user, err := c.userService.GetByID(ctx.Context(), userID)
+	if err != nil {
+		return err
+	}
+
+	userDTO, err := mapUserToUserDTO(*user)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(userDTO)
+}
