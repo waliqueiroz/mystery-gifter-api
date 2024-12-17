@@ -35,7 +35,9 @@ func Run() error {
 		return err
 	}
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		ErrorHandler: entrypoint.CustomErrorHandler,
+	})
 	app.Use(cors.New())
 	app.Use(recover.New())
 

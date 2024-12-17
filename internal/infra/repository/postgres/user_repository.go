@@ -2,12 +2,16 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"log"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 )
+
+const POSTGRES_UNIQUE_VIOLATION = "unique_violation"
 
 type userRepository struct {
 	db *sqlx.DB
@@ -32,6 +36,12 @@ func (r *userRepository) Create(ctx context.Context, user domain.User) error {
 	_, err = r.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		log.Println("error creating user", err)
+
+		var currentError *pq.Error
+		if errors.As(err, &currentError) && currentError.Code.Name() == POSTGRES_UNIQUE_VIOLATION {
+			return domain.NewConflictError("the email is already registered")
+		}
+
 		return err
 	}
 
