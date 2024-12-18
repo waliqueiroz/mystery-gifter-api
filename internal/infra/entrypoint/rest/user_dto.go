@@ -16,8 +16,8 @@ type CreateUserDTO struct {
 }
 
 func (u *CreateUserDTO) Validate() error {
-	if err := validator.Validate(u); err != nil {
-		return err
+	if errs := validator.Validate(u); len(errs) > 0 {
+		return domain.NewValidationError(errs)
 	}
 	return nil
 }
@@ -45,8 +45,8 @@ type UserDTO struct {
 }
 
 func (u *UserDTO) Validate() error {
-	if err := validator.Validate(u); err != nil {
-		return err
+	if errs := validator.Validate(u); len(errs) > 0 {
+		return domain.NewValidationError(errs)
 	}
 	return nil
 }

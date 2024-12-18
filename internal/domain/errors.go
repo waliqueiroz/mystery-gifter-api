@@ -2,16 +2,20 @@ package domain
 
 import (
 	"net/http"
+
+	"github.com/waliqueiroz/mystery-gifter-api/pkg/validator"
 )
 
 type CustomError interface {
 	Error() string
 	StatusCode() int
+	Details() any
 }
 
 type customError struct {
 	message    string
 	statusCode int
+	details    any
 }
 
 func (e *customError) Error() string {
@@ -22,15 +26,20 @@ func (e *customError) StatusCode() int {
 	return e.statusCode
 }
 
+func (e *customError) Details() any {
+	return e.details
+}
+
 type ValidationError struct {
 	customError
 }
 
-func NewValidationError(message string) error {
+func NewValidationError(details validator.ValidationErrors) error {
 	return &ValidationError{
 		customError: customError{
-			message:    message,
+			message:    "validation failed",
 			statusCode: http.StatusBadRequest,
+			details:    details,
 		},
 	}
 }

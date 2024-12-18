@@ -19,7 +19,7 @@ func (c *UserController) Create(ctx fiber.Ctx) error {
 	var createUserDTO CreateUserDTO
 
 	if err := ctx.Bind().Body(&createUserDTO); err != nil {
-		return err
+		return fiber.NewError(fiber.StatusUnprocessableEntity)
 	}
 
 	user, err := mapCreateUserDTOToDomain(createUserDTO)

@@ -52,8 +52,8 @@ func NewUser(name, surname, email, password string) (*User, error) {
 }
 
 func (u *User) Validate() error {
-	if err := validator.Validate(u); err != nil {
-		return err
+	if errs := validator.Validate(u); len(errs) > 0 {
+		return NewValidationError(errs)
 	}
 	return nil
 }
