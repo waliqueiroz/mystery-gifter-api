@@ -1,5 +1,7 @@
 package application
 
+//go:generate go run go.uber.org/mock/mockgen -destination mock_application/user_service.go . UserService
+
 import (
 	"context"
 
