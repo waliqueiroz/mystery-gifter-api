@@ -22,12 +22,12 @@ func (u *CreateUserDTO) Validate() error {
 	return nil
 }
 
-func mapCreateUserDTOToDomain(userDTO CreateUserDTO) (*domain.User, error) {
+func mapCreateUserDTOToDomain(identity domain.IdentityGenerator, passwordManager domain.PasswordManager, userDTO CreateUserDTO) (*domain.User, error) {
 	if err := userDTO.Validate(); err != nil {
 		return nil, err
 	}
 
-	user, err := domain.NewUser(userDTO.Name, userDTO.Surname, userDTO.Email, userDTO.Password)
+	user, err := domain.NewUser(identity, passwordManager, userDTO.Name, userDTO.Surname, userDTO.Email, userDTO.Password)
 	if err != nil {
 		return nil, err
 	}

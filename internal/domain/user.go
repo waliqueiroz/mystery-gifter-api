@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/waliqueiroz/mystery-gifter-api/pkg/identity"
-	"github.com/waliqueiroz/mystery-gifter-api/pkg/security"
 	"github.com/waliqueiroz/mystery-gifter-api/pkg/validator"
 )
 
@@ -25,8 +23,13 @@ type User struct {
 	UpdatedAt time.Time `validate:"required"`
 }
 
-func NewUser(name, surname, email, password string) (*User, error) {
-	hashedPassword, err := security.Hash(password)
+func NewUser(identity IdentityGenerator, passwordManager PasswordManager, name, surname, email, password string) (*User, error) {
+	hashedPassword, err := passwordManager.Hash(password)
+	if err != nil {
+		return nil, err
+	}
+
+	id, err := identity.Generate()
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +37,7 @@ func NewUser(name, surname, email, password string) (*User, error) {
 	now := time.Now()
 
 	user := User{
-		ID:        identity.NewUUID(),
+		ID:        id,
 		Name:      name,
 		Surname:   surname,
 		Email:     email,

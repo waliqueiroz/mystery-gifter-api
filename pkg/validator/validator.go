@@ -17,13 +17,13 @@ var (
 )
 
 func init() {
-	// Configura o tradutor e as traduções padrão
+	// Configures the translator and the default translations
 	en := en.New()
 	uni := ut.New(en, en)
 	trans, _ = uni.GetTranslator("en")
 	en_translations.RegisterDefaultTranslations(goValidator, trans)
 
-	// Configura a função para obter o nome da tag JSON
+	// Configures the function to get the JSON tag name
 	goValidator.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
 		if name == "-" {

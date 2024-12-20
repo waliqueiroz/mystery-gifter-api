@@ -3,15 +3,20 @@ package rest
 import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/application"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 )
 
 type UserController struct {
-	userService application.UserService
+	userService     application.UserService
+	identity        domain.IdentityGenerator
+	passwordManager domain.PasswordManager
 }
 
-func NewUserController(userService application.UserService) *UserController {
+func NewUserController(userService application.UserService, identity domain.IdentityGenerator, passwordManager domain.PasswordManager) *UserController {
 	return &UserController{
-		userService: userService,
+		userService:     userService,
+		identity:        identity,
+		passwordManager: passwordManager,
 	}
 }
 
@@ -22,7 +27,7 @@ func (c *UserController) Create(ctx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusUnprocessableEntity)
 	}
 
-	user, err := mapCreateUserDTOToDomain(createUserDTO)
+	user, err := mapCreateUserDTOToDomain(c.identity, c.passwordManager, createUserDTO)
 	if err != nil {
 		return err
 	}
@@ -37,9 +42,6 @@ func (c *UserController) Create(ctx fiber.Ctx) error {
 
 func (c *UserController) GetByID(ctx fiber.Ctx) error {
 	userID := ctx.Params("userID")
-	if userID == "" {
-		return fiber.NewError(fiber.StatusBadRequest, "you should pass a valid user ID")
-	}
 
 	user, err := c.userService.GetByID(ctx.Context(), userID)
 	if err != nil {
