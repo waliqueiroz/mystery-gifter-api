@@ -17,7 +17,7 @@ type DatabaseConfig struct {
 func Load() (*Config, error) {
 	var cfg Config
 
-	if err := env.Parse(&cfg); err != nil {
+	if err := env.ParseWithOptions(&cfg, env.Options{RequiredIfNoDef: true}); err != nil {
 		return nil, err
 	}
 

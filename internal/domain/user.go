@@ -1,5 +1,7 @@
 package domain
 
+//go:generate go run go.uber.org/mock/mockgen -destination mock_domain/user_repository.go . UserRepository
+
 import (
 	"context"
 	"time"

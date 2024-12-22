@@ -7,7 +7,6 @@ import (
 	"log"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 )
@@ -15,10 +14,10 @@ import (
 const POSTGRES_UNIQUE_VIOLATION = "unique_violation"
 
 type userRepository struct {
-	db *sqlx.DB
+	db DB
 }
 
-func NewUserRepository(db *sqlx.DB) domain.UserRepository {
+func NewUserRepository(db DB) domain.UserRepository {
 	return &userRepository{
 		db: db,
 	}

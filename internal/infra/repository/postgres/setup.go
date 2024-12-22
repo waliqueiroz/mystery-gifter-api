@@ -1,6 +1,9 @@
 package postgres
 
+//go:generate go run go.uber.org/mock/mockgen -destination mock_postgres/db.go . DB
+
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -14,6 +17,13 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/config"
 )
+
+type DB interface {
+	BeginTxx(ctx context.Context, opts *sql.TxOptions) (*sqlx.Tx, error)
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+}
 
 func Connect(databaseConfig config.DatabaseConfig) (*sqlx.DB, error) {
 	dataSourceName := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",

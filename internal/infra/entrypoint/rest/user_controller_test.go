@@ -11,10 +11,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/application/mock_application"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/domain/build_domain"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain/mock_domain"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest"
-	"github.com/waliqueiroz/mystery-gifter-api/test/builder"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest/build_rest"
 	"github.com/waliqueiroz/mystery-gifter-api/test/helper"
 	"go.uber.org/mock/gomock"
 )
@@ -24,11 +25,11 @@ func Test_UserController_Create(t *testing.T) {
 
 	t.Run("should return status 201 and the user ID when the user is created successfully", func(t *testing.T) {
 		// given
-		createUserDTO := builder.NewCreateUserDTOBuilder().Build()
+		createUserDTO := build_rest.NewCreateUserDTOBuilder().Build()
 
 		userID := uuid.New().String()
 		hashedPassword := "some-hashed-password"
-		user := builder.NewUserBuilder().
+		user := build_domain.NewUserBuilder().
 			WithID(userID).
 			WithName(createUserDTO.Name).
 			WithSurname(createUserDTO.Surname).
@@ -79,11 +80,11 @@ func Test_UserController_Create(t *testing.T) {
 
 	t.Run("should return internal_server_error with an error message when fail to create user", func(t *testing.T) {
 		// given
-		createUserDTO := builder.NewCreateUserDTOBuilder().Build()
+		createUserDTO := build_rest.NewCreateUserDTOBuilder().Build()
 
 		userID := uuid.New().String()
 		hashedPassword := "some-hashed-password"
-		user := builder.NewUserBuilder().
+		user := build_domain.NewUserBuilder().
 			WithID(userID).
 			WithName(createUserDTO.Name).
 			WithSurname(createUserDTO.Surname).
@@ -135,7 +136,7 @@ func Test_UserController_Create(t *testing.T) {
 
 	t.Run("should return internal_server_error with an error message when fail to generate user ID", func(t *testing.T) {
 		// given
-		createUserDTO := builder.NewCreateUserDTOBuilder().Build()
+		createUserDTO := build_rest.NewCreateUserDTOBuilder().Build()
 
 		hashedPassword := "some-hashed-password"
 
@@ -175,7 +176,7 @@ func Test_UserController_Create(t *testing.T) {
 
 	t.Run("should return internal_server_error with an error message when fail to generate user ID", func(t *testing.T) {
 		// given
-		createUserDTO := builder.NewCreateUserDTOBuilder().Build()
+		createUserDTO := build_rest.NewCreateUserDTOBuilder().Build()
 
 		mockCtrl := gomock.NewController(t)
 
@@ -210,7 +211,7 @@ func Test_UserController_Create(t *testing.T) {
 
 	t.Run("should return bad_request with an error message email is invalid", func(t *testing.T) {
 		// given
-		createUserDTO := builder.NewCreateUserDTOBuilder().WithEmail("invalid_email").Build()
+		createUserDTO := build_rest.NewCreateUserDTOBuilder().WithEmail("invalid_email").Build()
 
 		userController := rest.NewUserController(nil, nil, nil)
 
@@ -249,7 +250,7 @@ func Test_UserController_Create(t *testing.T) {
 
 	t.Run("should return bad_request with an error message password is not equal to password_confirm", func(t *testing.T) {
 		// given
-		createUserDTO := builder.NewCreateUserDTOBuilder().WithPassword("12345678").WithPasswordConfirm("1234567").Build()
+		createUserDTO := build_rest.NewCreateUserDTOBuilder().WithPassword("12345678").WithPasswordConfirm("1234567").Build()
 
 		userController := rest.NewUserController(nil, nil, nil)
 
@@ -288,7 +289,7 @@ func Test_UserController_Create(t *testing.T) {
 
 	t.Run("should return bad_request with an error message password less than 8 characteres", func(t *testing.T) {
 		// given
-		createUserDTO := builder.NewCreateUserDTOBuilder().WithPassword("1234567").WithPasswordConfirm("1234567").Build()
+		createUserDTO := build_rest.NewCreateUserDTOBuilder().WithPassword("1234567").WithPasswordConfirm("1234567").Build()
 
 		userController := rest.NewUserController(nil, nil, nil)
 
@@ -386,7 +387,7 @@ func Test_UserController_GetByID(t *testing.T) {
 	t.Run("should return status 200 and the user when the user is found successfully", func(t *testing.T) {
 		// given
 		userID := uuid.New().String()
-		user := builder.NewUserBuilder().WithID(userID).Build()
+		user := build_domain.NewUserBuilder().WithID(userID).Build()
 
 		mockCtrl := gomock.NewController(t)
 
@@ -412,7 +413,7 @@ func Test_UserController_GetByID(t *testing.T) {
 		var result rest.UserDTO
 		helper.DecodeJSON(t, response.Body, &result)
 
-		expectedUser := builder.NewUserDTOBuilder().
+		expectedUser := build_rest.NewUserDTOBuilder().
 			WithID(user.ID).
 			WithName(user.Name).
 			WithSurname(user.Surname).
@@ -426,7 +427,7 @@ func Test_UserController_GetByID(t *testing.T) {
 	t.Run("should return bad_request with an error message when fails to map user from domain", func(t *testing.T) {
 		// given
 		userID := uuid.New().String()
-		user := builder.NewUserBuilder().WithID(userID).WithName("").Build()
+		user := build_domain.NewUserBuilder().WithID(userID).WithName("").Build()
 
 		mockCtrl := gomock.NewController(t)
 

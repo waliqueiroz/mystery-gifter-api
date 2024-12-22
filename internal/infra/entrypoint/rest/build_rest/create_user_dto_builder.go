@@ -1,4 +1,4 @@
-package builder
+package build_rest
 
 import "github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest"
 

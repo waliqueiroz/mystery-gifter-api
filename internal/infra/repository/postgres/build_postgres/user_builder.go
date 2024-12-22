@@ -1,19 +1,19 @@
-package builder
+package build_postgres
 
 import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/repository/postgres"
 )
 
 type UserBuilder struct {
-	user domain.User
+	user postgres.User
 }
 
 func NewUserBuilder() *UserBuilder {
 	return &UserBuilder{
-		user: domain.User{
+		user: postgres.User{
 			ID:        uuid.New().String(),
 			Name:      "DefaultName",
 			Surname:   "DefaultSurname",
@@ -60,6 +60,6 @@ func (b *UserBuilder) WithUpdatedAt(updatedAt time.Time) *UserBuilder {
 	return b
 }
 
-func (b *UserBuilder) Build() domain.User {
+func (b *UserBuilder) Build() postgres.User {
 	return b.user
 }
