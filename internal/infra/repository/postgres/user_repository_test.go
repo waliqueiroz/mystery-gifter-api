@@ -27,10 +27,10 @@ func Test_userRepository_Create(t *testing.T) {
 		mockedDB := mock_postgres.NewMockDB(mockCtrl)
 		mockedDB.EXPECT().ExecContext(gomock.Any(), query, user.ID, user.Name, user.Surname, user.Email, user.Password, user.CreatedAt, user.UpdatedAt).Return(nil, nil)
 
-		userRespository := postgres.NewUserRepository(mockedDB)
+		userRepository := postgres.NewUserRepository(mockedDB)
 
 		// when
-		err := userRespository.Create(context.Background(), user)
+		err := userRepository.Create(context.Background(), user)
 
 		// then
 		assert.NoError(t, err)
@@ -47,10 +47,10 @@ func Test_userRepository_Create(t *testing.T) {
 		mockedDB := mock_postgres.NewMockDB(mockCtrl)
 		mockedDB.EXPECT().ExecContext(gomock.Any(), query, user.ID, user.Name, user.Surname, user.Email, user.Password, user.CreatedAt, user.UpdatedAt).Return(nil, postgresUniqueViolationError)
 
-		userRespository := postgres.NewUserRepository(mockedDB)
+		userRepository := postgres.NewUserRepository(mockedDB)
 
 		// when
-		err := userRespository.Create(context.Background(), user)
+		err := userRepository.Create(context.Background(), user)
 
 		// then
 		assert.Error(t, err)
@@ -68,10 +68,10 @@ func Test_userRepository_Create(t *testing.T) {
 		mockedDB := mock_postgres.NewMockDB(mockCtrl)
 		mockedDB.EXPECT().ExecContext(gomock.Any(), query, user.ID, user.Name, user.Surname, user.Email, user.Password, user.CreatedAt, user.UpdatedAt).Return(nil, assert.AnError)
 
-		userRespository := postgres.NewUserRepository(mockedDB)
+		userRepository := postgres.NewUserRepository(mockedDB)
 
 		// when
-		err := userRespository.Create(context.Background(), user)
+		err := userRepository.Create(context.Background(), user)
 
 		// then
 		assert.Error(t, err)
@@ -92,10 +92,10 @@ func Test_userRepository_GetByID(t *testing.T) {
 		mockedDB := mock_postgres.NewMockDB(mockCtrl)
 		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), query, userID).SetArg(1, dbUser).Return(nil)
 
-		userRespository := postgres.NewUserRepository(mockedDB)
+		userRepository := postgres.NewUserRepository(mockedDB)
 
 		// when
-		result, err := userRespository.GetByID(context.Background(), userID)
+		result, err := userRepository.GetByID(context.Background(), userID)
 
 		// then
 		assert.NoError(t, err)
@@ -111,10 +111,10 @@ func Test_userRepository_GetByID(t *testing.T) {
 		mockedDB := mock_postgres.NewMockDB(mockCtrl)
 		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), query, userID).Return(sql.ErrNoRows)
 
-		userRespository := postgres.NewUserRepository(mockedDB)
+		userRepository := postgres.NewUserRepository(mockedDB)
 
 		// when
-		result, err := userRespository.GetByID(context.Background(), userID)
+		result, err := userRepository.GetByID(context.Background(), userID)
 
 		// then
 		assert.Nil(t, result)
@@ -133,10 +133,77 @@ func Test_userRepository_GetByID(t *testing.T) {
 		mockedDB := mock_postgres.NewMockDB(mockCtrl)
 		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), query, userID).Return(assert.AnError)
 
-		userRespository := postgres.NewUserRepository(mockedDB)
+		userRepository := postgres.NewUserRepository(mockedDB)
 
 		// when
-		result, err := userRespository.GetByID(context.Background(), userID)
+		result, err := userRepository.GetByID(context.Background(), userID)
+
+		// then
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
+		assert.Nil(t, result)
+	})
+}
+
+func Test_userRepository_GetByEmail(t *testing.T) {
+	t.Run("should get user by email successfully", func(t *testing.T) {
+		// given
+		userID := uuid.New().String()
+		email := "test@mail.com"
+		now := time.Now().UTC()
+		dbUser := build_postgres.NewUserBuilder().WithID(userID).WithEmail(email).WithCreatedAt(now).WithUpdatedAt(now).Build()
+		domainUser := build_domain.NewUserBuilder().WithID(userID).WithEmail(email).WithCreatedAt(now).WithUpdatedAt(now).Build()
+		query := `SELECT * FROM users WHERE email = $1`
+
+		mockCtrl := gomock.NewController(t)
+		mockedDB := mock_postgres.NewMockDB(mockCtrl)
+		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), query, email).SetArg(1, dbUser).Return(nil)
+
+		userRepository := postgres.NewUserRepository(mockedDB)
+
+		// when
+		result, err := userRepository.GetByEmail(context.Background(), email)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, domainUser, *result)
+	})
+
+	t.Run("should return a resource not found error when user is not found", func(t *testing.T) {
+		// given
+		email := "test@mail.com"
+		query := `SELECT * FROM users WHERE email = $1`
+
+		mockCtrl := gomock.NewController(t)
+		mockedDB := mock_postgres.NewMockDB(mockCtrl)
+		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), query, email).Return(sql.ErrNoRows)
+
+		userRepository := postgres.NewUserRepository(mockedDB)
+
+		// when
+		result, err := userRepository.GetByEmail(context.Background(), email)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		var expectedError *domain.ResourceNotFoundError
+		assert.ErrorAs(t, err, &expectedError)
+		assert.EqualError(t, expectedError, "user not found")
+	})
+
+	t.Run("should fail when db return any other error", func(t *testing.T) {
+		// given
+		email := "test@mail.com"
+		query := `SELECT * FROM users WHERE email = $1`
+
+		mockCtrl := gomock.NewController(t)
+		mockedDB := mock_postgres.NewMockDB(mockCtrl)
+		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), query, email).Return(assert.AnError)
+
+		userRepository := postgres.NewUserRepository(mockedDB)
+
+		// when
+		result, err := userRepository.GetByEmail(context.Background(), email)
 
 		// then
 		assert.Error(t, err)

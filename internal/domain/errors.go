@@ -75,7 +75,7 @@ type UnauthorizedError struct {
 }
 
 func NewUnauthorizedError(message string) error {
-	return &ResourceNotFoundError{
+	return &UnauthorizedError{
 		customError: customError{
 			message:    message,
 			statusCode: http.StatusUnauthorized,

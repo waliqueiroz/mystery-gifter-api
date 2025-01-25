@@ -1,5 +1,7 @@
 package application
 
+//go:generate go run go.uber.org/mock/mockgen -destination mock_application/auth_service.go . AuthService
+
 import (
 	"context"
 	"time"
@@ -28,6 +30,10 @@ func NewAuthService(sessionDuration time.Duration, userRepository domain.UserRep
 }
 
 func (s *authService) Login(ctx context.Context, credentials domain.Credentials) (*domain.AuthSession, error) {
+	if err := credentials.Validate(); err != nil {
+		return nil, err
+	}
+
 	user, err := s.userRepository.GetByEmail(ctx, credentials.Email)
 	if err != nil {
 		return nil, domain.NewUnauthorizedError("invalid credentials")
