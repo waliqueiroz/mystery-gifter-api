@@ -1,7 +1,7 @@
 package security
 
 import (
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 )
 
