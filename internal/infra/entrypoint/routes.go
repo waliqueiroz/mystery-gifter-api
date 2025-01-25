@@ -1,7 +1,7 @@
 package entrypoint
 
 import (
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest"
 )
 

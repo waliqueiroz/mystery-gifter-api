@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 )
 
@@ -14,7 +14,7 @@ type WebError struct {
 	Details any    `json:"details,omitempty"`
 }
 
-func CustomErrorHandler(ctx fiber.Ctx, err error) error {
+func CustomErrorHandler(ctx *fiber.Ctx, err error) error {
 
 	switch e := err.(type) {
 	case *fiber.Error:
@@ -27,7 +27,7 @@ func CustomErrorHandler(ctx fiber.Ctx, err error) error {
 
 }
 
-func sendError(ctx fiber.Ctx, statusCode int, message string, details any) error {
+func sendError(ctx *fiber.Ctx, statusCode int, message string, details any) error {
 	return ctx.Status(statusCode).JSON(WebError{
 		Code:    strings.ReplaceAll(strings.ToLower(http.StatusText(statusCode)), " ", "_"),
 		Message: message,

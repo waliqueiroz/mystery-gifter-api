@@ -16,6 +16,9 @@ func TestLoad(t *testing.T) {
 		os.Setenv("DB_DATABASE", "test_db")
 		os.Setenv("DB_USERNAME", "test_user")
 		os.Setenv("DB_PASSWORD", "test_pass")
+		os.Setenv("AUTH_SECRET_KEY", "test_secret")
+		os.Setenv("AUTH_SESSION_DURATION", "1h")
+
 		defer os.Clearenv()
 
 		// when

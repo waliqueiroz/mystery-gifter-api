@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint"
@@ -19,7 +19,7 @@ func TestCustomErrorHandler(t *testing.T) {
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
 		})
-		app.Get("/test", func(c fiber.Ctx) error {
+		app.Get("/test", func(c *fiber.Ctx) error {
 			return fiber.NewError(fiber.StatusUnprocessableEntity, "unprocessable entity")
 		})
 
@@ -52,7 +52,7 @@ func TestCustomErrorHandler(t *testing.T) {
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
 		})
-		app.Get("/test", func(c fiber.Ctx) error {
+		app.Get("/test", func(c *fiber.Ctx) error {
 			return validationErr
 		})
 
@@ -87,7 +87,7 @@ func TestCustomErrorHandler(t *testing.T) {
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
 		})
-		app.Get("/test", func(c fiber.Ctx) error {
+		app.Get("/test", func(c *fiber.Ctx) error {
 			return resourceNotFoundErr
 		})
 
@@ -114,7 +114,7 @@ func TestCustomErrorHandler(t *testing.T) {
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
 		})
-		app.Get("/test", func(c fiber.Ctx) error {
+		app.Get("/test", func(c *fiber.Ctx) error {
 			return conflictErr
 		})
 
@@ -140,7 +140,7 @@ func TestCustomErrorHandler(t *testing.T) {
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
 		})
-		app.Get("/test", func(c fiber.Ctx) error {
+		app.Get("/test", func(c *fiber.Ctx) error {
 			return errors.New("unexpected error")
 		})
 

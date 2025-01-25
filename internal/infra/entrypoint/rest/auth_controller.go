@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/application"
 )
 
@@ -15,10 +15,10 @@ func NewAuthController(authService application.AuthService) *AuthController {
 	}
 }
 
-func (c *AuthController) Login(ctx fiber.Ctx) error {
+func (c *AuthController) Login(ctx *fiber.Ctx) error {
 	var credentialsDTO CredentialsDTO
 
-	if err := ctx.Bind().Body(&credentialsDTO); err != nil {
+	if err := ctx.BodyParser(&credentialsDTO); err != nil {
 		return fiber.NewError(fiber.StatusUnprocessableEntity)
 	}
 
