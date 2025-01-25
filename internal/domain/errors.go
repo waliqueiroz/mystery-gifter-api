@@ -34,12 +34,12 @@ type ValidationError struct {
 	customError
 }
 
-func NewValidationError(details validator.ValidationErrors) error {
+func NewValidationError(errs validator.ValidationErrors) error {
 	return &ValidationError{
 		customError: customError{
 			message:    "validation failed",
 			statusCode: http.StatusBadRequest,
-			details:    details,
+			details:    errs,
 		},
 	}
 }
@@ -66,6 +66,19 @@ func NewResourceNotFoundError(message string) error {
 		customError: customError{
 			message:    message,
 			statusCode: http.StatusNotFound,
+		},
+	}
+}
+
+type UnauthorizedError struct {
+	customError
+}
+
+func NewUnauthorizedError(message string) error {
+	return &ResourceNotFoundError{
+		customError: customError{
+			message:    message,
+			statusCode: http.StatusUnauthorized,
 		},
 	}
 }

@@ -69,3 +69,25 @@ func (r *userRepository) GetByID(ctx context.Context, userID string) (*domain.Us
 
 	return mapUserToDomain(user)
 }
+
+func (r *userRepository) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
+	query, args, err := squirrel.Select("*").
+		From("users").
+		Where(squirrel.Eq{"email": email}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	var user User
+	err = r.db.GetContext(ctx, &user, query, args...)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, domain.NewResourceNotFoundError("user not found")
+		}
+		return nil, err
+	}
+
+	return mapUserToDomain(user)
+}

@@ -46,12 +46,16 @@ func Run() error {
 
 	uuidIdentityGenerator := identity.NewUUIDIdentityGenerator(uuid.NewV7)
 	bcryptPasswordManager := security.NewBcryptPasswordManager()
+	JWTTokenManager := security.NewJWTTokenManager(cfg.Auth.SecretKey)
 
 	userRepository := postgres.NewUserRepository(db)
 	userService := application.NewUserService(userRepository)
 	userController := rest.NewUserController(userService, uuidIdentityGenerator, bcryptPasswordManager)
 
-	entrypoint.CreateRoutes(app, userController)
+	authService := application.NewAuthService(cfg.Auth.SessionDuration, userRepository, bcryptPasswordManager, JWTTokenManager)
+	authController := rest.NewAuthController(authService)
+
+	entrypoint.CreateRoutes(app, userController, authController)
 
 	return app.Listen(fmt.Sprintf(":%d", 8080))
 }

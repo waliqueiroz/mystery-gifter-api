@@ -1,9 +1,14 @@
 package config
 
-import "github.com/caarlos0/env/v11"
+import (
+	"time"
+
+	"github.com/caarlos0/env/v11"
+)
 
 type Config struct {
 	Database DatabaseConfig
+	Auth     AuthConfig
 }
 
 type DatabaseConfig struct {
@@ -12,6 +17,11 @@ type DatabaseConfig struct {
 	Database string `env:"DB_DATABASE"`
 	Username string `env:"DB_USERNAME"`
 	Password string `env:"DB_PASSWORD"`
+}
+
+type AuthConfig struct {
+	SecretKey       string        `env:"AUTH_SECRET_KEY"`
+	SessionDuration time.Duration `env:"AUTH_SESSION_DURATION"`
 }
 
 func Load() (*Config, error) {

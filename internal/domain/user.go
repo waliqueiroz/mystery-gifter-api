@@ -12,6 +12,7 @@ import (
 type UserRepository interface {
 	Create(ctx context.Context, user User) error
 	GetByID(ctx context.Context, userID string) (*User, error)
+	GetByEmail(ctx context.Context, email string) (*User, error)
 	// Update(ctx context.Context, user User) error
 }
 
@@ -43,7 +44,7 @@ func NewUser(identity IdentityGenerator, passwordManager PasswordManager, name, 
 		Name:      name,
 		Surname:   surname,
 		Email:     email,
-		Password:  string(hashedPassword),
+		Password:  hashedPassword,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
