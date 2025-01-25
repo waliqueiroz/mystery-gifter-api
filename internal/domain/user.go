@@ -54,7 +54,6 @@ func NewUser(identity IdentityGenerator, passwordManager PasswordManager, name, 
 	}
 
 	return &user, err
-
 }
 
 func (u *User) Validate() error {
