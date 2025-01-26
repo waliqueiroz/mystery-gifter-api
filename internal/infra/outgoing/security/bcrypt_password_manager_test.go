@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/repository/security"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/outgoing/security"
 )
 
 func Test_BcryptPasswordManager_Hash(t *testing.T) {

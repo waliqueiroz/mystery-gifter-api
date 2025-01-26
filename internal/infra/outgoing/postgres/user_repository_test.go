@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain/build_domain"
-	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/repository/postgres"
-	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/repository/postgres/build_postgres"
-	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/repository/postgres/mock_postgres"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/outgoing/postgres"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/outgoing/postgres/build_postgres"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/outgoing/postgres/mock_postgres"
 	"go.uber.org/mock/gomock"
 )
 

@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/repository/postgres"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/outgoing/postgres"
 )
 
 type UserBuilder struct {

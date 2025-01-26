@@ -13,9 +13,9 @@ import (
 	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/config"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest"
-	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/repository/identity"
-	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/repository/postgres"
-	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/repository/security"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/outgoing/identity"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/outgoing/postgres"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/outgoing/security"
 )
 
 func Run() error {

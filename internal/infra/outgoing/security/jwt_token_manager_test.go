@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
-	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/repository/security"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/outgoing/security"
 )
 
 func Test_JWTTokenManager_Create(t *testing.T) {

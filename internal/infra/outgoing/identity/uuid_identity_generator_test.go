@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/repository/identity"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/outgoing/identity"
 )
 
 func Test_UUIDIdentityGenerator_Generate(t *testing.T) {
