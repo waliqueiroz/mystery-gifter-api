@@ -55,9 +55,9 @@ func Run() error {
 	authService := application.NewAuthService(cfg.Auth.SessionDuration, userRepository, bcryptPasswordManager, JWTTokenManager)
 	authController := rest.NewAuthController(authService)
 
-	authMiddlware := entrypoint.NewAuthMiddleware(cfg.Auth.SecretKey)
+	authMiddleware := entrypoint.NewAuthMiddleware(cfg.Auth.SecretKey)
 
-	entrypoint.CreateRoutes(app, authMiddlware, userController, authController)
+	entrypoint.CreateRoutes(app, authMiddleware, userController, authController)
 
 	return app.Listen(fmt.Sprintf(":%d", 8080))
 }
