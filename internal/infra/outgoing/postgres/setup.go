@@ -18,6 +18,8 @@ import (
 	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/config"
 )
 
+const POSTGRES_UNIQUE_VIOLATION = "unique_violation"
+
 type DB interface {
 	BeginTxx(ctx context.Context, opts *sql.TxOptions) (*sqlx.Tx, error)
 	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
@@ -26,7 +28,7 @@ type DB interface {
 }
 
 func Connect(databaseConfig config.DatabaseConfig) (*sqlx.DB, error) {
-	dataSourceName := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+	dataSourceName := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=UTC",
 		databaseConfig.Host,
 		databaseConfig.Port,
 		databaseConfig.Username,
@@ -52,7 +54,7 @@ func Migrate(db *sql.DB) error {
 		return err
 	}
 
-	m, err := migrate.NewWithDatabaseInstance("file://./migrations", "postgres", driver)
+	m, err := migrate.NewWithDatabaseInstance("file://./internal/infra/outgoing/postgres/migrations", "postgres", driver)
 	if err != nil {
 		return err
 	}

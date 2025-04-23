@@ -7,16 +7,16 @@ import (
 )
 
 type UserController struct {
-	userService     application.UserService
-	identity        domain.IdentityGenerator
-	passwordManager domain.PasswordManager
+	userService       application.UserService
+	identityGenerator domain.IdentityGenerator
+	passwordManager   domain.PasswordManager
 }
 
-func NewUserController(userService application.UserService, identity domain.IdentityGenerator, passwordManager domain.PasswordManager) *UserController {
+func NewUserController(userService application.UserService, identityGenerator domain.IdentityGenerator, passwordManager domain.PasswordManager) *UserController {
 	return &UserController{
-		userService:     userService,
-		identity:        identity,
-		passwordManager: passwordManager,
+		userService:       userService,
+		identityGenerator: identityGenerator,
+		passwordManager:   passwordManager,
 	}
 }
 
@@ -27,7 +27,7 @@ func (c *UserController) Create(ctx *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusUnprocessableEntity)
 	}
 
-	user, err := mapCreateUserDTOToDomain(c.identity, c.passwordManager, createUserDTO)
+	user, err := mapCreateUserDTOToDomain(c.identityGenerator, c.passwordManager, createUserDTO)
 	if err != nil {
 		return err
 	}

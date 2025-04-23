@@ -4,14 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 )
-
-const POSTGRES_UNIQUE_VIOLATION = "unique_violation"
 
 type userRepository struct {
 	db DB
@@ -30,19 +29,19 @@ func (r *userRepository) Create(ctx context.Context, user domain.User) error {
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {
-		return err
+		return fmt.Errorf("error building users insert query: %w", err)
 	}
 
 	_, err = r.db.ExecContext(ctx, query, args...)
 	if err != nil {
-		log.Println("error creating user", err)
+		log.Println("error creating user:", err)
 
 		var currentError *pq.Error
 		if errors.As(err, &currentError) && currentError.Code.Name() == POSTGRES_UNIQUE_VIOLATION {
 			return domain.NewConflictError("the email is already registered")
 		}
 
-		return err
+		return fmt.Errorf("error inserting user: %w", err)
 	}
 
 	return nil
@@ -55,7 +54,7 @@ func (r *userRepository) GetByID(ctx context.Context, userID string) (*domain.Us
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error building users select query: %w", err)
 	}
 
 	var user User
@@ -64,7 +63,7 @@ func (r *userRepository) GetByID(ctx context.Context, userID string) (*domain.Us
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.NewResourceNotFoundError("user not found")
 		}
-		return nil, err
+		return nil, fmt.Errorf("error getting user: %w", err)
 	}
 
 	return mapUserToDomain(user)
@@ -77,7 +76,7 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*domain.
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error building users select query: %w", err)
 	}
 
 	var user User
@@ -86,7 +85,7 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*domain.
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.NewResourceNotFoundError("user not found")
 		}
-		return nil, err
+		return nil, fmt.Errorf("error getting user by email: %w", err)
 	}
 
 	return mapUserToDomain(user)

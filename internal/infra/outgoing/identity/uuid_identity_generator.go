@@ -1,6 +1,8 @@
 package identity
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 )
@@ -20,7 +22,7 @@ func NewUUIDIdentityGenerator(newUUID IdentityFunc) domain.IdentityGenerator {
 func (g *UUIDIdentityGenerator) Generate() (string, error) {
 	id, err := g.newUUID()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error generating UUID: %w", err)
 	}
 	return id.String(), nil
 }

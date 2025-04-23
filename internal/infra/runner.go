@@ -52,12 +52,16 @@ func Run() error {
 	userService := application.NewUserService(userRepository)
 	userController := rest.NewUserController(userService, uuidIdentityGenerator, bcryptPasswordManager)
 
+	groupRepository := postgres.NewGroupRepository(db)
+	groupService := application.NewGroupService(groupRepository, userService, uuidIdentityGenerator)
+	groupController := rest.NewGroupController(groupService, JWTTokenManager)
+
 	authService := application.NewAuthService(cfg.Auth.SessionDuration, userRepository, bcryptPasswordManager, JWTTokenManager)
 	authController := rest.NewAuthController(authService)
 
 	authMiddleware := entrypoint.NewAuthMiddleware(cfg.Auth.SecretKey)
 
-	entrypoint.CreateRoutes(app, authMiddleware, userController, authController)
+	entrypoint.CreateRoutes(app, authMiddleware, userController, authController, groupController)
 
 	return app.Listen(fmt.Sprintf(":%d", 8080))
 }

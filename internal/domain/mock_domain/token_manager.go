@@ -54,6 +54,21 @@ func (mr *MockTokenManagerMockRecorder) Create(userID, expiresIn any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTokenManager)(nil).Create), userID, expiresIn)
 }
 
+// ExtractUserID mocks base method.
+func (m *MockTokenManager) ExtractUserID(token any) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExtractUserID", token)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ExtractUserID indicates an expected call of ExtractUserID.
+func (mr *MockTokenManagerMockRecorder) ExtractUserID(token any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExtractUserID", reflect.TypeOf((*MockTokenManager)(nil).ExtractUserID), token)
+}
+
 // GetTokenType mocks base method.
 func (m *MockTokenManager) GetTokenType() string {
 	m.ctrl.T.Helper()
