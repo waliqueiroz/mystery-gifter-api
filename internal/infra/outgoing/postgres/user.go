@@ -16,20 +16,35 @@ type User struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-func mapUserToDomain(model User) (*domain.User, error) {
-	user := domain.User{
-		ID:        model.ID,
-		Name:      model.Name,
-		Surname:   model.Surname,
-		Email:     model.Email,
-		Password:  model.Password,
-		CreatedAt: model.CreatedAt,
-		UpdatedAt: model.UpdatedAt,
+func mapUserToDomain(user User) (*domain.User, error) {
+	domainUser := domain.User{
+		ID:        user.ID,
+		Name:      user.Name,
+		Surname:   user.Surname,
+		Email:     user.Email,
+		Password:  user.Password,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}
 
-	if err := user.Validate(); err != nil {
+	if err := domainUser.Validate(); err != nil {
 		return nil, err
 	}
 
-	return &user, nil
+	return &domainUser, nil
+}
+
+func mapUsersToDomain(users []User) ([]domain.User, error) {
+	domainUsers := make([]domain.User, 0, len(users))
+
+	for _, model := range users {
+		user, err := mapUserToDomain(model)
+		if err != nil {
+			return nil, err
+		}
+
+		domainUsers = append(domainUsers, *user)
+	}
+
+	return domainUsers, nil
 }

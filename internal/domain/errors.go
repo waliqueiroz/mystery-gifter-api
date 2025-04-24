@@ -82,3 +82,16 @@ func NewUnauthorizedError(message string) error {
 		},
 	}
 }
+
+type ForbiddenError struct {
+	customError
+}
+
+func NewForbiddenError(message string) error {
+	return &ForbiddenError{
+		customError: customError{
+			message:    message,
+			statusCode: http.StatusForbidden,
+		},
+	}
+}

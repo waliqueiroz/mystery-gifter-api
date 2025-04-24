@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -73,4 +74,122 @@ func (r *groupRepository) Create(ctx context.Context, group domain.Group) error 
 	}
 
 	return nil
+}
+
+func (r *groupRepository) Update(ctx context.Context, group domain.Group) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("error beginning transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	query, args, err := squirrel.Update("groups").
+		Set("name", group.Name).
+		Set("updated_at", group.UpdatedAt).
+		Where(squirrel.Eq{"id": group.ID}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("error building group update query: %w", err)
+	}
+
+	result, err := tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		log.Println("error updating group:", err)
+
+		var currentError *pq.Error
+		if errors.As(err, &currentError) && currentError.Code.Name() == POSTGRES_UNIQUE_VIOLATION {
+			return domain.NewConflictError("you already have a group with this name")
+		}
+
+		return fmt.Errorf("error updating group: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error getting rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return domain.NewResourceNotFoundError("group not found")
+	}
+
+	// Remove existing group users
+	query, args, err = squirrel.Delete("group_users").
+		Where(squirrel.Eq{"group_id": group.ID}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("error building group_users delete query: %w", err)
+	}
+
+	_, err = tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("error deleting group users: %w", err)
+	}
+
+	// Insert new group users
+	groupUsersInsert := squirrel.Insert("group_users").
+		Columns("group_id", "user_id", "created_at").
+		PlaceholderFormat(squirrel.Dollar)
+
+	for _, user := range group.Users {
+		groupUsersInsert = groupUsersInsert.Values(group.ID, user.ID, group.UpdatedAt)
+	}
+
+	query, args, err = groupUsersInsert.ToSql()
+	if err != nil {
+		return fmt.Errorf("error building group_users insert query: %w", err)
+	}
+
+	_, err = tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		log.Println("error inserting group users:", err)
+		return fmt.Errorf("error inserting group users: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("error committing transaction: %w", err)
+	}
+
+	return nil
+}
+
+func (r *groupRepository) GetByID(ctx context.Context, groupID string) (*domain.Group, error) {
+	query, args, err := squirrel.Select("g.*").
+		From("groups g").
+		Where(squirrel.Eq{"g.id": groupID}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("error building group select query: %w", err)
+	}
+
+	var group Group
+	err = r.db.GetContext(ctx, &group, query, args...)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, domain.NewResourceNotFoundError("group not found")
+		}
+		return nil, fmt.Errorf("error getting group: %w", err)
+	}
+
+	// Get group users
+	query, args, err = squirrel.Select("u.*").
+		From("users u").
+		Join("group_users gu ON gu.user_id = u.id").
+		Where(squirrel.Eq{"gu.group_id": groupID}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("error building group users select query: %w", err)
+	}
+
+	var users []User
+	err = r.db.SelectContext(ctx, &users, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("error getting group users: %w", err)
+	}
+
+	return mapGroupToDomain(group, users)
 }

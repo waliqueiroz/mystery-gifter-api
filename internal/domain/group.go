@@ -13,6 +13,8 @@ import (
 
 type GroupRepository interface {
 	Create(ctx context.Context, group Group) error
+	Update(ctx context.Context, group Group) error
+	GetByID(ctx context.Context, groupID string) (*Group, error)
 }
 
 type Group struct {
@@ -56,29 +58,39 @@ func (g *Group) Validate() error {
 	return nil
 }
 
-func (g *Group) AddUser(user User) {
+func (g *Group) AddUser(requesterID string, targetUser User) error {
+	if requesterID != g.OwnerID && requesterID != targetUser.ID {
+		return NewForbiddenError("only the group owner can add other users")
+	}
+
 	for _, existingUser := range g.Users {
-		if existingUser.ID == user.ID {
-			return
+		if existingUser.ID == targetUser.ID {
+			return nil
 		}
 	}
 
-	g.Users = append(g.Users, user)
+	g.Users = append(g.Users, targetUser)
 	g.UpdatedAt = time.Now()
+
+	return g.Validate()
 }
 
-func (g *Group) RemoveUser(userID string) error {
-	if g.OwnerID == userID {
-		return NewConflictError("cannot remove group owner")
+func (g *Group) RemoveUser(requesterID, targetUserID string) error {
+	if requesterID != g.OwnerID && requesterID != targetUserID {
+		return NewForbiddenError("only the group owner can remove other users")
+	}
+
+	if g.OwnerID == targetUserID {
+		return NewForbiddenError("cannot remove group owner")
 	}
 
 	for i, user := range g.Users {
-		if user.ID == userID {
+		if user.ID == targetUserID {
 			g.Users = slices.Delete(g.Users, i, i+1)
 			g.UpdatedAt = time.Now()
 			break
 		}
 	}
 
-	return nil
+	return g.Validate()
 }

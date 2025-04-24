@@ -10,6 +10,9 @@ import (
 
 type GroupService interface {
 	Create(ctx context.Context, name, ownerID string) (*domain.Group, error)
+	GetByID(ctx context.Context, groupID string) (*domain.Group, error)
+	AddUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error)
+	RemoveUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error)
 }
 
 type groupService struct {
@@ -42,6 +45,56 @@ func (s *groupService) Create(ctx context.Context, name, ownerID string) (*domai
 	}
 
 	err = s.groupRepository.Create(ctx, *group)
+	if err != nil {
+		return nil, err
+	}
+
+	return group, nil
+}
+
+func (s *groupService) GetByID(ctx context.Context, groupID string) (*domain.Group, error) {
+	group, err := s.groupRepository.GetByID(ctx, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	return group, nil
+}
+
+func (s *groupService) AddUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error) {
+	group, err := s.groupRepository.GetByID(ctx, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	targetUser, err := s.userService.GetByID(ctx, targetUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := group.AddUser(requesterID, *targetUser); err != nil {
+		return nil, err
+	}
+
+	err = s.groupRepository.Update(ctx, *group)
+	if err != nil {
+		return nil, err
+	}
+
+	return group, nil
+}
+
+func (s *groupService) RemoveUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error) {
+	group, err := s.groupRepository.GetByID(ctx, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := group.RemoveUser(requesterID, targetUserID); err != nil {
+		return nil, err
+	}
+
+	err = s.groupRepository.Update(ctx, *group)
 	if err != nil {
 		return nil, err
 	}

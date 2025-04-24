@@ -67,3 +67,28 @@ func mapUserFromDomain(user domain.User) (*UserDTO, error) {
 
 	return &userDTO, nil
 }
+
+func mapUsersFromDomain(users []domain.User) ([]UserDTO, error) {
+	userDTOs := make([]UserDTO, 0, len(users))
+
+	for _, user := range users {
+		userDTO, err := mapUserFromDomain(user)
+		if err != nil {
+			return nil, err
+		}
+		userDTOs = append(userDTOs, *userDTO)
+	}
+
+	return userDTOs, nil
+}
+
+type AddUserDTO struct {
+	UserID string `json:"user_id" validate:"required,uuid"`
+}
+
+func (a *AddUserDTO) Validate() error {
+	if errs := validator.Validate(a); len(errs) > 0 {
+		return domain.NewValidationError(errs)
+	}
+	return nil
+}
