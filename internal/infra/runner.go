@@ -33,7 +33,7 @@ func Run() error {
 
 	defer db.Close()
 
-	err = postgres.Migrate(db.DB)
+	err = postgres.Migrate(db.GetDB())
 	if err != nil {
 		return err
 	}

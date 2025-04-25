@@ -1,6 +1,7 @@
 package postgres
 
 //go:generate go run go.uber.org/mock/mockgen -destination mock_postgres/db.go . DB
+//go:generate go run go.uber.org/mock/mockgen -destination mock_postgres/tx.go . TX
 
 import (
 	"context"
@@ -20,14 +21,47 @@ import (
 
 const POSTGRES_UNIQUE_VIOLATION = "unique_violation"
 
-type DB interface {
-	BeginTxx(ctx context.Context, opts *sql.TxOptions) (*sqlx.Tx, error)
+type QueryExecutor interface {
 	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
-	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
-	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+	GetContext(ctx context.Context, dest any, query string, args ...any) error
+	SelectContext(ctx context.Context, dest any, query string, args ...any) error
 }
 
-func Connect(databaseConfig config.DatabaseConfig) (*sqlx.DB, error) {
+type TX interface {
+	QueryExecutor
+	Commit() error
+	Rollback() error
+}
+
+type DB interface {
+	QueryExecutor
+	Close() error
+	BeginTxx(ctx context.Context, opts *sql.TxOptions) (TX, error)
+	GetDB() *sql.DB
+}
+
+// wrapper para sqlx.DB implementar a interface DB
+type sqlxDB struct {
+	*sqlx.DB
+}
+
+func NewDB(db *sqlx.DB) DB {
+	return &sqlxDB{db}
+}
+
+func (db *sqlxDB) BeginTxx(ctx context.Context, opts *sql.TxOptions) (TX, error) {
+	tx, err := db.DB.BeginTxx(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
+
+func (db *sqlxDB) GetDB() *sql.DB {
+	return db.DB.DB
+}
+
+func Connect(databaseConfig config.DatabaseConfig) (DB, error) {
 	dataSourceName := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=UTC",
 		databaseConfig.Host,
 		databaseConfig.Port,
@@ -45,7 +79,7 @@ func Connect(databaseConfig config.DatabaseConfig) (*sqlx.DB, error) {
 	db.SetMaxIdleConns(50)
 	db.SetConnMaxLifetime(10 * time.Minute)
 
-	return db, nil
+	return NewDB(db), nil
 }
 
 func Migrate(db *sql.DB) error {

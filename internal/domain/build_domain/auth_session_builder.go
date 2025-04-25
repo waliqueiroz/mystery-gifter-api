@@ -3,7 +3,6 @@ package build_domain
 import (
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 )
 
@@ -12,17 +11,11 @@ type AuthSessionBuilder struct {
 }
 
 func NewAuthSessionBuilder() *AuthSessionBuilder {
+	user := NewUserBuilder().Build()
+
 	return &AuthSessionBuilder{
 		authSession: domain.AuthSession{
-			User: domain.User{
-				ID:        uuid.New().String(),
-				Name:      "DefaultName",
-				Surname:   "DefaultSurname",
-				Email:     "default@example.com",
-				Password:  "defaultpassword",
-				CreatedAt: time.Now().UTC(),
-				UpdatedAt: time.Now().UTC(),
-			},
+			User:        user,
 			AccessToken: "DefaultAccessToken",
 			TokenType:   "Bearer",
 			ExpiresIn:   time.Now().Add(time.Hour * 24).Unix(), // Expires in 24 hours by default

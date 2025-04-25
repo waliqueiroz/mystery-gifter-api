@@ -20,7 +20,7 @@ type GroupRepository interface {
 type Group struct {
 	ID        string    `validate:"required,uuid"`
 	Name      string    `validate:"required"`
-	Users     []User    `validate:"required"`
+	Users     []User    `validate:"required,min=1"`
 	OwnerID   string    `validate:"required,uuid"`
 	CreatedAt time.Time `validate:"required"`
 	UpdatedAt time.Time `validate:"required"`

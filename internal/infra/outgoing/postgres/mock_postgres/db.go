@@ -14,7 +14,7 @@ import (
 	sql "database/sql"
 	reflect "reflect"
 
-	sqlx "github.com/jmoiron/sqlx"
+	postgres "github.com/waliqueiroz/mystery-gifter-api/internal/infra/outgoing/postgres"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -43,10 +43,10 @@ func (m *MockDB) EXPECT() *MockDBMockRecorder {
 }
 
 // BeginTxx mocks base method.
-func (m *MockDB) BeginTxx(ctx context.Context, opts *sql.TxOptions) (*sqlx.Tx, error) {
+func (m *MockDB) BeginTxx(ctx context.Context, opts *sql.TxOptions) (postgres.TX, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BeginTxx", ctx, opts)
-	ret0, _ := ret[0].(*sqlx.Tx)
+	ret0, _ := ret[0].(postgres.TX)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -55,6 +55,20 @@ func (m *MockDB) BeginTxx(ctx context.Context, opts *sql.TxOptions) (*sqlx.Tx, e
 func (mr *MockDBMockRecorder) BeginTxx(ctx, opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BeginTxx", reflect.TypeOf((*MockDB)(nil).BeginTxx), ctx, opts)
+}
+
+// Close mocks base method.
+func (m *MockDB) Close() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Close")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Close indicates an expected call of Close.
+func (mr *MockDBMockRecorder) Close() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockDB)(nil).Close))
 }
 
 // ExecContext mocks base method.
@@ -94,6 +108,20 @@ func (mr *MockDBMockRecorder) GetContext(ctx, dest, query any, args ...any) *gom
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, dest, query}, args...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContext", reflect.TypeOf((*MockDB)(nil).GetContext), varargs...)
+}
+
+// GetDB mocks base method.
+func (m *MockDB) GetDB() *sql.DB {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDB")
+	ret0, _ := ret[0].(*sql.DB)
+	return ret0
+}
+
+// GetDB indicates an expected call of GetDB.
+func (mr *MockDBMockRecorder) GetDB() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDB", reflect.TypeOf((*MockDB)(nil).GetDB))
 }
 
 // SelectContext mocks base method.
