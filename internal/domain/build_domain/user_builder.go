@@ -12,6 +12,8 @@ type UserBuilder struct {
 }
 
 func NewUserBuilder() *UserBuilder {
+	now := time.Now().UTC()
+
 	return &UserBuilder{
 		user: domain.User{
 			ID:        uuid.New().String(),
@@ -19,8 +21,8 @@ func NewUserBuilder() *UserBuilder {
 			Surname:   "DefaultSurname",
 			Email:     "default@example.com",
 			Password:  "defaultpassword",
-			CreatedAt: time.Now().UTC(),
-			UpdatedAt: time.Now().UTC(),
+			CreatedAt: now,
+			UpdatedAt: now,
 		},
 	}
 }

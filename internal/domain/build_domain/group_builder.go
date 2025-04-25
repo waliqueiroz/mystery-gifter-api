@@ -13,7 +13,7 @@ type GroupBuilder struct {
 
 func NewGroupBuilder() *GroupBuilder {
 	user := NewUserBuilder().Build()
-	now := time.Now()
+	now := time.Now().UTC()
 
 	return &GroupBuilder{
 		group: domain.Group{

@@ -174,7 +174,7 @@ func Test_UserController_Create(t *testing.T) {
 		assert.Equal(t, assert.AnError.Error(), result.Message)
 	})
 
-	t.Run("should return internal_server_error with an error message when fail to generate user ID", func(t *testing.T) {
+	t.Run("should return internal_server_error with an error message when fail to hash password", func(t *testing.T) {
 		// given
 		createUserDTO := build_rest.NewCreateUserDTOBuilder().Build()
 
@@ -248,7 +248,7 @@ func Test_UserController_Create(t *testing.T) {
 		assert.Equal(t, "email must be a valid email address", detail["error"])
 	})
 
-	t.Run("should return bad_request with an error message password is not equal to password_confirm", func(t *testing.T) {
+	t.Run("should return bad_request with an error message when password is not equal to password_confirm", func(t *testing.T) {
 		// given
 		createUserDTO := build_rest.NewCreateUserDTOBuilder().WithPassword("12345678").WithPasswordConfirm("1234567").Build()
 
@@ -287,7 +287,7 @@ func Test_UserController_Create(t *testing.T) {
 		assert.Equal(t, "password must be equal to PasswordConfirm", detail["error"])
 	})
 
-	t.Run("should return bad_request with an error message password less than 8 characteres", func(t *testing.T) {
+	t.Run("should return bad_request with an error when message password less than 8 characters", func(t *testing.T) {
 		// given
 		createUserDTO := build_rest.NewCreateUserDTOBuilder().WithPassword("1234567").WithPasswordConfirm("1234567").Build()
 
