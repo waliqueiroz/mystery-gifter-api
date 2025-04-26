@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain/build_domain"
+	"github.com/waliqueiroz/mystery-gifter-api/pkg/validator"
 )
 
 func Test_NewCredentials(t *testing.T) {
@@ -37,6 +38,10 @@ func Test_NewCredentials(t *testing.T) {
 		var validationErr *domain.ValidationError
 		assert.ErrorAs(t, err, &validationErr)
 		assert.Nil(t, credentials)
+		messages := validationErr.Details().(validator.ValidationErrors)
+		assert.Len(t, messages, 1)
+		assert.Equal(t, "Email", messages[0].Field)
+		assert.Equal(t, "Email is a required field", messages[0].Error)
 	})
 
 	t.Run("should return validation error when password is empty", func(t *testing.T) {
@@ -52,6 +57,29 @@ func Test_NewCredentials(t *testing.T) {
 		var validationErr *domain.ValidationError
 		assert.ErrorAs(t, err, &validationErr)
 		assert.Nil(t, credentials)
+		messages := validationErr.Details().(validator.ValidationErrors)
+		assert.Len(t, messages, 1)
+		assert.Equal(t, "Password", messages[0].Field)
+		assert.Equal(t, "Password is a required field", messages[0].Error)
+	})
+
+	t.Run("should return validation error when email is invalid", func(t *testing.T) {
+		// given
+		email := "testmail.com"
+		password := "12345678"
+
+		// when
+		credentials, err := domain.NewCredentials(email, password)
+
+		// then
+		assert.Error(t, err)
+		var validationErr *domain.ValidationError
+		assert.ErrorAs(t, err, &validationErr)
+		assert.Nil(t, credentials)
+		messages := validationErr.Details().(validator.ValidationErrors)
+		assert.Len(t, messages, 1)
+		assert.Equal(t, "Email", messages[0].Field)
+		assert.Equal(t, "Email must be a valid email address", messages[0].Error)
 	})
 }
 
@@ -90,6 +118,10 @@ func Test_NewAuthSession(t *testing.T) {
 		var validationErr *domain.ValidationError
 		assert.ErrorAs(t, err, &validationErr)
 		assert.Nil(t, authSession)
+		messages := validationErr.Details().(validator.ValidationErrors)
+		assert.Len(t, messages, 1)
+		assert.Equal(t, "AccessToken", messages[0].Field)
+		assert.Equal(t, "AccessToken is a required field", messages[0].Error)
 	})
 
 	t.Run("should return validation error when token type is empty", func(t *testing.T) {
@@ -107,6 +139,10 @@ func Test_NewAuthSession(t *testing.T) {
 		var validationErr *domain.ValidationError
 		assert.ErrorAs(t, err, &validationErr)
 		assert.Nil(t, authSession)
+		messages := validationErr.Details().(validator.ValidationErrors)
+		assert.Len(t, messages, 1)
+		assert.Equal(t, "TokenType", messages[0].Field)
+		assert.Equal(t, "TokenType is a required field", messages[0].Error)
 	})
 
 	t.Run("should return validation error when user is invalid", func(t *testing.T) {
@@ -120,9 +156,13 @@ func Test_NewAuthSession(t *testing.T) {
 		authSession, err := domain.NewAuthSession(user, accessToken, tokenType, expiresIn)
 
 		// then
+		assert.Nil(t, authSession)
 		assert.Error(t, err)
 		var validationErr *domain.ValidationError
 		assert.ErrorAs(t, err, &validationErr)
-		assert.Nil(t, authSession)
+		messages := validationErr.Details().(validator.ValidationErrors)
+		assert.Len(t, messages, 1)
+		assert.Equal(t, "Name", messages[0].Field)
+		assert.Equal(t, "Name is a required field", messages[0].Error)
 	})
 }
