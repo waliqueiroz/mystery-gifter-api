@@ -3,7 +3,7 @@ package domain
 import "github.com/waliqueiroz/mystery-gifter-api/pkg/validator"
 
 type Credentials struct {
-	Email    string `validate:"required"`
+	Email    string `validate:"required,email"`
 	Password string `validate:"required"`
 }
 
