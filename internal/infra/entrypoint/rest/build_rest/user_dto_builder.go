@@ -12,14 +12,15 @@ type UserDTOBuilder struct {
 }
 
 func NewUserDTOBuilder() *UserDTOBuilder {
+	now := time.Now().UTC()
 	return &UserDTOBuilder{
 		userDTO: rest.UserDTO{
 			ID:        uuid.NewString(),
 			Name:      "DefaultName",
 			Surname:   "DefaultSurname",
 			Email:     "default@example.com",
-			CreatedAt: time.Now().UTC(),
-			UpdatedAt: time.Now().UTC(),
+			CreatedAt: now,
+			UpdatedAt: now,
 		},
 	}
 }

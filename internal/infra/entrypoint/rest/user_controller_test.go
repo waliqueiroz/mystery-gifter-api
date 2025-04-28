@@ -23,7 +23,7 @@ import (
 func Test_UserController_Create(t *testing.T) {
 	route := "/api/users"
 
-	t.Run("should return status 201 and the user ID when the user is created successfully", func(t *testing.T) {
+	t.Run("should return status 201 and the user when the user is created successfully", func(t *testing.T) {
 		// given
 		createUserDTO := build_rest.NewCreateUserDTOBuilder().Build()
 
@@ -36,6 +36,14 @@ func Test_UserController_Create(t *testing.T) {
 			WithEmail(createUserDTO.Email).
 			WithPassword(hashedPassword).
 			Build()
+
+		expectedUserDTO := build_rest.NewUserDTOBuilder().
+			WithID(user.ID).
+			WithName(user.Name).
+			WithSurname(user.Surname).
+			WithEmail(user.Email).
+			WithCreatedAt(user.CreatedAt).
+			WithUpdatedAt(user.UpdatedAt).Build()
 
 		mockCtrl := gomock.NewController(t)
 
@@ -72,10 +80,13 @@ func Test_UserController_Create(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, fiber.StatusCreated, response.StatusCode)
 
-		var result fiber.Map
+		var result rest.UserDTO
 		helper.DecodeJSON(t, response.Body, &result)
 
-		assert.Equal(t, userID, result["id"])
+		assert.Equal(t, expectedUserDTO.ID, result.ID)
+		assert.Equal(t, expectedUserDTO.Name, result.Name)
+		assert.Equal(t, expectedUserDTO.Surname, result.Surname)
+		assert.Equal(t, expectedUserDTO.Email, result.Email)
 	})
 
 	t.Run("should return internal_server_error with an error message when fail to create user", func(t *testing.T) {

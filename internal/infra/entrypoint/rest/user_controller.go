@@ -37,7 +37,12 @@ func (c *UserController) Create(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{"id": user.ID})
+	userDTO, err := mapUserFromDomain(*user)
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusCreated).JSON(userDTO)
 }
 
 func (c *UserController) GetByID(ctx *fiber.Ctx) error {
