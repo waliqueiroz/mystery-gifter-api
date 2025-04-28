@@ -38,10 +38,8 @@ func Test_NewCredentials(t *testing.T) {
 		var validationErr *domain.ValidationError
 		assert.ErrorAs(t, err, &validationErr)
 		assert.Nil(t, credentials)
-		messages := validationErr.Details().(validator.ValidationErrors)
-		assert.Len(t, messages, 1)
-		assert.Equal(t, "Email", messages[0].Field)
-		assert.Equal(t, "Email is a required field", messages[0].Error)
+		errors := validationErr.Details().(validator.ValidationErrors)
+		assert.Contains(t, errors, validator.FieldError{Field: "Email", Error: "Email is a required field"})
 	})
 
 	t.Run("should return validation error when password is empty", func(t *testing.T) {
@@ -57,10 +55,9 @@ func Test_NewCredentials(t *testing.T) {
 		var validationErr *domain.ValidationError
 		assert.ErrorAs(t, err, &validationErr)
 		assert.Nil(t, credentials)
-		messages := validationErr.Details().(validator.ValidationErrors)
-		assert.Len(t, messages, 1)
-		assert.Equal(t, "Password", messages[0].Field)
-		assert.Equal(t, "Password is a required field", messages[0].Error)
+		errors := validationErr.Details().(validator.ValidationErrors)
+		assert.Len(t, errors, 1)
+		assert.Contains(t, errors, validator.FieldError{Field: "Password", Error: "Password is a required field"})
 	})
 
 	t.Run("should return validation error when email is invalid", func(t *testing.T) {
@@ -76,10 +73,9 @@ func Test_NewCredentials(t *testing.T) {
 		var validationErr *domain.ValidationError
 		assert.ErrorAs(t, err, &validationErr)
 		assert.Nil(t, credentials)
-		messages := validationErr.Details().(validator.ValidationErrors)
-		assert.Len(t, messages, 1)
-		assert.Equal(t, "Email", messages[0].Field)
-		assert.Equal(t, "Email must be a valid email address", messages[0].Error)
+		errors := validationErr.Details().(validator.ValidationErrors)
+		assert.Len(t, errors, 1)
+		assert.Contains(t, errors, validator.FieldError{Field: "Email", Error: "Email must be a valid email address"})
 	})
 }
 

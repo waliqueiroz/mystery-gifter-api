@@ -73,10 +73,9 @@ func Test_NewGroup(t *testing.T) {
 		assert.Error(t, err)
 		var validationErr *domain.ValidationError
 		assert.ErrorAs(t, err, &validationErr)
-		messages := validationErr.Details().(validator.ValidationErrors)
-		assert.Len(t, messages, 1)
-		assert.Equal(t, "Name", messages[0].Field)
-		assert.Equal(t, "Name is a required field", messages[0].Error)
+		errors := validationErr.Details().(validator.ValidationErrors)
+		assert.Len(t, errors, 1)
+		assert.Contains(t, errors, validator.FieldError{Field: "Name", Error: "Name is a required field"})
 	})
 }
 
