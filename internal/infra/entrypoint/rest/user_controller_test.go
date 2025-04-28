@@ -241,11 +241,10 @@ func Test_UserController_Create(t *testing.T) {
 		details, ok := result.Details.([]any)
 		assert.True(t, ok)
 		assert.Len(t, details, 1)
-
-		detail, ok := details[0].(map[string]any)
-		assert.True(t, ok)
-		assert.Equal(t, "email", detail["field"])
-		assert.Equal(t, "email must be a valid email address", detail["error"])
+		assert.Contains(t, details, map[string]any{
+			"field": "email",
+			"error": "email must be a valid email address",
+		})
 	})
 
 	t.Run("should return bad_request with an error message when password is not equal to password_confirm", func(t *testing.T) {
@@ -280,11 +279,10 @@ func Test_UserController_Create(t *testing.T) {
 		details, ok := result.Details.([]any)
 		assert.True(t, ok)
 		assert.Len(t, details, 1)
-
-		detail, ok := details[0].(map[string]any)
-		assert.True(t, ok)
-		assert.Equal(t, "password", detail["field"])
-		assert.Equal(t, "password must be equal to PasswordConfirm", detail["error"])
+		assert.Contains(t, details, map[string]any{
+			"field": "password",
+			"error": "password must be equal to PasswordConfirm",
+		})
 	})
 
 	t.Run("should return bad_request with an error when message password less than 8 characters", func(t *testing.T) {
@@ -319,11 +317,10 @@ func Test_UserController_Create(t *testing.T) {
 		details, ok := result.Details.([]any)
 		assert.True(t, ok)
 		assert.Len(t, details, 1)
-
-		detail, ok := details[0].(map[string]any)
-		assert.True(t, ok)
-		assert.Equal(t, "password", detail["field"])
-		assert.Equal(t, "password must be at least 8 characters in length", detail["error"])
+		assert.Contains(t, details, map[string]any{
+			"field": "password",
+			"error": "password must be at least 8 characters in length",
+		})
 	})
 
 	t.Run("should return unprocessable_entity with an error message when receive an invalid payload", func(t *testing.T) {
@@ -459,11 +456,10 @@ func Test_UserController_GetByID(t *testing.T) {
 		details, ok := result.Details.([]any)
 		assert.True(t, ok)
 		assert.Len(t, details, 1)
-
-		detail, ok := details[0].(map[string]any)
-		assert.True(t, ok)
-		assert.Equal(t, "name", detail["field"])
-		assert.Equal(t, "name is a required field", detail["error"])
+		assert.Contains(t, details, map[string]any{
+			"field": "name",
+			"error": "name is a required field",
+		})
 	})
 
 	t.Run("should return internal_server_error with an error message when fail to get user", func(t *testing.T) {

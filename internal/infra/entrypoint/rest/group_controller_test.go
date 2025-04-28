@@ -140,11 +140,10 @@ func Test_GroupController_Create(t *testing.T) {
 		details, ok := result.Details.([]any)
 		assert.True(t, ok)
 		assert.Len(t, details, 1)
-
-		detail, ok := details[0].(map[string]any)
-		assert.True(t, ok)
-		assert.Equal(t, "name", detail["field"])
-		assert.Equal(t, "name is a required field", detail["error"])
+		assert.Contains(t, details, map[string]any{
+			"field": "name",
+			"error": "name is a required field",
+		})
 	})
 
 	t.Run("should return internal_server_error when token manager fails", func(t *testing.T) {
@@ -265,11 +264,10 @@ func Test_GroupController_Create(t *testing.T) {
 		details, ok := result.Details.([]any)
 		assert.True(t, ok)
 		assert.Len(t, details, 1)
-
-		detail, ok := details[0].(map[string]any)
-		assert.True(t, ok)
-		assert.Equal(t, "name", detail["field"])
-		assert.Equal(t, "name is a required field", detail["error"])
+		assert.Contains(t, details, map[string]any{
+			"field": "name",
+			"error": "name is a required field",
+		})
 	})
 }
 
@@ -362,11 +360,10 @@ func Test_GroupController_GetByID(t *testing.T) {
 		details, ok := result.Details.([]any)
 		assert.True(t, ok)
 		assert.Len(t, details, 1)
-
-		detail, ok := details[0].(map[string]any)
-		assert.True(t, ok)
-		assert.Equal(t, "name", detail["field"])
-		assert.Equal(t, "name is a required field", detail["error"])
+		assert.Contains(t, details, map[string]any{
+			"field": "name",
+			"error": "name is a required field",
+		})
 	})
 
 	t.Run("should return internal_server_error when group service fails", func(t *testing.T) {
@@ -527,11 +524,10 @@ func Test_GroupController_AddUser(t *testing.T) {
 		details, ok := result.Details.([]any)
 		assert.True(t, ok)
 		assert.Len(t, details, 1)
-
-		detail, ok := details[0].(map[string]any)
-		assert.True(t, ok)
-		assert.Equal(t, "user_id", detail["field"])
-		assert.Equal(t, "user_id must be a valid UUID", detail["error"])
+		assert.Contains(t, details, map[string]any{
+			"field": "user_id",
+			"error": "user_id must be a valid UUID",
+		})
 	})
 
 	t.Run("should return internal_server_error when token manager fails", func(t *testing.T) {
@@ -658,11 +654,10 @@ func Test_GroupController_AddUser(t *testing.T) {
 		details, ok := result.Details.([]any)
 		assert.True(t, ok)
 		assert.Len(t, details, 1)
-
-		detail, ok := details[0].(map[string]any)
-		assert.True(t, ok)
-		assert.Equal(t, "name", detail["field"])
-		assert.Equal(t, "name is a required field", detail["error"])
+		assert.Contains(t, details, map[string]any{
+			"field": "name",
+			"error": "name is a required field",
+		})
 	})
 }
 
@@ -837,11 +832,9 @@ func Test_GroupController_RemoveUser(t *testing.T) {
 		details, ok := result.Details.([]any)
 		assert.True(t, ok)
 		assert.Len(t, details, 1)
-
-		detail, ok := details[0].(map[string]any)
-		assert.True(t, ok)
-		assert.Equal(t, "name", detail["field"])
-		assert.Equal(t, "name is a required field", detail["error"])
+		assert.Contains(t, details, map[string]any{
+			"field": "name",
+			"error": "name is a required field",
+		})
 	})
-
 }

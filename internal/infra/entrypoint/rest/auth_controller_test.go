@@ -104,11 +104,10 @@ func Test_AuthController_Login(t *testing.T) {
 		details, ok := result.Details.([]any)
 		assert.True(t, ok)
 		assert.Len(t, details, 1)
-
-		detail, ok := details[0].(map[string]any)
-		assert.True(t, ok)
-		assert.Equal(t, "access_token", detail["field"])
-		assert.Equal(t, "access_token is a required field", detail["error"])
+		assert.Contains(t, details, map[string]any{
+			"field": "access_token",
+			"error": "access_token is a required field",
+		})
 	})
 
 	t.Run("should return internal_server_error when service fails with unexpected error", func(t *testing.T) {
@@ -184,11 +183,10 @@ func Test_AuthController_Login(t *testing.T) {
 		details, ok := result.Details.([]any)
 		assert.True(t, ok)
 		assert.Len(t, details, 1)
-
-		detail, ok := details[0].(map[string]any)
-		assert.True(t, ok)
-		assert.Equal(t, "email", detail["field"])
-		assert.Equal(t, "email is a required field", detail["error"])
+		assert.Contains(t, details, map[string]any{
+			"field": "email",
+			"error": "email is a required field",
+		})
 	})
 
 	t.Run("should return unprocessable_entity when payload is malformed", func(t *testing.T) {
