@@ -46,7 +46,7 @@ func Run() error {
 
 	uuidIdentityGenerator := identity.NewUUIDIdentityGenerator(uuid.NewV7)
 	bcryptPasswordManager := security.NewBcryptPasswordManager()
-	jwtSessionManager := security.NewJWTSessionManager(cfg.Auth.SecretKey)
+	jwtAuthTokenManager := security.NewJWTAuthTokenManager(cfg.Auth.SecretKey)
 
 	userRepository := postgres.NewUserRepository(db)
 	userService := application.NewUserService(userRepository)
@@ -54,9 +54,9 @@ func Run() error {
 
 	groupRepository := postgres.NewGroupRepository(db)
 	groupService := application.NewGroupService(groupRepository, userService, uuidIdentityGenerator)
-	groupController := rest.NewGroupController(groupService, jwtSessionManager)
+	groupController := rest.NewGroupController(groupService, jwtAuthTokenManager)
 
-	authService := application.NewAuthService(cfg.Auth.SessionDuration, userRepository, bcryptPasswordManager, jwtSessionManager)
+	authService := application.NewAuthService(cfg.Auth.SessionDuration, userRepository, bcryptPasswordManager, jwtAuthTokenManager)
 	authController := rest.NewAuthController(authService)
 
 	authMiddleware := entrypoint.NewAuthMiddleware(cfg.Auth.SecretKey)
