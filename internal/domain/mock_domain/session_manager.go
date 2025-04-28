@@ -54,19 +54,19 @@ func (mr *MockSessionManagerMockRecorder) Create(userID, expiresIn any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockSessionManager)(nil).Create), userID, expiresIn)
 }
 
-// ExtractUserID mocks base method.
-func (m *MockSessionManager) ExtractUserID(token any) (string, error) {
+// GetAuthUserID mocks base method.
+func (m *MockSessionManager) GetAuthUserID(token any) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ExtractUserID", token)
+	ret := m.ctrl.Call(m, "GetAuthUserID", token)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ExtractUserID indicates an expected call of ExtractUserID.
-func (mr *MockSessionManagerMockRecorder) ExtractUserID(token any) *gomock.Call {
+// GetAuthUserID indicates an expected call of GetAuthUserID.
+func (mr *MockSessionManagerMockRecorder) GetAuthUserID(token any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExtractUserID", reflect.TypeOf((*MockSessionManager)(nil).ExtractUserID), token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthUserID", reflect.TypeOf((*MockSessionManager)(nil).GetAuthUserID), token)
 }
 
 // GetTokenType mocks base method.

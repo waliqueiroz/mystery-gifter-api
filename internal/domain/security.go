@@ -11,5 +11,5 @@ type PasswordManager interface {
 type SessionManager interface {
 	Create(userID string, expiresIn int64) (string, error)
 	GetTokenType() string
-	ExtractUserID(token any) (string, error)
+	GetAuthUserID(token any) (string, error)
 }

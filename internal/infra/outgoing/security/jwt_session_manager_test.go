@@ -53,7 +53,7 @@ func Test_JWTSessionManager_GetTokenType(t *testing.T) {
 	})
 }
 
-func Test_JWTSessionManager_ExtractUserID(t *testing.T) {
+func Test_JWTSessionManager_GetAuthUserID(t *testing.T) {
 	t.Run("should extract user ID successfully", func(t *testing.T) {
 		// given
 		secretKey := "mysecretkey"
@@ -69,7 +69,7 @@ func Test_JWTSessionManager_ExtractUserID(t *testing.T) {
 		}
 
 		// when
-		userID, err := sessionManager.ExtractUserID(token)
+		userID, err := sessionManager.GetAuthUserID(token)
 
 		// then
 		assert.NoError(t, err)
@@ -84,7 +84,7 @@ func Test_JWTSessionManager_ExtractUserID(t *testing.T) {
 		sessionManager := security.NewJWTSessionManager(secretKey)
 
 		// when
-		userID, err := sessionManager.ExtractUserID(invalidToken)
+		userID, err := sessionManager.GetAuthUserID(invalidToken)
 
 		// then
 		assert.Error(t, err)
@@ -101,7 +101,7 @@ func Test_JWTSessionManager_ExtractUserID(t *testing.T) {
 		invalidToken.Valid = false
 
 		// when
-		userID, err := sessionManager.ExtractUserID(invalidToken)
+		userID, err := sessionManager.GetAuthUserID(invalidToken)
 
 		// then
 		assert.Error(t, err)
@@ -122,7 +122,7 @@ func Test_JWTSessionManager_ExtractUserID(t *testing.T) {
 		}
 
 		// when
-		userID, err := sessionManager.ExtractUserID(token)
+		userID, err := sessionManager.GetAuthUserID(token)
 
 		// then
 		assert.Error(t, err)

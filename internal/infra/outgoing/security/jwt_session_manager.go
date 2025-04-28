@@ -40,7 +40,7 @@ func (t *JWTSessionManager) GetTokenType() string {
 	return t.tokenType
 }
 
-func (t *JWTSessionManager) ExtractUserID(token any) (string, error) {
+func (t *JWTSessionManager) GetAuthUserID(token any) (string, error) {
 	err := domain.NewUnauthorizedError("invalid token")
 
 	jwtToken, ok := token.(*jwt.Token)

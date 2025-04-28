@@ -33,7 +33,7 @@ func Test_GroupController_Create(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 
 		mockedSessionManager := mock_domain.NewMockSessionManager(mockCtrl)
-		mockedSessionManager.EXPECT().ExtractUserID(gomock.Any()).Return(authUserID, nil)
+		mockedSessionManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
 
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
 		mockedGroupService.EXPECT().Create(gomock.Any(), createGroupDTO.Name, authUserID).Return(&group, nil)
@@ -150,7 +150,7 @@ func Test_GroupController_Create(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 
 		mockedSessionManager := mock_domain.NewMockSessionManager(mockCtrl)
-		mockedSessionManager.EXPECT().ExtractUserID(gomock.Any()).Return("", assert.AnError)
+		mockedSessionManager.EXPECT().GetAuthUserID(gomock.Any()).Return("", assert.AnError)
 
 		groupController := rest.NewGroupController(nil, mockedSessionManager)
 
@@ -186,7 +186,7 @@ func Test_GroupController_Create(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 
 		mockedSessionManager := mock_domain.NewMockSessionManager(mockCtrl)
-		mockedSessionManager.EXPECT().ExtractUserID(gomock.Any()).Return(authUserID, nil)
+		mockedSessionManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
 
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
 		mockedGroupService.EXPECT().Create(gomock.Any(), createGroupDTO.Name, authUserID).Return(nil, assert.AnError)
@@ -228,7 +228,7 @@ func Test_GroupController_Create(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 
 		mockedSessionManager := mock_domain.NewMockSessionManager(mockCtrl)
-		mockedSessionManager.EXPECT().ExtractUserID(gomock.Any()).Return(authUserID, nil)
+		mockedSessionManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
 
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
 		mockedGroupService.EXPECT().Create(gomock.Any(), createGroupDTO.Name, authUserID).Return(&group, nil)
@@ -406,7 +406,7 @@ func Test_GroupController_AddUser(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 
 		mockedSessionManager := mock_domain.NewMockSessionManager(mockCtrl)
-		mockedSessionManager.EXPECT().ExtractUserID(gomock.Any()).Return(authUserID, nil)
+		mockedSessionManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
 
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
 		mockedGroupService.EXPECT().AddUser(gomock.Any(), groupID, authUserID, targetUserID).Return(&group, nil)
@@ -527,7 +527,7 @@ func Test_GroupController_AddUser(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 
 		mockedSessionManager := mock_domain.NewMockSessionManager(mockCtrl)
-		mockedSessionManager.EXPECT().ExtractUserID(gomock.Any()).Return("", assert.AnError)
+		mockedSessionManager.EXPECT().GetAuthUserID(gomock.Any()).Return("", assert.AnError)
 
 		groupController := rest.NewGroupController(nil, mockedSessionManager)
 
@@ -565,7 +565,7 @@ func Test_GroupController_AddUser(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 
 		mockedSessionManager := mock_domain.NewMockSessionManager(mockCtrl)
-		mockedSessionManager.EXPECT().ExtractUserID(gomock.Any()).Return(authUserID, nil)
+		mockedSessionManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
 
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
 		mockedGroupService.EXPECT().AddUser(gomock.Any(), groupID, authUserID, targetUserID).Return(nil, assert.AnError)
@@ -609,7 +609,7 @@ func Test_GroupController_AddUser(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 
 		mockedSessionManager := mock_domain.NewMockSessionManager(mockCtrl)
-		mockedSessionManager.EXPECT().ExtractUserID(gomock.Any()).Return(authUserID, nil)
+		mockedSessionManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
 
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
 		mockedGroupService.EXPECT().AddUser(gomock.Any(), groupID, authUserID, targetUserID).Return(&group, nil)
@@ -660,7 +660,7 @@ func Test_GroupController_RemoveUser(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 
 		mockedSessionManager := mock_domain.NewMockSessionManager(mockCtrl)
-		mockedSessionManager.EXPECT().ExtractUserID(gomock.Any()).Return(authUserID, nil)
+		mockedSessionManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
 
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
 		mockedGroupService.EXPECT().RemoveUser(gomock.Any(), groupID, authUserID, targetUserID).Return(&group, nil)
@@ -712,7 +712,7 @@ func Test_GroupController_RemoveUser(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 
 		mockedSessionManager := mock_domain.NewMockSessionManager(mockCtrl)
-		mockedSessionManager.EXPECT().ExtractUserID(gomock.Any()).Return("", assert.AnError)
+		mockedSessionManager.EXPECT().GetAuthUserID(gomock.Any()).Return("", assert.AnError)
 
 		groupController := rest.NewGroupController(nil, mockedSessionManager)
 
@@ -746,7 +746,7 @@ func Test_GroupController_RemoveUser(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 
 		mockedSessionManager := mock_domain.NewMockSessionManager(mockCtrl)
-		mockedSessionManager.EXPECT().ExtractUserID(gomock.Any()).Return(authUserID, nil)
+		mockedSessionManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
 
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
 		mockedGroupService.EXPECT().RemoveUser(gomock.Any(), groupID, authUserID, targetUserID).Return(nil, assert.AnError)
@@ -786,7 +786,7 @@ func Test_GroupController_RemoveUser(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 
 		mockedSessionManager := mock_domain.NewMockSessionManager(mockCtrl)
-		mockedSessionManager.EXPECT().ExtractUserID(gomock.Any()).Return(authUserID, nil)
+		mockedSessionManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
 
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
 		mockedGroupService.EXPECT().RemoveUser(gomock.Any(), groupID, authUserID, targetUserID).Return(&group, nil)
