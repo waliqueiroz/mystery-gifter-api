@@ -17,15 +17,15 @@ type authService struct {
 	sessionDuration time.Duration
 	userRepository  domain.UserRepository
 	passwordManager domain.PasswordManager
-	tokenManager    domain.TokenManager
+	sessionManager  domain.SessionManager
 }
 
-func NewAuthService(sessionDuration time.Duration, userRepository domain.UserRepository, passwordManager domain.PasswordManager, tokenManager domain.TokenManager) AuthService {
+func NewAuthService(sessionDuration time.Duration, userRepository domain.UserRepository, passwordManager domain.PasswordManager, sessionManager domain.SessionManager) AuthService {
 	return &authService{
 		sessionDuration: sessionDuration,
 		userRepository:  userRepository,
 		passwordManager: passwordManager,
-		tokenManager:    tokenManager,
+		sessionManager:  sessionManager,
 	}
 }
 
@@ -45,10 +45,10 @@ func (s *authService) Login(ctx context.Context, credentials domain.Credentials)
 
 	expiresIn := time.Now().Add(s.sessionDuration).Unix()
 
-	token, err := s.tokenManager.Create(user.ID, expiresIn)
+	token, err := s.sessionManager.Create(user.ID, expiresIn)
 	if err != nil {
 		return nil, err
 	}
 
-	return domain.NewAuthSession(*user, token, s.tokenManager.GetTokenType(), expiresIn)
+	return domain.NewAuthSession(*user, token, s.sessionManager.GetTokenType(), expiresIn)
 }

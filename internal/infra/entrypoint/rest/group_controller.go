@@ -7,17 +7,17 @@ import (
 )
 
 type GroupController struct {
-	groupService application.GroupService
-	tokenManager domain.TokenManager
+	groupService   application.GroupService
+	sessionManager domain.SessionManager
 }
 
 func NewGroupController(
 	groupService application.GroupService,
-	tokenManager domain.TokenManager,
+	sessionManager domain.SessionManager,
 ) *GroupController {
 	return &GroupController{
-		groupService: groupService,
-		tokenManager: tokenManager,
+		groupService:   groupService,
+		sessionManager: sessionManager,
 	}
 }
 
@@ -32,7 +32,7 @@ func (c *GroupController) Create(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	authUserID, err := c.tokenManager.ExtractUserID(ctx.Locals("user"))
+	authUserID, err := c.sessionManager.ExtractUserID(ctx.Locals("user"))
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func (c *GroupController) AddUser(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	authUserID, err := c.tokenManager.ExtractUserID(ctx.Locals("user"))
+	authUserID, err := c.sessionManager.ExtractUserID(ctx.Locals("user"))
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func (c *GroupController) RemoveUser(ctx *fiber.Ctx) error {
 	groupID := ctx.Params("groupID")
 	targetUserID := ctx.Params("userID")
 
-	authUserID, err := c.tokenManager.ExtractUserID(ctx.Locals("user"))
+	authUserID, err := c.sessionManager.ExtractUserID(ctx.Locals("user"))
 	if err != nil {
 		return err
 	}

@@ -9,17 +9,17 @@ import (
 	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/outgoing/security"
 )
 
-func Test_JWTTokenManager_Create(t *testing.T) {
+func Test_JWTSessionManager_Create(t *testing.T) {
 	t.Run("should create token successfully", func(t *testing.T) {
 		// given
 		secretKey := "mysecretkey"
 		userID := "some-user-id"
 		expiresIn := time.Now().Add(time.Hour).Unix()
 
-		tokenManager := security.NewJWTTokenManager(secretKey)
+		sessionManager := security.NewJWTSessionManager(secretKey)
 
 		// when
-		token, err := tokenManager.Create(userID, expiresIn)
+		token, err := sessionManager.Create(userID, expiresIn)
 
 		// then
 		assert.NoError(t, err)
@@ -39,25 +39,25 @@ func Test_JWTTokenManager_Create(t *testing.T) {
 	})
 }
 
-func Test_JWTTokenManager_GetTokenType(t *testing.T) {
+func Test_JWTSessionManager_GetTokenType(t *testing.T) {
 	t.Run("should return the correct token type", func(t *testing.T) {
 		// given
 		secretKey := "mysecretkey"
-		tokenManager := security.NewJWTTokenManager(secretKey)
+		sessionManager := security.NewJWTSessionManager(secretKey)
 
 		// when
-		tokenType := tokenManager.GetTokenType()
+		tokenType := sessionManager.GetTokenType()
 
 		// then
 		assert.Equal(t, "Bearer", tokenType)
 	})
 }
 
-func Test_JWTTokenManager_ExtractUserID(t *testing.T) {
+func Test_JWTSessionManager_ExtractUserID(t *testing.T) {
 	t.Run("should extract user ID successfully", func(t *testing.T) {
 		// given
 		secretKey := "mysecretkey"
-		tokenManager := security.NewJWTTokenManager(secretKey)
+		sessionManager := security.NewJWTSessionManager(secretKey)
 		expectedUserID := "some-user-id"
 
 		token := jwt.New(jwt.SigningMethodHS256)
@@ -69,7 +69,7 @@ func Test_JWTTokenManager_ExtractUserID(t *testing.T) {
 		}
 
 		// when
-		userID, err := tokenManager.ExtractUserID(token)
+		userID, err := sessionManager.ExtractUserID(token)
 
 		// then
 		assert.NoError(t, err)
@@ -81,10 +81,10 @@ func Test_JWTTokenManager_ExtractUserID(t *testing.T) {
 		secretKey := "mysecretkey"
 		invalidToken := "invalid-token"
 
-		tokenManager := security.NewJWTTokenManager(secretKey)
+		sessionManager := security.NewJWTSessionManager(secretKey)
 
 		// when
-		userID, err := tokenManager.ExtractUserID(invalidToken)
+		userID, err := sessionManager.ExtractUserID(invalidToken)
 
 		// then
 		assert.Error(t, err)
@@ -95,13 +95,13 @@ func Test_JWTTokenManager_ExtractUserID(t *testing.T) {
 	t.Run("should return error when token is invalid", func(t *testing.T) {
 		// given
 		secretKey := "mysecretkey"
-		tokenManager := security.NewJWTTokenManager(secretKey)
+		sessionManager := security.NewJWTSessionManager(secretKey)
 
 		invalidToken := jwt.New(jwt.SigningMethodHS256)
 		invalidToken.Valid = false
 
 		// when
-		userID, err := tokenManager.ExtractUserID(invalidToken)
+		userID, err := sessionManager.ExtractUserID(invalidToken)
 
 		// then
 		assert.Error(t, err)
@@ -112,7 +112,7 @@ func Test_JWTTokenManager_ExtractUserID(t *testing.T) {
 	t.Run("should return error when userID claim is missing", func(t *testing.T) {
 		// given
 		secretKey := "mysecretkey"
-		tokenManager := security.NewJWTTokenManager(secretKey)
+		sessionManager := security.NewJWTSessionManager(secretKey)
 
 		token := jwt.New(jwt.SigningMethodHS256)
 		token.Valid = true
@@ -122,7 +122,7 @@ func Test_JWTTokenManager_ExtractUserID(t *testing.T) {
 		}
 
 		// when
-		userID, err := tokenManager.ExtractUserID(token)
+		userID, err := sessionManager.ExtractUserID(token)
 
 		// then
 		assert.Error(t, err)

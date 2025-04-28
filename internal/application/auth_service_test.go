@@ -35,11 +35,11 @@ func Test_authService_Login(t *testing.T) {
 		mockedPasswordManager := mock_domain.NewMockPasswordManager(mockCtrl)
 		mockedPasswordManager.EXPECT().Compare(user.Password, credentials.Password).Return(nil)
 
-		mockedTokenManager := mock_domain.NewMockTokenManager(mockCtrl)
-		mockedTokenManager.EXPECT().Create(user.ID, gomock.Any()).Return(token, nil)
-		mockedTokenManager.EXPECT().GetTokenType().Return(tokenType)
+		mockedSessionManager := mock_domain.NewMockSessionManager(mockCtrl)
+		mockedSessionManager.EXPECT().Create(user.ID, gomock.Any()).Return(token, nil)
+		mockedSessionManager.EXPECT().GetTokenType().Return(tokenType)
 
-		authService := application.NewAuthService(sessionDuration, mockedUserRepository, mockedPasswordManager, mockedTokenManager)
+		authService := application.NewAuthService(sessionDuration, mockedUserRepository, mockedPasswordManager, mockedSessionManager)
 
 		// when
 		result, err := authService.Login(context.Background(), credentials)
@@ -65,10 +65,10 @@ func Test_authService_Login(t *testing.T) {
 		mockedPasswordManager := mock_domain.NewMockPasswordManager(mockCtrl)
 		mockedPasswordManager.EXPECT().Compare(user.Password, credentials.Password).Return(nil)
 
-		mockedTokenManager := mock_domain.NewMockTokenManager(mockCtrl)
-		mockedTokenManager.EXPECT().Create(user.ID, gomock.Any()).Return("", assert.AnError)
+		mockedSessionManager := mock_domain.NewMockSessionManager(mockCtrl)
+		mockedSessionManager.EXPECT().Create(user.ID, gomock.Any()).Return("", assert.AnError)
 
-		authService := application.NewAuthService(sessionDuration, mockedUserRepository, mockedPasswordManager, mockedTokenManager)
+		authService := application.NewAuthService(sessionDuration, mockedUserRepository, mockedPasswordManager, mockedSessionManager)
 
 		// when
 		result, err := authService.Login(context.Background(), credentials)

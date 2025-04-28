@@ -7,19 +7,19 @@ import (
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 )
 
-type JWTTokenManager struct {
+type JWTSessionManager struct {
 	secretKey string
 	tokenType string
 }
 
-func NewJWTTokenManager(secretKey string) domain.TokenManager {
-	return &JWTTokenManager{
+func NewJWTSessionManager(secretKey string) domain.SessionManager {
+	return &JWTSessionManager{
 		secretKey: secretKey,
 		tokenType: "Bearer",
 	}
 }
 
-func (t *JWTTokenManager) Create(userID string, expiresIn int64) (string, error) {
+func (t *JWTSessionManager) Create(userID string, expiresIn int64) (string, error) {
 	claims := jwt.MapClaims{
 		"authorized": true,
 		"exp":        expiresIn,
@@ -36,11 +36,11 @@ func (t *JWTTokenManager) Create(userID string, expiresIn int64) (string, error)
 	return signedToken, nil
 }
 
-func (t *JWTTokenManager) GetTokenType() string {
+func (t *JWTSessionManager) GetTokenType() string {
 	return t.tokenType
 }
 
-func (t *JWTTokenManager) ExtractUserID(token any) (string, error) {
+func (t *JWTSessionManager) ExtractUserID(token any) (string, error) {
 	err := domain.NewUnauthorizedError("invalid token")
 
 	jwtToken, ok := token.(*jwt.Token)
