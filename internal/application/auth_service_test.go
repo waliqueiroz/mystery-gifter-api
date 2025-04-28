@@ -10,6 +10,7 @@ import (
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain/build_domain"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain/mock_domain"
+	"github.com/waliqueiroz/mystery-gifter-api/pkg/validator"
 	"go.uber.org/mock/gomock"
 )
 
@@ -104,6 +105,7 @@ func Test_authService_Login(t *testing.T) {
 		assert.Error(t, err)
 		var expectedError *domain.UnauthorizedError
 		assert.ErrorAs(t, err, &expectedError)
+		assert.EqualError(t, expectedError, "invalid credentials")
 	})
 
 	t.Run("should return an unauthorized error when it fails to get user by email", func(t *testing.T) {
@@ -127,6 +129,7 @@ func Test_authService_Login(t *testing.T) {
 		assert.Error(t, err)
 		var expectedError *domain.UnauthorizedError
 		assert.ErrorAs(t, err, &expectedError)
+		assert.EqualError(t, expectedError, "invalid credentials")
 	})
 
 	t.Run("should return a validation error when credentials are invalid", func(t *testing.T) {
@@ -144,5 +147,10 @@ func Test_authService_Login(t *testing.T) {
 		assert.Error(t, err)
 		var expectedError *domain.ValidationError
 		assert.ErrorAs(t, err, &expectedError)
+		assert.Equal(t, "validation failed", expectedError.Error())
+		errors := expectedError.Details()
+		assert.Len(t, errors, 2)
+		assert.Contains(t, errors, validator.FieldError{Field: "Email", Error: "Email is a required field"})
+		assert.Contains(t, errors, validator.FieldError{Field: "Password", Error: "Password is a required field"})
 	})
 }

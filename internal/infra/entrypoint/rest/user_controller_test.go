@@ -237,11 +237,8 @@ func Test_UserController_Create(t *testing.T) {
 
 		assert.Equal(t, "bad_request", result.Code)
 		assert.Equal(t, "validation failed", result.Message)
-
-		details, ok := result.Details.([]any)
-		assert.True(t, ok)
-		assert.Len(t, details, 1)
-		assert.Contains(t, details, map[string]any{
+		assert.Len(t, result.Details, 1)
+		assert.Contains(t, result.Details, map[string]any{
 			"field": "email",
 			"error": "email must be a valid email address",
 		})
@@ -275,11 +272,8 @@ func Test_UserController_Create(t *testing.T) {
 
 		assert.Equal(t, "bad_request", result.Code)
 		assert.Equal(t, "validation failed", result.Message)
-
-		details, ok := result.Details.([]any)
-		assert.True(t, ok)
-		assert.Len(t, details, 1)
-		assert.Contains(t, details, map[string]any{
+		assert.Len(t, result.Details, 1)
+		assert.Contains(t, result.Details, map[string]any{
 			"field": "password",
 			"error": "password must be equal to PasswordConfirm",
 		})
@@ -313,11 +307,8 @@ func Test_UserController_Create(t *testing.T) {
 
 		assert.Equal(t, "bad_request", result.Code)
 		assert.Equal(t, "validation failed", result.Message)
-
-		details, ok := result.Details.([]any)
-		assert.True(t, ok)
-		assert.Len(t, details, 1)
-		assert.Contains(t, details, map[string]any{
+		assert.Len(t, result.Details, 1)
+		assert.Contains(t, result.Details, map[string]any{
 			"field": "password",
 			"error": "password must be at least 8 characters in length",
 		})
@@ -452,11 +443,8 @@ func Test_UserController_GetByID(t *testing.T) {
 
 		assert.Equal(t, "bad_request", result.Code)
 		assert.Equal(t, "validation failed", result.Message)
-
-		details, ok := result.Details.([]any)
-		assert.True(t, ok)
-		assert.Len(t, details, 1)
-		assert.Contains(t, details, map[string]any{
+		assert.Len(t, result.Details, 1)
+		assert.Contains(t, result.Details, map[string]any{
 			"field": "name",
 			"error": "name is a required field",
 		})

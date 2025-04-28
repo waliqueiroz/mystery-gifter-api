@@ -9,6 +9,7 @@ import (
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain/build_domain"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain/mock_domain"
+	"github.com/waliqueiroz/mystery-gifter-api/pkg/validator"
 	"go.uber.org/mock/gomock"
 )
 
@@ -61,6 +62,9 @@ func Test_userService_Create(t *testing.T) {
 		assert.Error(t, err)
 		var expectedError *domain.ValidationError
 		assert.ErrorAs(t, err, &expectedError)
+		assert.Equal(t, "validation failed", expectedError.Error())
+		errors := expectedError.Details()
+		assert.Contains(t, errors, validator.FieldError{Field: "Name", Error: "Name is a required field"})
 	})
 }
 

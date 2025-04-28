@@ -10,6 +10,7 @@ import (
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain/build_domain"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain/mock_domain"
+	"github.com/waliqueiroz/mystery-gifter-api/pkg/validator"
 	"go.uber.org/mock/gomock"
 )
 
@@ -50,6 +51,36 @@ func Test_groupService_Create(t *testing.T) {
 		assert.Equal(t, expectedGroup.Name, result.Name)
 		assert.Equal(t, expectedGroup.OwnerID, result.OwnerID)
 		assert.Equal(t, expectedGroup.Users, result.Users)
+	})
+
+	t.Run("should return validation error when name is empty", func(t *testing.T) {
+		// given
+		name := ""
+		owner := build_domain.NewUserBuilder().Build()
+		ownerID := owner.ID
+		expectedGroup := build_domain.NewGroupBuilder().WithName(name).WithOwnerID(ownerID).WithUsers([]domain.User{owner}).Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedUserService := mock_application.NewMockUserService(mockCtrl)
+		mockedUserService.EXPECT().GetByID(gomock.Any(), ownerID).Return(&owner, nil)
+
+		mockedIdentityGenerator := mock_domain.NewMockIdentityGenerator(mockCtrl)
+		mockedIdentityGenerator.EXPECT().Generate().Return(expectedGroup.ID, nil)
+
+		groupService := application.NewGroupService(nil, mockedUserService, mockedIdentityGenerator)
+
+		// when
+		result, err := groupService.Create(context.Background(), name, ownerID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		var expectedError *domain.ValidationError
+		assert.ErrorAs(t, err, &expectedError)
+		assert.Equal(t, "validation failed", expectedError.Error())
+		errors := expectedError.Details()
+		assert.Contains(t, errors, validator.FieldError{Field: "Name", Error: "Name is a required field"})
 	})
 
 	t.Run("should return error when fails to get owner", func(t *testing.T) {

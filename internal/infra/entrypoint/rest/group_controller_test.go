@@ -136,11 +136,8 @@ func Test_GroupController_Create(t *testing.T) {
 
 		assert.Equal(t, "bad_request", result.Code)
 		assert.Equal(t, "validation failed", result.Message)
-
-		details, ok := result.Details.([]any)
-		assert.True(t, ok)
-		assert.Len(t, details, 1)
-		assert.Contains(t, details, map[string]any{
+		assert.Len(t, result.Details, 1)
+		assert.Contains(t, result.Details, map[string]any{
 			"field": "name",
 			"error": "name is a required field",
 		})
@@ -260,11 +257,8 @@ func Test_GroupController_Create(t *testing.T) {
 
 		assert.Equal(t, "bad_request", result.Code)
 		assert.Equal(t, "validation failed", result.Message)
-
-		details, ok := result.Details.([]any)
-		assert.True(t, ok)
-		assert.Len(t, details, 1)
-		assert.Contains(t, details, map[string]any{
+		assert.Len(t, result.Details, 1)
+		assert.Contains(t, result.Details, map[string]any{
 			"field": "name",
 			"error": "name is a required field",
 		})
@@ -356,11 +350,8 @@ func Test_GroupController_GetByID(t *testing.T) {
 
 		assert.Equal(t, "bad_request", result.Code)
 		assert.Equal(t, "validation failed", result.Message)
-
-		details, ok := result.Details.([]any)
-		assert.True(t, ok)
-		assert.Len(t, details, 1)
-		assert.Contains(t, details, map[string]any{
+		assert.Len(t, result.Details, 1)
+		assert.Contains(t, result.Details, map[string]any{
 			"field": "name",
 			"error": "name is a required field",
 		})
@@ -520,11 +511,8 @@ func Test_GroupController_AddUser(t *testing.T) {
 
 		assert.Equal(t, "bad_request", result.Code)
 		assert.Equal(t, "validation failed", result.Message)
-
-		details, ok := result.Details.([]any)
-		assert.True(t, ok)
-		assert.Len(t, details, 1)
-		assert.Contains(t, details, map[string]any{
+		assert.Len(t, result.Details, 1)
+		assert.Contains(t, result.Details, map[string]any{
 			"field": "user_id",
 			"error": "user_id must be a valid UUID",
 		})
@@ -649,12 +637,8 @@ func Test_GroupController_AddUser(t *testing.T) {
 		helper.DecodeJSON(t, response.Body, &result)
 
 		assert.Equal(t, "bad_request", result.Code)
-		assert.Equal(t, "validation failed", result.Message)
-
-		details, ok := result.Details.([]any)
-		assert.True(t, ok)
-		assert.Len(t, details, 1)
-		assert.Contains(t, details, map[string]any{
+		assert.Len(t, result.Details, 1)
+		assert.Contains(t, result.Details, map[string]any{
 			"field": "name",
 			"error": "name is a required field",
 		})
@@ -828,11 +812,8 @@ func Test_GroupController_RemoveUser(t *testing.T) {
 
 		assert.Equal(t, "bad_request", result.Code)
 		assert.Equal(t, "validation failed", result.Message)
-
-		details, ok := result.Details.([]any)
-		assert.True(t, ok)
-		assert.Len(t, details, 1)
-		assert.Contains(t, details, map[string]any{
+		assert.Len(t, result.Details, 1)
+		assert.Contains(t, result.Details, map[string]any{
 			"field": "name",
 			"error": "name is a required field",
 		})

@@ -100,11 +100,8 @@ func Test_AuthController_Login(t *testing.T) {
 
 		assert.Equal(t, "bad_request", result.Code)
 		assert.Equal(t, "validation failed", result.Message)
-
-		details, ok := result.Details.([]any)
-		assert.True(t, ok)
-		assert.Len(t, details, 1)
-		assert.Contains(t, details, map[string]any{
+		assert.Len(t, result.Details, 1)
+		assert.Contains(t, result.Details, map[string]any{
 			"field": "access_token",
 			"error": "access_token is a required field",
 		})
@@ -179,11 +176,8 @@ func Test_AuthController_Login(t *testing.T) {
 
 		assert.Equal(t, "bad_request", result.Code)
 		assert.Equal(t, "validation failed", result.Message)
-
-		details, ok := result.Details.([]any)
-		assert.True(t, ok)
-		assert.Len(t, details, 1)
-		assert.Contains(t, details, map[string]any{
+		assert.Len(t, result.Details, 1)
+		assert.Contains(t, result.Details, map[string]any{
 			"field": "email",
 			"error": "email is a required field",
 		})

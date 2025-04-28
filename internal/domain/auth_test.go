@@ -38,7 +38,7 @@ func Test_NewCredentials(t *testing.T) {
 		var validationErr *domain.ValidationError
 		assert.ErrorAs(t, err, &validationErr)
 		assert.Nil(t, credentials)
-		errors := validationErr.Details().(validator.ValidationErrors)
+		errors := validationErr.Details()
 		assert.Contains(t, errors, validator.FieldError{Field: "Email", Error: "Email is a required field"})
 	})
 
@@ -55,7 +55,7 @@ func Test_NewCredentials(t *testing.T) {
 		var validationErr *domain.ValidationError
 		assert.ErrorAs(t, err, &validationErr)
 		assert.Nil(t, credentials)
-		errors := validationErr.Details().(validator.ValidationErrors)
+		errors := validationErr.Details()
 		assert.Len(t, errors, 1)
 		assert.Contains(t, errors, validator.FieldError{Field: "Password", Error: "Password is a required field"})
 	})
@@ -73,7 +73,7 @@ func Test_NewCredentials(t *testing.T) {
 		var validationErr *domain.ValidationError
 		assert.ErrorAs(t, err, &validationErr)
 		assert.Nil(t, credentials)
-		errors := validationErr.Details().(validator.ValidationErrors)
+		errors := validationErr.Details()
 		assert.Len(t, errors, 1)
 		assert.Contains(t, errors, validator.FieldError{Field: "Email", Error: "Email must be a valid email address"})
 	})
@@ -114,10 +114,9 @@ func Test_NewAuthSession(t *testing.T) {
 		var validationErr *domain.ValidationError
 		assert.ErrorAs(t, err, &validationErr)
 		assert.Nil(t, authSession)
-		messages := validationErr.Details().(validator.ValidationErrors)
-		assert.Len(t, messages, 1)
-		assert.Equal(t, "AccessToken", messages[0].Field)
-		assert.Equal(t, "AccessToken is a required field", messages[0].Error)
+		errors := validationErr.Details()
+		assert.Len(t, errors, 1)
+		assert.Contains(t, errors, validator.FieldError{Field: "AccessToken", Error: "AccessToken is a required field"})
 	})
 
 	t.Run("should return validation error when token type is empty", func(t *testing.T) {
@@ -135,10 +134,9 @@ func Test_NewAuthSession(t *testing.T) {
 		var validationErr *domain.ValidationError
 		assert.ErrorAs(t, err, &validationErr)
 		assert.Nil(t, authSession)
-		messages := validationErr.Details().(validator.ValidationErrors)
-		assert.Len(t, messages, 1)
-		assert.Equal(t, "TokenType", messages[0].Field)
-		assert.Equal(t, "TokenType is a required field", messages[0].Error)
+		errors := validationErr.Details()
+		assert.Len(t, errors, 1)
+		assert.Contains(t, errors, validator.FieldError{Field: "TokenType", Error: "TokenType is a required field"})
 	})
 
 	t.Run("should return validation error when user is invalid", func(t *testing.T) {
@@ -156,9 +154,8 @@ func Test_NewAuthSession(t *testing.T) {
 		assert.Error(t, err)
 		var validationErr *domain.ValidationError
 		assert.ErrorAs(t, err, &validationErr)
-		messages := validationErr.Details().(validator.ValidationErrors)
-		assert.Len(t, messages, 1)
-		assert.Equal(t, "Name", messages[0].Field)
-		assert.Equal(t, "Name is a required field", messages[0].Error)
+		errors := validationErr.Details()
+		assert.Len(t, errors, 1)
+		assert.Contains(t, errors, validator.FieldError{Field: "Name", Error: "Name is a required field"})
 	})
 }
