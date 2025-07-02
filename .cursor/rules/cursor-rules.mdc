@@ -1,0 +1,159 @@
+---
+description: Como adicionar ou editar regras do Cursor em seu projeto
+globs: 
+alwaysApply: false
+---
+# Guia de Gerenciamento de Regras do Cursor
+
+## Formato da Estrutura de Regras
+
+Toda regra do cursor deve seguir exatamente esta estrutura de metadados e conteúdo:
+
+````markdown
+---
+description: Breve descrição do propósito da regra
+globs: caminho/opcional/padrão/**/*
+alwaysApply: false
+---
+# Título da Regra
+
+Conteúdo principal explicando a regra com formatação markdown.
+
+1. Instruções passo a passo
+2. Exemplos de código
+3. Diretrizes
+
+Exemplo:
+```go
+// Good
+func goodExample() {
+  // Correct implementation
+}
+
+// Bad example
+func badExample() {
+  // Incorrect implementation
+}
+```
+````
+
+## Organização de Arquivos
+
+### Localização Obrigatória
+
+Todos os arquivos de regras do cursor **devem** ser colocados em:
+
+```
+PROJECT_ROOT/.cursor/rules/
+```
+
+### Estrutura de Diretórios
+
+```
+PROJECT_ROOT/
+├── .cursor/
+│   └── rules/
+│       ├── your-rule-name.mdc
+│       ├── another-rule.mdc
+│       └── cursor-rules.mdc
+└── ...
+```
+
+### Convenções de Nomenclatura
+
+- Use **kebab-case** para todos os nomes de arquivos
+- Sempre use a extensão **.mdc**
+- Faça nomes **descritivos** do propósito da regra
+- Exemplos: `typescript-style.mdc`, `tailwind-styling.mdc`, `mdx-documentation.mdc`
+
+## Diretrizes de Conteúdo
+
+### Escrevendo Regras Eficazes
+
+1. **Seja específico e acionável** - Forneça instruções claras
+2. **Inclua exemplos de código** - Mostre boas e más práticas
+3. **Faça referência a arquivos existentes** - Use o formato `@filename.ext`
+4. **Mantenha o foco** - Uma regra por preocupação/padrão
+5. **Adicione contexto** - Explique por que a regra existe
+
+### Formato dos Exemplos de Código
+
+```typescript
+// ✅ Bom: Claro e segue convenções
+function processUser({ id, name }: { id: string; name: string }) {
+  return { id, displayName: name };
+}
+
+// ❌ Ruim: Passagem de parâmetros pouco clara
+function processUser(id: string, name: string) {
+  return { id, displayName: name };
+}
+```
+
+```go
+// ✅ Bom: Nomenclatura clara, função pequena, usa struct para entrada/saída
+type User struct {
+	ID   string
+	Name string
+}
+
+type ProcessedUser struct {
+	ID          string
+	DisplayName string
+}
+
+func ProcessUser(user User) ProcessedUser {
+	return ProcessedUser{
+		ID:          u.ID,
+		DisplayName: u.Name,
+	}
+}
+
+// ❌ Ruim: Nomenclatura vaga, retorna mapa anônimo, menos legível
+func HandleData(id string, name string) map[string]string {
+	return map[string]string{"id": id, "displayName": name}
+}
+```
+
+### Referências a Arquivos
+
+Ao referenciar arquivos do projeto nas regras, use este padrão:
+
+```markdown
+[file.tsx](mdc:path/to/file.tsx)
+```
+
+## Localizações Proibidas
+
+**Nunca** coloque arquivos de regras em:
+- Diretório raiz do projeto
+- Qualquer subdiretório fora de `.cursor/rules/`
+- Diretórios de componentes
+- Pastas de código-fonte
+- Pastas de documentação
+
+## Categorias de Regras
+
+Organize as regras por propósito:
+- **Estilo de Código**: `typescript-style.mdc`, `css-conventions.mdc`
+- **Arquitetura**: `component-patterns.mdc`, `folder-structure.mdc`
+- **Documentação**: `mdx-documentation.mdc`, `readme-format.mdc`
+- **Ferramentas**: `testing-patterns.mdc`, `build-config.mdc`
+- **Meta**: `cursor-rules.mdc`, `self-improve.mdc`
+
+## Melhores Práticas
+
+### Checklist de Criação de Regras
+- [ ] Arquivo colocado no diretório `.cursor/rules/`
+- [ ] Nome do arquivo usa kebab-case com extensão `.mdc`
+- [ ] Inclui seção de metadados adequada
+- [ ] Contém título e seções claras
+- [ ] Fornece exemplos bons e ruins
+- [ ] Referencia arquivos relevantes do projeto
+- [ ] Segue formatação consistente
+
+### Manutenção
+- **Revise regularmente** - Mantenha as regras atualizadas com mudanças na base de código
+- **Atualize exemplos** - Garanta que os exemplos de código reflitam os padrões atuais
+- **Faça referências cruzadas** - Conecte regras relacionadas
+- **Documente alterações** - Atualize as regras quando os padrões evoluírem

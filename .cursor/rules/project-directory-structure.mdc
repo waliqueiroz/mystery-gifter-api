@@ -1,0 +1,68 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Estrutura de Diretórios do Projeto Mystery Gifter API
+
+Este documento descreve a estrutura de diretórios e a finalidade dos principais arquivos e pastas dentro do projeto Mystery Gifter API.
+
+## Visão Geral
+
+O projeto segue uma estrutura modular, com separação clara de responsabilidades:
+- `cmd/`: Contém os pontos de entrada principais da aplicação.
+- `internal/`: Contém a lógica de negócio interna, que não deve ser importada por outros módulos externos.
+- `pkg/`: Contém pacotes reutilizáveis que podem ser importados por outros módulos.
+- `test/`: Contém utilitários e helpers para testes.
+
+## Detalhes das Pastas
+
+### `cmd/`
+- **`cmd/api/`**: Contém o ponto de entrada principal para a aplicação API.
+    - `main.go`: O arquivo principal que inicializa e executa a aplicação API.
+
+### `internal/`
+Esta é a pasta central para a lógica de negócio e infraestrutura interna.
+- **`internal/application/`**: Camada de serviço de aplicação.
+    - Contém a lógica de negócio central e orquestra operações entre o domínio e a infraestrutura.
+    - Ex: `auth_service.go`, `group_service.go`, `user_service.go`.
+    - `mock_application/`: Mocks para os serviços de aplicação, usados em testes.
+- **`internal/domain/`**: Camada de domínio.
+    - Define as entidades, agregações, interfaces de repositório e erros de domínio.
+    - Ex: `auth.go`, `group.go`, `user.go`, `errors.go`.
+    - `build_domain/`: Construtores para facilitar a criação de objetos de domínio.
+    - `mock_domain/`: Mocks para interfaces de domínio (ex: `user_repository.go`), usados em testes de unidade.
+- **`internal/infra/`**: Camada de infraestrutura.
+    - Contém implementações concretas de interfaces de domínio e configurações.
+    - **`internal/infra/config/`**: Configurações da aplicação.
+        - `config.go`: Lógica para carregar e gerenciar as configurações.
+    - **`internal/infra/entrypoint/`**: Ponto de entrada da API.
+        - `middlewares.go`: Middlewares HTTP.
+        - `routes.go`: Definição das rotas da API.
+        - `error_handler.go`: Manipulação de erros globais.
+        - `rest/`: Implementações dos controladores REST e DTOs.
+            - `auth_controller.go`, `group_controller.go`, `user_controller.go`: Controladores para as APIs.
+            - `*_dto.go`: Data Transfer Objects para requisições e respostas.
+            - `build_rest/`: Construtores para DTOs REST.
+    - **`internal/infra/outgoing/`**: Integrações com serviços externos.
+        - `identity/`: Geração de IDs (ex: UUID).
+        - `postgres/`: Implementação do repositório PostgreSQL.
+            - `group.go`, `user.go`: Mapeamento de modelos de banco de dados.
+            - `group_repository.go`, `user_repository.go`: Implementações de repositório para PostgreSQL.
+            - `migrations/`: Scripts de migração de banco de dados (`.up.sql`, `.down.sql`).
+            - `mock_postgres/`: Mocks para interações com o banco de dados.
+            - `build_postgres/`: Construtores para modelos PostgreSQL.
+        - `security/`: Implementações de segurança (ex: hashing de senhas, gerenciamento de tokens JWT).
+    - `runner.go`: Orquestrador para iniciar a aplicação.
+
+### `pkg/`
+- **`pkg/validator/`**: Utilitários genéricos de validação.
+
+### `test/`
+- **`test/helper/`**: Funções auxiliares para testes.
+
+## Arquivos Importantes na Raiz
+
+- `go.mod`, `go.sum`: Arquivos de módulos Go para gerenciamento de dependências.
+- `docker-compose.yml`: Definição de serviços Docker para desenvolvimento (ex: banco de dados).
+- `tools.go`: Gerenciamento de dependências de ferramentas de desenvolvimento.

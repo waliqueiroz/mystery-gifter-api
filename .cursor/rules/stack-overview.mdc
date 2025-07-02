@@ -1,0 +1,80 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Visão Geral da Stack da Aplicação Go
+
+Este documento descreve as principais dependências da aplicação `mystery-gifter-api` e suas respectivas versões, conforme definido no arquivo `go.mod`.
+
+## Versão do Go
+
+*   **Go Version**: `1.23.5`
+    *   **Melhores Práticas**: Recomenda-se manter o Go atualizado para as versões mais recentes estáveis, pois elas geralmente incluem melhorias de performance, segurança e novas funcionalidades. A versão 1.23.5 é relativamente recente, o que é bom.
+
+## Dependências Principais
+
+Aqui estão as dependências diretas e suas versões:
+
+*   **github.com/Masterminds/squirrel**: `v1.5.4`
+    *   **Propósito**: Ajuda na construção de queries SQL de forma programática.
+    *   **Melhores Práticas**: Usar uma ferramenta como `squirrel` é ótimo para evitar injeção de SQL e tornar as queries mais legíveis e manteníveis.
+
+*   **github.com/caarlos0/env/v11**: `v11.2.2`
+    *   **Propósito**: Facilita o carregamento de variáveis de ambiente em structs Go.
+    *   **Melhores Práticas**: Essencial para configurações de ambiente seguras e organizadas, seguindo o princípio de [Configuration via Environment Variables](mdc:https:/12factor.net/config).
+
+*   **github.com/go-playground/validator/v10**: `v10.23.0` (junto com `locales` e `universal-translator`)
+    *   **Propósito**: Biblioteca de validação de structs e campos.
+    *   **Melhores Práticas**: Utilizar validação robusta em todas as entradas de usuário e dados externos é crucial para a segurança e integridade dos dados da aplicação. Manter a biblioteca atualizada para correções de segurança e novas regras de validação.
+
+*   **github.com/gofiber/fiber/v2**: `v2.52.6`
+    *   **Propósito**: Framework web para Go, conhecido por seu desempenho e facilidade de uso.
+    *   **Melhores Práticas**: Ao usar Fiber, focar na organização de rotas, middleware e manipulação de erros. A versão v2.52.6 é recente, o que é bom para ter as últimas otimizações e recursos.
+
+*   **github.com/gofiber/contrib/jwt**: `v1.0.10`
+    *   **Propósito**: Integração de JWT (JSON Web Tokens) com Fiber.
+    *   **Melhores Práticas**: A segurança de JWTs depende da correta implementação (uso de chaves fortes, expiração, etc.). Certificar-se de que os tokens são validados corretamente em cada requisição protegida.
+
+*   **github.com/golang-jwt/jwt/v5**: `v5.2.1`
+    *   **Propósito**: Biblioteca para manipular JWTs.
+    *   **Melhores Práticas**: Complementa a integração do Fiber. Atenção às políticas de rotação de chaves e armazenamento seguro dos segredos de assinatura.
+
+*   **github.com/golang-migrate/migrate/v4**: `v4.18.1`
+    *   **Propósito**: Ferramenta de migração de banco de dados.
+    *   **Melhores Práticas**: Migrações de banco de dados devem ser idempotentes e testadas. Essa ferramenta ajuda a manter o schema do banco de dados versionado e consistente entre ambientes.
+
+*   **github.com/google/uuid**: `v1.6.0`
+    *   **Propósito**: Geração e manipulação de UUIDs.
+    *   **Melhores Práticas**: Ótimo para IDs únicos globais, evitando colisões e centralizando a geração de UUIDs.
+
+*   **github.com/jmoiron/sqlx**: `v1.4.0`
+    *   **Propósito**: Extensão do pacote `database/sql` para facilitar o uso com structs.
+    *   **Melhores Práticas**: Simplifica a interação com o banco de dados, mapeando resultados de query para structs Go. Usar `sqlx` ajuda a reduzir o boilerplate.
+
+*   **github.com/joho/godotenv**: `v1.5.1`
+    *   **Propósito**: Carrega variáveis de ambiente de arquivos `.env`.
+    *   **Melhores Práticas**: Conveniente para desenvolvimento local, mas **nunca** commitar arquivos `.env` com segredos para o controle de versão em ambientes de produção.
+
+*   **github.com/lib/pq**: `v1.10.9`
+    *   **Propósito**: Driver PostgreSQL para Go.
+    *   **Melhores Práticas**: O driver é um componente crítico. Monitorar atualizações para correções de segurança e compatibilidade com novas versões do PostgreSQL.
+
+*   **github.com/stretchr/testify**: `v1.9.0`
+    *   **Propósito**: Conjunto de ferramentas para testes em Go.
+    *   **Melhores Práticas**: Usar `testify` facilita a escrita de testes legíveis e concisos. A cobertura de testes robusta é essencial para a qualidade do código.
+
+*   **go.uber.org/mock**: `v0.5.0`
+    *   **Propósito**: Framework de mock para Go, geralmente usado para testes unitários.
+    *   **Melhores Práticas**: Mocks são importantes para isolar unidades de código durante os testes, garantindo que os testes sejam rápidos e confiáveis.
+
+*   **golang.org/x/crypto**: `v0.29.0`
+    *   **Propósito**: Biblioteca criptográfica auxiliar do Go.
+    *   **Melhores Práticas**: Essencial para operações criptográficas seguras, como hashing de senhas. Sempre usar bibliotecas criptográficas bem revisadas e mantê-las atualizadas.
+
+## Considerações Gerais sobre Dependências
+
+*   **Atualizações Regulares**: É uma boa prática revisar e atualizar as dependências regularmente para se beneficiar de melhorias de desempenho, patches de segurança e novas funcionalidades.
+*   **Gerenciamento de Versões**: O `go.mod` e `go.sum` garantem que as dependências sejam reproduzíveis. Evitar o uso de `latest` para versões de dependências e preferir versões fixas ou com ranges bem definidos.
+*   **Segurança**: Monitorar vulnerabilidades conhecidas nas dependências (`go mod tidy -compat=1.17`, ferramentas de análise de segurança).
+*   **Remoção de Dependências Não Utilizadas**: Manter o `go.mod` limpo de dependências que não são mais necessárias (`go mod tidy`).
