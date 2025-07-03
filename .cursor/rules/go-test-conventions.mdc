@@ -1,0 +1,128 @@
+---
+description: Convenções de Teste de Unidade em Go
+globs: 
+alwaysApply: false
+---
+# Convenções de Teste de Unidade em Go
+
+Este documento descreve as convenções recomendadas para escrever testes de unidade em Go. Seguir essas diretrizes garante consistência, legibilidade e manutenibilidade dos testes.
+
+## 1. Estrutura de Teste com `t.Run`
+
+Organize seus testes usando `t.Run` para cada cenário de teste. Isso permite que você execute testes específicos e fornece uma saída mais clara em caso de falha.
+
+```go
+// ✅ Bom
+func Test_authService_Login(t *testing.T) {
+	t.Run("deve retornar uma sessão com sucesso", func(t *testing.T) {
+		// ... teste
+	})
+
+	t.Run("deve retornar um erro quando a criação do token falha", func(t *testing.T) {
+		// ... teste
+	})
+}
+
+// ❌ Ruim: Testes múltiplos sem organização clara
+func Test_authService_Login_Bad(t *testing.T) {
+	// Cenário 1
+	// ...
+
+	// Cenário 2
+	// ...
+}
+```
+
+## 2. Organização do Cenário de Teste (`given`, `when`, `then`)
+
+Estruture cada cenário de teste com comentários claros para separar as fases: `// given` (preparação), `// when` (execução) e `// then` (verificação).
+
+```go
+// ✅ Bom
+func Test_authService_Login(t *testing.T) {
+	t.Run("deve retornar uma sessão com sucesso", func(t *testing.T) {
+		// given
+		email := "test@mail.com"
+		password := "some_password"
+		// ... outras preparações
+
+		// when
+		result, err := authService.Login(context.Background(), credentials)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, authSession, *result)
+	})
+}
+
+// ❌ Ruim: Fases do teste misturadas
+func Test_authService_Login_Unorganized(t *testing.T) {
+	email := "test@mail.com"
+	authService := application.NewAuthService(...) // setup
+	result, err := authService.Login(...)           // execution
+	assert.NoError(t, err)                          // assertion
+}
+```
+
+## 3. Uso de Mocks com `go.uber.org/mock`
+
+Utilize `go.uber.org/mock` (anteriormente `gomock`) para isolar unidades de código durante os testes, criando mocks para dependências.
+
+```go
+// ✅ Bom
+mockCtrl := gomock.NewController(t)
+mockedUserRepository := mock_domain.NewMockUserRepository(mockCtrl)
+mockedUserRepository.EXPECT().GetByEmail(gomock.Any(), credentials.Email).Return(&user, nil)
+
+// ... passe os mocks para o serviço
+authService := application.NewAuthService(sessionDuration, mockedUserRepository, mockedPasswordManager, mockedAuthTokenManager)
+
+// ❌ Ruim: Testando dependências reais ou criando mocks manualmente sem a ferramenta
+// Não há um exemplo "ruim" direto de mock aqui, mas a ausência de um framework de mock seria a má prática.
+```
+
+## 4. Utilização de Builders para Objetos de Domínio
+
+Prefira usar builders (e.g., `build_domain.NewCredentialsBuilder`) para criar instâncias de objetos de domínio nos testes, tornando o setup do cenário mais legível e flexível.
+
+```go
+// ✅ Bom
+credentials := build_domain.NewCredentialsBuilder().WithEmail(email).WithPassword(password).Build()
+user := build_domain.NewUserBuilder().WithEmail(email).WithPassword(hashedPassword).Build()
+authSession := build_domain.NewAuthSessionBuilder().WithUser(user).WithAccessToken(token).WithTokenType(tokenType).WithExpiresIn(time.Now().Add(sessionDuration).Unix()).Build()
+
+// ❌ Ruim: Criação manual de structs literais com muitos campos, tornando o código verboso e propenso a erros
+// credentials := domain.Credentials{Email: email, Password: password}
+```
+
+## 5. Asserções com `github.com/stretchr/testify/assert`
+
+Use a biblioteca `stretchr/testify/assert` para todas as asserções de teste. Ela fornece uma API expressiva e fácil de ler para verificar os resultados.
+
+```go
+// ✅ Bom
+assert.NoError(t, err)
+assert.Equal(t, authSession, *result)
+assert.Error(t, err)
+var expectedError *domain.UnauthorizedError
+assert.ErrorAs(t, err, &expectedError)
+assert.EqualError(t, expectedError, "invalid credentials")
+
+// ❌ Ruim: Asserções manuais que tornam o código de teste menos legível
+// if err != nil { t.Errorf("esperava nenhum erro, mas obteve %v", err) }
+// if result != expectedResult { t.Errorf("esperava %v, mas obteve %v", expectedResult, result) }
+```
+
+## 6. Tratamento de Contexto e Tempo
+
+Sempre passe um `context.Context` (geralmente `context.Background()` em testes) para funções que o exigem. Use `time.Duration` para representar durações de forma clara.
+
+```go
+// ✅ Bom
+_, err := authService.Login(context.Background(), credentials)
+sessionDuration := time.Hour
+
+// ❌ Ruim: Passar `nil` como contexto onde um contexto é esperado ou usar inteiros mágicos para durações
+// _, err := authService.Login(nil, credentials)
+// sessionDuration := 3600 // Sem clareza se é segundos, minutos, etc.
+```

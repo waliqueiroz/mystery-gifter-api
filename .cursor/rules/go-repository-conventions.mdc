@@ -1,0 +1,177 @@
+---
+description: Convenções para a implementação de classes de repositório Go.
+globs: 
+alwaysApply: false
+---
+# Convenções de Repositório Go
+
+Este documento descreve as convenções a serem seguidas ao implementar classes de repositório em Go.
+
+## 1. Estrutura e Nomenclatura
+
+-   **Struct do Repositório**: Deve ser uma struct privada (`repositoryName`).
+-   **Função Construtora**: Deve ter o prefixo `New` (`NewRepositoryName`).
+-   **Interface**: A função construtora deve retornar uma interface que define os métodos do repositório.
+
+```go
+// ✅ Bom
+type groupRepository struct {
+	db DB
+}
+
+func NewGroupRepository(db DB) domain.GroupRepository {
+	return &groupRepository{
+		db: db,
+	}
+}
+
+// ❌ Ruim
+type GroupRepository struct { // Nome da struct em maiúscula, tornando-a pública
+	db DB
+}
+
+func CreateGroupRepository(db DB) GroupRepository { // Prefixo de função construtora incorreto
+	return GroupRepository{
+		db: db,
+	}
+}
+```
+
+## 2. Injeção de Dependência
+
+-   O repositório deve receber uma interface `DB` (ou similar) como dependência, facilitando testes e abstração do banco de dados.
+
+```go
+// ✅ Bom
+type DB interface {
+	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+	BeginTxx(ctx context.Context, opts *sql.TxOptions) (*sqlx.Tx, error)
+}
+
+func NewGroupRepository(db DB) domain.GroupRepository {
+	return &groupRepository{
+		db: db,
+	}
+}
+
+// ❌ Ruim
+func NewGroupRepository(db *sqlx.DB) domain.GroupRepository { // Acoplamento direto ao *sqlx.DB
+	return &groupRepository{
+		db: db,
+	}
+}
+```
+
+## 3. Tratamento de Erros
+
+-   Retorne erros específicos do domínio (`domain.NewConflictError`, `domain.NewResourceNotFoundError`) quando apropriado.
+-   Use `fmt.Errorf("mensagem: %w", err)` para encapsular erros e adicionar contexto.
+-   Verifique `sql.ErrNoRows` para casos de "recurso não encontrado".
+-   Capture erros `pq.Error` para tratar violações de restrição única do PostgreSQL.
+
+```go
+// ✅ Bom
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, domain.NewResourceNotFoundError("group not found")
+		}
+		var currentError *pq.Error
+		if errors.As(err, &currentError) && currentError.Code.Name() == POSTGRES_UNIQUE_VIOLATION {
+			return domain.NewConflictError("you already have a group with this name")
+		}
+		return nil, fmt.Errorf("error getting group: %w", err)
+	}
+
+// ❌ Ruim
+	if err != nil {
+		return fmt.Errorf("falha ao obter grupo: %w", err) // Mensagem de erro genérica sem tratamento específico
+	}
+```
+
+## 4. Gerenciamento de Transações
+
+-   Para operações que envolvem múltiplas inserções/atualizações (ex: `Create`, `Update`), utilize transações.
+-   Sempre use `defer tx.Rollback()` e `tx.Commit()`.
+
+```go
+// ✅ Bom
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("error beginning transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	// ... operações de banco de dados ...
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("error committing transaction: %w", err)
+	}
+
+// ❌ Ruim
+	// ... operações de banco de dados sem transação ...
+	// ou
+	tx, err := r.db.BeginTxx(ctx, nil)
+	// Esquecer o defer Rollback() ou o Commit()
+```
+
+## 5. Construção de Consultas SQL
+
+-   Utilize a biblioteca `squirrel` para construir consultas SQL de forma programática.
+-   Sempre use `PlaceholderFormat(squirrel.Dollar)` para PostgreSQL.
+
+```go
+// ✅ Bom
+	query, args, err := squirrel.Insert("groups").
+		Columns("id", "name", "owner_id", "created_at", "updated_at").
+		Values(group.ID, group.Name, group.OwnerID, group.CreatedAt, group.UpdatedAt).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+
+// ❌ Ruim
+	query := "INSERT INTO groups (id, name, owner_id, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)" // Concatenação manual ou SQL hardcoded
+	// ou
+	query, args, err := squirrel.Insert("groups").ToSql() // Esquecer PlaceholderFormat
+```
+
+## 6. Uso de Contexto
+
+-   Todas as operações de banco de dados devem receber `context.Context` como primeiro parâmetro e passá-lo para os métodos do banco de dados (ex: `ExecContext`, `GetContext`, `SelectContext`).
+
+```go
+// ✅ Bom
+func (r *groupRepository) Create(ctx context.Context, group domain.Group) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	// ...
+	_, err = tx.ExecContext(ctx, query, args...)
+	// ...
+}
+
+// ❌ Ruim
+func (r *groupRepository) Create(group domain.Group) error { // Contexto ausente
+	// ...
+	_, err = r.db.Exec(query, args...) // Usando Exec sem contexto
+	// ...
+}
+```
+
+## 7. Registro de Logs
+
+-   Utilize `log.Println` para registrar erros importantes ou informações de depuração dentro do repositório.
+
+```go
+// ✅ Bom
+	_, err = tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		log.Println("error inserting group:", err)
+		return fmt.Errorf("error inserting group: %w", err)
+	}
+
+// ❌ Ruim
+	_, err = tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		// Nenhuma mensagem de log, dificuldade na depuração
+		return fmt.Errorf("error inserting group: %w", err)
+	}
+``` 

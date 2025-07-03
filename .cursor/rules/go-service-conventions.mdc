@@ -1,0 +1,107 @@
+---
+description: Convenções de Classes de Serviço Go
+globs: 
+alwaysApply: false
+---
+# Convenções de Classes de Serviço Go
+
+Este documento descreve as convenções a serem seguidas ao criar classes de serviço na camada de aplicação Go.
+
+## Estrutura do Arquivo
+
+1.  **Pacote:** Todos os arquivos de serviço devem pertencer ao pacote `application`.
+2.  **Geração de Mocks:** A primeira linha após a declaração do pacote deve ser um comentário `//go:generate` para `go.uber.org/mock`, com o destino do mock seguindo o padrão `mock_application/[nome_do_serviço].go`.
+
+```go
+// ✅ Bom: Pacote correto e go:generate para mocks
+package application
+
+//go:generate go run go.uber.org/mock/mockgen -destination mock_application/auth_service.go . AuthService
+```
+
+## Definição da Interface
+
+1.  Cada serviço deve definir uma interface pública com o nome do serviço (ex: `AuthService`).
+2.  Todos os métodos da interface devem aceitar `context.Context` como o primeiro parâmetro e retornar erro como o último valor de retorno (se aplicável).
+
+```go
+// ✅ Bom: Interface pública com Context e retorno de erro
+type AuthService interface {
+	Login(ctx context.Context, credentials domain.Credentials) (*domain.AuthSession, error)
+}
+
+// ❌ Ruim: Interface sem Context ou retorno de erro inconsistente
+type AuthService interface {
+	Login(credentials domain.Credentials) (*domain.AuthSession)
+}
+```
+
+## Implementação da Struct
+
+1.  Deve existir uma struct privada correspondente à interface (ex: `authService`). O nome deve ser o nome da interface em camelCase com a primeira letra minúscula.
+2.  A struct deve conter apenas as dependências necessárias para o serviço.
+
+```go
+// ✅ Bom: Struct privada com dependências
+type authService struct {
+	sessionDuration  time.Duration
+	userRepository   domain.UserRepository
+	passwordManager  domain.PasswordManager
+	authTokenManager domain.AuthTokenManager
+}
+
+// ❌ Ruim: Struct pública ou com dependências desnecessárias
+type AuthService struct { // Pública
+	// ...
+}
+```
+
+## Função Construtora
+
+1.  Cada serviço deve ter uma função construtora pública no formato `New[NomeDoServiço]` (ex: `NewAuthService`).
+2.  A função construtora deve aceitar as dependências como parâmetros e retornar a interface do serviço.
+
+```go
+// ✅ Bom: Construtor público que retorna a interface
+func NewAuthService(sessionDuration time.Duration, userRepository domain.UserRepository, passwordManager domain.PasswordManager, authTokenManager domain.AuthTokenManager) AuthService {
+	return &authService{
+		sessionDuration:  sessionDuration,
+		userRepository:   userRepository,
+		passwordManager:  passwordManager,
+		authTokenManager: authTokenManager,
+	}
+}
+
+// ❌ Ruim: Construtor que retorna a struct concreta
+func NewAuthService(...) *authService {
+	// ...
+}
+```
+
+## Métodos de Serviço
+
+1.  Os métodos devem ser definidos no receiver da struct privada (ex: `(s *authService) Login`).
+2.  O `context.Context` deve ser o primeiro parâmetro.
+3.  A validação de entrada deve ser realizada no início do método, se aplicável.
+4.  A lógica de negócio deve orquestrar chamadas a repositórios e outros serviços, com tratamento de erros claro e retorno de erros de domínio quando apropriado.
+
+```go
+// ✅ Bom: Método com Context, validação e tratamento de erro
+func (s *authService) Login(ctx context.Context, credentials domain.Credentials) (*domain.AuthSession, error) {
+	if err := credentials.Validate(); err != nil {
+		return nil, err
+	}
+
+	user, err := s.userRepository.GetByEmail(ctx, credentials.Email)
+	if err != nil {
+		return nil, domain.NewUnauthorizedError("invalid credentials")
+	}
+
+	// ...
+	return nil, nil
+}
+
+// ❌ Ruim: Método sem Context ou sem validação inicial
+func (s *authService) Login(credentials domain.Credentials) (*domain.AuthSession, error) {
+	// ...
+}

@@ -1,0 +1,200 @@
+---
+description: Convenções de Controladores Go
+globs: 
+alwaysApply: false
+---
+# Convenções de Controladores Go
+
+Esta regra descreve as convenções de codificação e estrutura para os arquivos de controlador Go (`*_controller.go`) localizados em `internal/infra/entrypoint/rest/`.
+
+## Estrutura Geral
+
+### 1. Nomenclatura de Pacotes
+Todos os arquivos de controlador devem pertencer ao pacote `rest`.
+
+### 2. Nomenclatura de Structs de Controlador
+Os structs de controlador devem seguir o padrão `[Recurso]Controller` (ex: `AuthController`, `UserController`).
+
+**✅ Bom:**
+```go
+type AuthController struct {
+	authService application.AuthService
+}
+```
+
+**❌ Ruim:**
+```go
+type Auth struct {
+	Service application.AuthService
+}
+```
+
+### 3. Nomenclatura de Construtores
+Os construtores para structs de controlador devem ser nomeados `New[Recurso]Controller` e aceitar os serviços de aplicação e gerentes de domínio necessários como argumentos.
+
+**✅ Bom:**
+```go
+func NewAuthController(authService application.AuthService) *AuthController {
+	return &AuthController{
+		authService,
+	}
+}
+```
+
+**❌ Ruim:**
+```go
+func InitAuthController(authService application.AuthService) *AuthController {
+	// ...
+}
+```
+
+### 4. Injeção de Dependência
+As dependências (serviços de aplicação, geradores de identidade, gerenciadores de senha, gerenciadores de token de autenticação, etc.) devem ser injetadas via construtor e armazenadas como campos na struct do controlador.
+
+**✅ Bom:**
+```go
+type UserController struct {
+	userService       application.UserService
+	identityGenerator domain.IdentityGenerator
+	passwordManager   domain.PasswordManager
+}
+
+func NewUserController(userService application.UserService, identityGenerator domain.IdentityGenerator, passwordManager domain.PasswordManager) *UserController {
+	return &UserController{
+		userService:       userService,
+		identityGenerator: identityGenerator,
+		passwordManager:   passwordManager,
+	}
+}
+```
+
+**❌ Ruim:**
+```go
+type UserController struct {
+	// ...
+}
+
+func (c *UserController) initDependencies(userService application.UserService) {
+	// ...
+}
+```
+
+## Lógica de Manipulação de Requisições
+
+### 1. Nomenclatura de Métodos HTTP Handler
+Os métodos que manipulam requisições HTTP devem ser nomeados de acordo com a ação que realizam (ex: `Login`, `Create`, `GetByID`, `AddUser`, `RemoveUser`). Eles devem aceitar um `*fiber.Ctx` como argumento.
+
+**✅ Bom:**
+```go
+func (c *AuthController) Login(ctx *fiber.Ctx) error {
+	// ...
+}
+```
+
+**❌ Ruim:**
+```go
+func (c *AuthController) HandleLoginRequest(ctx *fiber.Ctx) error {
+	// ...
+}
+```
+
+### 2. Tratamento de Erros
+- Erros de `ctx.BodyParser` devem retornar `fiber.NewError(fiber.StatusUnprocessableEntity)`.
+- Outros erros provenientes de chamadas de serviço ou mapeamento de domínio devem ser retornados diretamente.
+
+**✅ Bom:**
+```go
+if err := ctx.BodyParser(&credentialsDTO); err != nil {
+	return fiber.NewError(fiber.StatusUnprocessableEntity)
+}
+// ...
+if err := c.authService.Login(ctx.Context(), *credentials); err != nil {
+	return err
+}
+```
+
+**❌ Ruim:**
+```go
+if err := ctx.BodyParser(&credentialsDTO); err != nil {
+	return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid body"})
+}
+```
+
+### 3. Uso de DTOs (Data Transfer Objects)
+- DTOs devem ser usados para corpos de requisição (entrada) e respostas (saída).
+- Funções de mapeamento (ex: `mapCredentialsToDomain`, `mapUserFromDomain`) devem ser usadas para converter entre DTOs e entidades de domínio.
+
+**✅ Bom:**
+```go
+var createUserDTO CreateUserDTO
+if err := ctx.BodyParser(&createUserDTO); err != nil {
+	// ...
+}
+user, err := mapCreateUserDTOToDomain(c.identityGenerator, c.passwordManager, createUserDTO)
+if err != nil {
+	// ...
+}
+return ctx.Status(fiber.StatusCreated).JSON(userDTO)
+```
+
+**❌ Ruim:**
+```go
+// Manipulando campos diretamente no handler sem DTO
+func (c *UserController) Create(ctx *fiber.Ctx) error {
+	email := ctx.FormValue("email")
+	// ...
+}
+```
+
+### 4. Códigos de Status HTTP
+- Operações de criação bem-sucedidas devem retornar `fiber.StatusCreated` (`ctx.Status(fiber.StatusCreated).JSON(...)`).
+- Outras operações bem-sucedidas devem retornar `ctx.JSON(...)`.
+
+**✅ Bom:**
+```go
+return ctx.Status(fiber.StatusCreated).JSON(userDTO) // Para Create
+// ...
+return ctx.JSON(userDTO) // Para GetByID
+```
+
+### 5. Parâmetros de Rota
+Parâmetros de rota devem ser acessados usando `ctx.Params("paramName")`.
+
+**✅ Bom:**
+```go
+userID := ctx.Params("userID")
+```
+
+**❌ Ruim:**
+```go
+userID := ctx.Query("id")
+```
+
+### 6. Recuperação do ID do Usuário Autenticado
+O ID do usuário autenticado (`authUserID`) deve ser recuperado de `ctx.Locals("user")` usando `c.AuthTokenManager.GetAuthUserID`.
+
+**✅ Bom:**
+```go
+authUserID, err := c.AuthTokenManager.GetAuthUserID(ctx.Locals("user"))
+if err != nil {
+	return err
+}
+```
+
+### 7. Validação de DTOs
+DTOs que requerem validação devem ter um método `Validate()` que é chamado após o `BodyParser`.
+
+**✅ Bom:**
+```go
+if err := createGroupDTO.Validate(); err != nil {
+	return err
+}
+```
+
+**❌ Ruim:**
+```go
+// Lógica de validação embutida diretamente no handler
+if createGroupDTO.Name == "" {
+	return fiber.NewError(fiber.StatusBadRequest, "Name is required")
+}
+```

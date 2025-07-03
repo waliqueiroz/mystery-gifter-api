@@ -1,0 +1,135 @@
+---
+description: Regras para Funções de Mapeamento (Mappers)
+globs: 
+alwaysApply: false
+---
+# Regras para Funções de Mapeamento (Mappers)
+
+Este documento descreve as convenções e melhores práticas para escrever funções de mapeamento (`map...`) no projeto. O objetivo é garantir consistência, clareza e robustez na conversão de dados entre as camadas de apresentação (DTOs), domínio e persistência (modelos PostgreSQL).
+
+## Convenções de Nomenclatura
+
+As funções de mapeamento devem seguir um padrão de nomenclatura claro que indique a direção do mapeamento (de onde para onde).
+
+-   **Mapeando de DTO/Modelo de Persistência para Domínio**:
+    -   Use o formato `map[SourceStruct]ToDomain`.
+    -   Ex: `mapCredentialsToDomain`, `mapUserToDomain`.
+-   **Mapeando de Domínio para DTO/Modelo de Persistência**:
+    -   Use o formato `map[TargetStruct]FromDomain`.
+    -   Ex: `mapAuthSessionFromDomain`, `mapUserFromDomain`, `mapGroupFromDomain`.
+-   **Mapeamento de Slices (listas)**:
+    -   Use o formato plural para o tipo de origem ou destino.
+    -   Ex: `mapUsersFromDomain` (mapeando `[]domain.User` para `[]UserDTO`), `mapUsersToDomain` (mapeando `[]postgres.User` para `[]domain.User`).
+
+## Assinatura da Função
+
+-   Todas as funções de mapeamento devem retornar `(resultado, error)`.
+-   Se uma função de mapeamento precisar de dependências externas (ex: geradores de identidade, gerenciadores de senha), estas devem ser passadas como os primeiros argumentos da função.
+
+## Validação de Dados
+
+É crucial garantir a integridade dos dados durante o mapeamento.
+
+1.  **Validação de Entrada**:
+    -   Sempre chame o método `Validate()` do objeto de entrada (DTO ou modelo de persistência) no início da função.
+    -   Se a validação falhar, retorne `nil, err` imediatamente.
+
+2.  **Validação de Saída**:
+    -   Após a criação ou preenchimento do objeto de destino (entidade de domínio ou DTO), chame seu método `Validate()`.
+    -   Isso garante que o objeto resultante é semanticamente válido de acordo com suas regras de negócio.
+    -   Se a validação falhar, retorne `nil, err` imediatamente.
+
+## Tratamento de Erros
+
+-   Os erros devem ser propagados imediatamente. Se uma chamada interna (como `Validate()` ou `NewX()`) retornar um erro, a função de mapeamento deve retornar `nil, err`.
+
+## Mapeamento de Campos e Objetos Aninhados
+
+-   Os campos devem ser mapeados diretamente de um struct para outro.
+-   Para objetos ou slices aninhados, utilize as funções de mapeamento apropriadas para cada tipo.
+
+## Mapeamento de Slices
+
+Ao mapear slices de objetos, siga estas diretrizes:
+
+1.  **Pré-alocação**: Inicialize o slice de destino com capacidade (`make([]TargetType, 0, len(sourceSlice))`) para otimizar a performance.
+2.  **Iteração**: Percorra o slice de origem.
+3.  **Mapeamento Individual**: Chame a função de mapeamento singular para cada elemento do slice.
+4.  **Anexar**: Adicione o resultado mapeado ao slice de destino.
+5.  **Propagação de Erros**: Se o mapeamento de um elemento individual falhar, retorne o erro imediatamente.
+
+## Exemplos
+
+### ✅ Bom: Mapeando de DTO para Domínio (com dependências e validação)
+```go
+// ... existing code ...
+func mapCreateUserDTOToDomain(identity domain.IdentityGenerator, passwordManager domain.PasswordManager, userDTO CreateUserDTO) (*domain.User, error) {
+	// 1. Validação de Entrada
+	if err := userDTO.Validate(); err != nil {
+		return nil, err
+	}
+
+	// 2. Criação do Objeto de Domínio (pode envolver dependências)
+	user, err := domain.NewUser(identity, passwordManager, userDTO.Name, userDTO.Surname, userDTO.Email, userDTO.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	// Nenhuma validação de saída explícita aqui, pois NewUser já valida.
+	// Se fosse apenas um preenchimento, Validate() seria chamado.
+
+	return user, nil
+}
+// ... existing code ...
+```
+
+### ✅ Bom: Mapeando de Domínio para DTO (com objetos aninhados e validação)
+```go
+// ... existing code ...
+func mapGroupFromDomain(group domain.Group) (*GroupDTO, error) {
+	// 1. Mapeamento de Objetos Aninhados (slice de Users)
+	users, err := mapUsersFromDomain(group.Users)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Criação e Preenchimento do DTO de Saída
+	groupDTO := GroupDTO{
+		ID:        group.ID,
+		Name:      group.Name,
+		Users:     users, // Mapeamento de slice
+		OwnerID:   group.OwnerID,
+		CreatedAt: group.CreatedAt,
+		UpdatedAt: group.UpdatedAt,
+	}
+
+	// 3. Validação de Saída
+	if err := groupDTO.Validate(); err != nil {
+		return nil, err
+	}
+
+	return &groupDTO, nil
+}
+// ... existing code ...
+```
+
+### ✅ Bom: Mapeando Slices
+```go
+// ... existing code ...
+func mapUsersFromDomain(users []domain.User) ([]UserDTO, error) {
+	// 1. Pré-alocação do slice de destino
+	userDTOs := make([]UserDTO, 0, len(users))
+
+	// 2. Iteração e Mapeamento Individual
+	for _, user := range users {
+		userDTO, err := mapUserFromDomain(user) // Chama o mapeador singular
+		if err != nil {
+			return nil, err // 3. Propagação de Erro
+		}
+		userDTOs = append(userDTOs, *userDTO) // 4. Anexar ao slice
+	}
+
+	return userDTOs, nil
+}
+// ... existing code ...
+```
