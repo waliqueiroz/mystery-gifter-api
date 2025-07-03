@@ -1,6 +1,0 @@
----
-description: 
-globs: 
-alwaysApply: true
----
-Você sempre deve gerar mensagens de commit em inglês

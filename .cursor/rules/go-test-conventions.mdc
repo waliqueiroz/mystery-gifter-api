@@ -1,6 +1,6 @@
 ---
-description: Convenções de Teste de Unidade em Go
-globs: 
+description: 
+globs: internal/**/*_test.go
 alwaysApply: false
 ---
 # Convenções de Teste de Unidade em Go
