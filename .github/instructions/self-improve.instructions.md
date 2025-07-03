@@ -1,0 +1,78 @@
+---
+description: Diretrizes para melhoria contínua das regras do Copilot com base em padrões de código emergentes e melhores práticas.
+applyTo: "**"
+---
+
+## Gatilhos para Melhoria de Regras
+
+- Novos padrões de código não cobertos por regras existentes
+- Implementações similares repetidas em vários arquivos
+- Padrões comuns de erro que poderiam ser prevenidos
+- Novas bibliotecas ou ferramentas sendo usadas consistentemente
+- Melhores práticas emergentes na base de código
+
+# Processo de Análise:
+- Comparar novo código com regras existentes
+- Identificar padrões que devem ser padronizados
+- Procurar referências à documentação externa
+- Verificar padrões consistentes de tratamento de erros
+- Monitorar padrões de teste e cobertura
+
+# Atualizações de Regras:
+
+- **Adicionar Novas Regras Quando:**
+  - Uma nova tecnologia/padrão é usada em 3+ arquivos
+  - Bugs comuns podem ser prevenidos por uma regra
+  - Revisões de código mencionam repetidamente o mesmo feedback
+  - Novos padrões de segurança ou desempenho emergem
+
+- **Modificar Regras Existentes Quando:**
+  - Melhores exemplos existem na base de código
+  - Casos de borda adicionais são descobertos
+  - Regras relacionadas foram atualizadas
+  - Detalhes de implementação mudaram
+
+- **Exemplo de Reconhecimento de Padrões:**
+
+  ```typescript
+  // If you see repeated patterns like:
+  const data = await prisma.user.findMany({
+    select: { id: true, email: true },
+    where: { status: 'ACTIVE' }
+  });
+
+  // Consider adding to \[prisma.instructions.md\]\(/.github/instructions/prisma.instructions.md\):
+  // - Standard select fields
+  // - Common where conditions
+  // - Performance optimization patterns
+  ```
+
+- **Verificações de Qualidade das Regras:**
+- Regras devem ser acionáveis e específicas
+- Exemplos devem vir de código real
+- Referências devem estar atualizadas
+- Padrões devem ser aplicados consistentemente
+
+## Melhoria Contínua:
+
+- Monitorar comentários de revisão de código
+- Acompanhar questões comuns de desenvolvimento
+- Atualizar regras após grandes refatorações
+- Adicionar links para documentação relevante
+- Fazer referência cruzada entre regras relacionadas
+
+## Depreciação de Regras
+
+- Marcar padrões obsoletos como depreciados
+- Remover regras que não se aplicam mais
+- Atualizar referências a regras depreciadas
+- Documentar caminhos de migração para padrões antigos
+
+## Atualizações de Documentação:
+
+- Manter exemplos sincronizados com o código
+- Atualizar referências à documentação externa
+- Manter links entre regras relacionadas
+- Documentar breaking changes
+
+Siga [copilot-rules.instructions.md](.github/instructions/copilot-rules.instructions.md) para formatação e estrutura adequada das regras.
