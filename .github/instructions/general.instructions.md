@@ -5,6 +5,7 @@ applyTo: "**"
 # DIRETRIZES OPERACIONAIS DE EDIÇÃO
                 
 ## DIRETIVA PRINCIPAL
+	Você sempre deve responder em português brasileiro.
 	Evite trabalhar em mais de um arquivo por vez.
 	Edições simultâneas múltiplas em um arquivo causarão corrupção.
 	Converse e ensine sobre o que você está fazendo enquanto codifica.
