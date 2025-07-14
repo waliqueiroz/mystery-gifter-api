@@ -14,21 +14,21 @@ Organize seus testes usando `t.Run` para cada cenário de teste. Isso permite qu
 ```go
 // ✅ Bom
 func Test_authService_Login(t *testing.T) {
-	t.Run("deve retornar uma sessão com sucesso", func(t *testing.T) {
+	t.Run("should return a session successfully", func(t *testing.T) {
 		// ... teste
 	})
 
-	t.Run("deve retornar um erro quando a criação do token falha", func(t *testing.T) {
+	t.Run("should return an error when token creation fails", func(t *testing.T) {
 		// ... teste
 	})
 }
 
 // ❌ Ruim: Testes múltiplos sem organização clara
 func Test_authService_Login_Bad(t *testing.T) {
-	// Cenário 1
+	// Scenario 1
 	// ...
 
-	// Cenário 2
+	// Scenario 2
 	// ...
 }
 ```
@@ -126,3 +126,28 @@ sessionDuration := time.Hour
 // _, err := authService.Login(nil, credentials)
 // sessionDuration := 3600 // Sem clareza se é segundos, minutos, etc.
 ```
+
+## 7. Linguagem das Descrições de Teste
+
+As descrições dos cenários de teste dentro de `t.Run` devem ser escritas em inglês para manter a consistência e clareza em todo o projeto.
+
+```go
+// ✅ Bom
+func Test_AuthService_Login(t *testing.T) {
+	t.Run("should return a session successfully", func(t *testing.T) {
+		// ... test
+	})
+
+	t.Run("should return an error when token creation fails", func(t *testing.T) {
+		// ... test
+	})
+}
+
+// ❌ Ruim
+func Test_AuthService_Login_Bad(t *testing.T) {
+	// deve retornar uma sessão com sucesso
+	// ...
+
+	// deve retornar um erro quando a criação do token falha
+	// ...
+}
