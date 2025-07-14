@@ -1,6 +1,6 @@
 ---
-description: 
-globs: internal/**/*_test.go
+description: Este documento descreve as convenções recomendadas para escrever testes de unidade em Go. Seguir essas diretrizes garante consistência, legibilidade e manutenibilidade dos testes.
+globs: 
 alwaysApply: false
 ---
 # Convenções de Teste de Unidade em Go
