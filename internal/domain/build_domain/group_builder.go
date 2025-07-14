@@ -42,6 +42,11 @@ func (b *GroupBuilder) WithUsers(users []domain.User) *GroupBuilder {
 	return b
 }
 
+func (b *GroupBuilder) WithMatches(matches []domain.Match) *GroupBuilder {
+	b.group.Matches = matches
+	return b
+}
+
 func (b *GroupBuilder) WithOwnerID(ownerID string) *GroupBuilder {
 	b.group.OwnerID = ownerID
 	return b

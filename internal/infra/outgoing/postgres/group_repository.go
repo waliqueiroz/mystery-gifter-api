@@ -69,6 +69,29 @@ func (r *groupRepository) Create(ctx context.Context, group domain.Group) error 
 		return fmt.Errorf("error inserting group users: %w", err)
 	}
 
+	if len(group.Matches) > 0 {
+		groupMatchesInsert := squirrel.Insert("group_matches").
+			Columns("group_id", "giver_id", "receiver_id", "created_at").
+			PlaceholderFormat(squirrel.Dollar)
+
+		for _, match := range group.Matches {
+			groupMatchesInsert = groupMatchesInsert.Values(
+				group.ID, match.GiverID, match.ReceiverID, group.CreatedAt,
+			)
+		}
+
+		query, args, err = groupMatchesInsert.ToSql()
+		if err != nil {
+			return fmt.Errorf("error building group_matches insert query: %w", err)
+		}
+
+		_, err = tx.ExecContext(ctx, query, args...)
+		if err != nil {
+			log.Println("error inserting group matches:", err)
+			return fmt.Errorf("error inserting group matches: %w", err)
+		}
+	}
+
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("error committing transaction: %w", err)
 	}
@@ -148,6 +171,44 @@ func (r *groupRepository) Update(ctx context.Context, group domain.Group) error 
 		return fmt.Errorf("error inserting group users: %w", err)
 	}
 
+	// Remove existing group matches
+	query, args, err = squirrel.Delete("group_matches").
+		Where(squirrel.Eq{"group_id": group.ID}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("error building group_matches delete query: %w", err)
+	}
+
+	_, err = tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("error deleting group matches: %w", err)
+	}
+
+	// Insert new group matches if any
+	if len(group.Matches) > 0 {
+		groupMatchesInsert := squirrel.Insert("group_matches").
+			Columns("group_id", "giver_id", "receiver_id", "created_at").
+			PlaceholderFormat(squirrel.Dollar)
+
+		for _, match := range group.Matches {
+			groupMatchesInsert = groupMatchesInsert.Values(
+				group.ID, match.GiverID, match.ReceiverID, group.UpdatedAt,
+			)
+		}
+
+		query, args, err = groupMatchesInsert.ToSql()
+		if err != nil {
+			return fmt.Errorf("error building group_matches insert query: %w", err)
+		}
+
+		_, err = tx.ExecContext(ctx, query, args...)
+		if err != nil {
+			log.Println("error inserting group matches:", err)
+			return fmt.Errorf("error inserting group matches: %w", err)
+		}
+	}
+
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("error committing transaction: %w", err)
 	}
@@ -191,5 +252,26 @@ func (r *groupRepository) GetByID(ctx context.Context, groupID string) (*domain.
 		return nil, fmt.Errorf("error getting group users: %w", err)
 	}
 
-	return mapGroupToDomain(group, users)
+	// Get group matches
+	query, args, err = squirrel.Select("giver_id", "receiver_id").
+		From("group_matches").
+		Where(squirrel.Eq{"group_id": groupID}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("error building group matches select query: %w", err)
+	}
+
+	var matches []Match
+	err = r.db.SelectContext(ctx, &matches, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("error getting group matches: %w", err)
+	}
+
+	domainGroup, err := mapGroupToDomain(group, users, matches)
+	if err != nil {
+		return nil, err
+	}
+
+	return domainGroup, nil
 }

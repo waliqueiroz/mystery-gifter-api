@@ -14,8 +14,13 @@ type Group struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-func mapGroupToDomain(group Group, groupUsers []User) (*domain.Group, error) {
+func mapGroupToDomain(group Group, groupUsers []User, matches []Match) (*domain.Group, error) {
 	domainUsers, err := mapUsersToDomain(groupUsers)
+	if err != nil {
+		return nil, err
+	}
+
+	domainMatches, err := mapMatchesToDomain(matches)
 	if err != nil {
 		return nil, err
 	}
@@ -25,6 +30,7 @@ func mapGroupToDomain(group Group, groupUsers []User) (*domain.Group, error) {
 		Name:      group.Name,
 		OwnerID:   group.OwnerID,
 		Users:     domainUsers,
+		Matches:   domainMatches,
 		CreatedAt: group.CreatedAt,
 		UpdatedAt: group.UpdatedAt,
 	}

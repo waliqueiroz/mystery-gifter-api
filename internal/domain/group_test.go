@@ -247,3 +247,87 @@ func Test_Group_RemoveUser(t *testing.T) {
 		assert.Contains(t, group.Users, targetUser)
 	})
 }
+
+func Test_Group_GenerateMatches(t *testing.T) {
+	t.Run("should generate matches successfully", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		user1 := build_domain.NewUserBuilder().Build()
+		user2 := build_domain.NewUserBuilder().Build()
+		user3 := build_domain.NewUserBuilder().Build()
+
+		group := build_domain.NewGroupBuilder().WithOwnerID(owner.ID).WithUsers([]domain.User{owner, user1, user2, user3}).Build()
+
+		// when
+		err := group.GenerateMatches(owner.ID)
+
+		// then
+		assert.NoError(t, err)
+		assert.Len(t, group.Matches, 4)
+
+		for _, match := range group.Matches {
+			assert.NotEqual(t, match.GiverID, match.ReceiverID)
+			assert.Contains(t, []string{owner.ID, user1.ID, user2.ID, user3.ID}, match.GiverID)
+			assert.Contains(t, []string{owner.ID, user1.ID, user2.ID, user3.ID}, match.ReceiverID)
+		}
+
+		// Ensure all users are givers and receivers exactly once
+		givers := make(map[string]int)
+		receivers := make(map[string]int)
+		for _, match := range group.Matches {
+			givers[match.GiverID]++
+			receivers[match.ReceiverID]++
+		}
+
+		assert.Len(t, givers, 4)
+		assert.Len(t, receivers, 4)
+		for _, count := range givers {
+			assert.Equal(t, 1, count)
+		}
+		for _, count := range receivers {
+			assert.Equal(t, 1, count)
+		}
+
+		// Ensure the updated time is set
+		assert.WithinDuration(t, time.Now(), group.UpdatedAt, time.Second)
+	})
+
+	t.Run("should return an error when requester is not group owner", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		user1 := build_domain.NewUserBuilder().Build()
+		user2 := build_domain.NewUserBuilder().Build()
+		user3 := build_domain.NewUserBuilder().Build()
+
+		group := build_domain.NewGroupBuilder().WithOwnerID(owner.ID).WithUsers([]domain.User{owner, user1, user2, user3}).Build()
+		requesterID := "some-other-user-id"
+
+		// when
+		err := group.GenerateMatches(requesterID)
+
+		// then
+		assert.Error(t, err)
+		var forbiddenError *domain.ForbiddenError
+		assert.ErrorAs(t, err, &forbiddenError)
+		assert.EqualError(t, forbiddenError, "only the group owner can generate matches")
+		assert.Empty(t, group.Matches)
+	})
+
+	t.Run("should return an error when group has less than 3 users", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		user1 := build_domain.NewUserBuilder().Build()
+
+		group := build_domain.NewGroupBuilder().WithOwnerID(owner.ID).WithUsers([]domain.User{owner, user1}).Build()
+
+		// when
+		err := group.GenerateMatches(owner.ID)
+
+		// then
+		assert.Error(t, err)
+		var conflictError *domain.ConflictError
+		assert.ErrorAs(t, err, &conflictError)
+		assert.EqualError(t, conflictError, "group must have at least 3 users to generate matches")
+		assert.Empty(t, group.Matches)
+	})
+}
