@@ -12,6 +12,14 @@ import (
 	"github.com/waliqueiroz/mystery-gifter-api/pkg/validator"
 )
 
+type GroupStatus string
+
+const (
+	GroupStatusOpen     GroupStatus = "OPEN"
+	GroupStatusMatched  GroupStatus = "MATCHED"
+	GroupStatusArchived GroupStatus = "ARCHIVED"
+)
+
 type GroupRepository interface {
 	Create(ctx context.Context, group Group) error
 	Update(ctx context.Context, group Group) error
@@ -19,13 +27,14 @@ type GroupRepository interface {
 }
 
 type Group struct {
-	ID        string    `validate:"required,uuid"`
-	Name      string    `validate:"required"`
-	Users     []User    `validate:"required,min=1"`
-	OwnerID   string    `validate:"required,uuid"`
-	Matches   []Match   `validate:"dive,omitempty"`
-	CreatedAt time.Time `validate:"required"`
-	UpdatedAt time.Time `validate:"required"`
+	ID        string      `validate:"required,uuid"`
+	Name      string      `validate:"required"`
+	Users     []User      `validate:"required,min=1"`
+	OwnerID   string      `validate:"required,uuid"`
+	Matches   []Match     `validate:"dive,omitempty"`
+	Status    GroupStatus `validate:"required,oneof=OPEN MATCHED ARCHIVED"`
+	CreatedAt time.Time   `validate:"required"`
+	UpdatedAt time.Time   `validate:"required"`
 }
 
 type Match struct {
@@ -54,6 +63,7 @@ func NewGroup(identityGenerator IdentityGenerator, name string, owner User) (*Gr
 		Name:      name,
 		OwnerID:   owner.ID,
 		Users:     []User{owner},
+		Status:    GroupStatusOpen,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
@@ -73,7 +83,23 @@ func (g *Group) Validate() error {
 	return nil
 }
 
+func (g *Group) IsOpen() bool {
+	return g.Status == GroupStatusOpen
+}
+
+func (g *Group) IsMatched() bool {
+	return g.Status == GroupStatusMatched
+}
+
+func (g *Group) IsArchived() bool {
+	return g.Status == GroupStatusArchived
+}
+
 func (g *Group) AddUser(requesterID string, targetUser User) error {
+	if !g.IsOpen() {
+		return NewConflictError("group is not open for registration, contact the group owner to reopen the group")
+	}
+
 	if requesterID != g.OwnerID && requesterID != targetUser.ID {
 		return NewForbiddenError("only the group owner can add other users")
 	}
@@ -91,6 +117,10 @@ func (g *Group) AddUser(requesterID string, targetUser User) error {
 }
 
 func (g *Group) RemoveUser(requesterID, targetUserID string) error {
+	if !g.IsOpen() {
+		return NewConflictError("group is not open for removal, contact the group owner to reopen the group")
+	}
+
 	if requesterID != g.OwnerID && requesterID != targetUserID {
 		return NewForbiddenError("only the group owner can remove other users")
 	}
@@ -113,6 +143,10 @@ func (g *Group) RemoveUser(requesterID, targetUserID string) error {
 func (g *Group) GenerateMatches(requesterID string) error {
 	if requesterID != g.OwnerID {
 		return NewForbiddenError("only the group owner can generate matches")
+	}
+
+	if !g.IsOpen() {
+		return NewConflictError("group is not open for matches")
 	}
 
 	if len(g.Users) < 3 {
@@ -143,6 +177,42 @@ func (g *Group) GenerateMatches(requesterID string) error {
 	}
 
 	g.Matches = currentMatches
+	g.Status = GroupStatusMatched
+	g.UpdatedAt = time.Now()
+
+	return g.Validate()
+}
+
+func (g *Group) Reopen(requesterID string) error {
+	if requesterID != g.OwnerID {
+		return NewForbiddenError("only the group owner can reopen the group")
+	}
+
+	if g.IsArchived() {
+		return NewConflictError("group is archived and cannot be reopened")
+	}
+
+	if g.Status == GroupStatusOpen {
+		return NewConflictError("group is already open")
+	}
+
+	g.Matches = []Match{}
+	g.Status = GroupStatusOpen
+	g.UpdatedAt = time.Now()
+
+	return g.Validate()
+}
+
+func (g *Group) Archive(requesterID string) error {
+	if requesterID != g.OwnerID {
+		return NewForbiddenError("only the group owner can archive the group")
+	}
+
+	if g.Status == GroupStatusArchived {
+		return NewConflictError("group is already archived")
+	}
+
+	g.Status = GroupStatusArchived
 	g.UpdatedAt = time.Now()
 
 	return g.Validate()

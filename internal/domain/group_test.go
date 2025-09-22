@@ -34,6 +34,7 @@ func Test_NewGroup(t *testing.T) {
 		assert.Equal(t, name, group.Name)
 		assert.Equal(t, owner.ID, group.OwnerID)
 		assert.Equal(t, []domain.User{owner}, group.Users)
+		assert.Equal(t, domain.GroupStatusOpen, group.Status)
 		assert.WithinDuration(t, now, group.CreatedAt, time.Second)
 		assert.WithinDuration(t, now, group.UpdatedAt, time.Second)
 	})
@@ -148,6 +149,23 @@ func Test_Group_AddUser(t *testing.T) {
 		assert.EqualError(t, forbiddenErr, "only the group owner can add other users")
 		assert.NotContains(t, group.Users, targetUser)
 	})
+
+	t.Run("should return conflict error when group is not open", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		targetUser := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().WithOwnerID(owner.ID).WithStatus(domain.GroupStatusMatched).Build()
+
+		// when
+		err := group.AddUser(owner.ID, targetUser)
+
+		// then
+		assert.Error(t, err)
+		var conflictErr *domain.ConflictError
+		assert.ErrorAs(t, err, &conflictErr)
+		assert.EqualError(t, conflictErr, "group is not open for registration, contact the group owner to reopen the group")
+		assert.NotContains(t, group.Users, targetUser)
+	})
 }
 
 func Test_Group_RemoveUser(t *testing.T) {
@@ -246,6 +264,203 @@ func Test_Group_RemoveUser(t *testing.T) {
 		assert.EqualError(t, forbiddenErr, "only the group owner can remove other users")
 		assert.Contains(t, group.Users, targetUser)
 	})
+
+	t.Run("should return conflict error when group is not open for removal", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		targetUser := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().
+			WithOwnerID(owner.ID).
+			WithUsers([]domain.User{owner, targetUser}).
+			WithStatus(domain.GroupStatusMatched).Build()
+
+		// when
+		err := group.RemoveUser(owner.ID, targetUser.ID)
+
+		// then
+		assert.Error(t, err)
+		var conflictErr *domain.ConflictError
+		assert.ErrorAs(t, err, &conflictErr)
+		assert.EqualError(t, conflictErr, "group is not open for removal, contact the group owner to reopen the group")
+		assert.Contains(t, group.Users, targetUser)
+	})
+}
+
+func Test_Group_Reopen(t *testing.T) {
+	t.Run("should reopen a matched group successfully", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		user1 := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().
+			WithOwnerID(owner.ID).
+			WithUsers([]domain.User{owner, user1}).
+			WithStatus(domain.GroupStatusMatched).
+			WithMatches([]domain.Match{{GiverID: owner.ID, ReceiverID: user1.ID}}).Build()
+		originalUpdatedAt := group.UpdatedAt
+
+		// when
+		err := group.Reopen(owner.ID)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, domain.GroupStatusOpen, group.Status)
+		assert.Empty(t, group.Matches)
+		assert.NotEqual(t, originalUpdatedAt, group.UpdatedAt)
+	})
+
+	t.Run("should return forbidden error when requester is not owner", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		user1 := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().
+			WithOwnerID(owner.ID).
+			WithUsers([]domain.User{owner, user1}).
+			WithStatus(domain.GroupStatusMatched).
+			WithMatches([]domain.Match{{GiverID: owner.ID, ReceiverID: user1.ID}}).Build()
+		requesterID := uuid.New().String()
+		originalUpdatedAt := group.UpdatedAt
+
+		// when
+		err := group.Reopen(requesterID)
+
+		// then
+		assert.Error(t, err)
+		var forbiddenErr *domain.ForbiddenError
+		assert.ErrorAs(t, err, &forbiddenErr)
+		assert.EqualError(t, forbiddenErr, "only the group owner can reopen the group")
+		assert.Equal(t, domain.GroupStatusMatched, group.Status)
+		assert.NotEmpty(t, group.Matches)
+		assert.Equal(t, originalUpdatedAt, group.UpdatedAt)
+	})
+
+	t.Run("should return conflict error when group is already open", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		user1 := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().
+			WithOwnerID(owner.ID).
+			WithUsers([]domain.User{owner, user1}).
+			WithStatus(domain.GroupStatusOpen).Build()
+		originalUpdatedAt := group.UpdatedAt
+
+		// when
+		err := group.Reopen(owner.ID)
+
+		// then
+		assert.Error(t, err)
+		var conflictErr *domain.ConflictError
+		assert.ErrorAs(t, err, &conflictErr)
+		assert.EqualError(t, conflictErr, "group is already open")
+		assert.Equal(t, domain.GroupStatusOpen, group.Status)
+		assert.Equal(t, originalUpdatedAt, group.UpdatedAt)
+	})
+
+	t.Run("should return conflict error when group is archived", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		user1 := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().
+			WithOwnerID(owner.ID).
+			WithUsers([]domain.User{owner, user1}).
+			WithStatus(domain.GroupStatusArchived).Build()
+		originalUpdatedAt := group.UpdatedAt
+
+		// when
+		err := group.Reopen(owner.ID)
+
+		// then
+		assert.Error(t, err)
+		var conflictErr *domain.ConflictError
+		assert.ErrorAs(t, err, &conflictErr)
+		assert.EqualError(t, conflictErr, "group is archived and cannot be reopened")
+		assert.Equal(t, domain.GroupStatusArchived, group.Status)
+		assert.Equal(t, originalUpdatedAt, group.UpdatedAt)
+	})
+}
+
+func Test_Group_Archive(t *testing.T) {
+	t.Run("should archive an open group successfully", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		user1 := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().
+			WithOwnerID(owner.ID).
+			WithUsers([]domain.User{owner, user1}).
+			WithStatus(domain.GroupStatusOpen).Build()
+		originalUpdatedAt := group.UpdatedAt
+
+		// when
+		err := group.Archive(owner.ID)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, domain.GroupStatusArchived, group.Status)
+		assert.NotEqual(t, originalUpdatedAt, group.UpdatedAt)
+	})
+
+	t.Run("should archive a matched group successfully", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		user1 := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().
+			WithOwnerID(owner.ID).
+			WithUsers([]domain.User{owner, user1}).
+			WithStatus(domain.GroupStatusMatched).Build()
+		originalUpdatedAt := group.UpdatedAt
+
+		// when
+		err := group.Archive(owner.ID)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, domain.GroupStatusArchived, group.Status)
+		assert.NotEqual(t, originalUpdatedAt, group.UpdatedAt)
+	})
+
+	t.Run("should return forbidden error when requester is not owner", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		user1 := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().
+			WithOwnerID(owner.ID).
+			WithUsers([]domain.User{owner, user1}).
+			WithStatus(domain.GroupStatusOpen).Build()
+		requesterID := uuid.New().String()
+		originalUpdatedAt := group.UpdatedAt
+
+		// when
+		err := group.Archive(requesterID)
+
+		// then
+		assert.Error(t, err)
+		var forbiddenErr *domain.ForbiddenError
+		assert.ErrorAs(t, err, &forbiddenErr)
+		assert.EqualError(t, forbiddenErr, "only the group owner can archive the group")
+		assert.Equal(t, domain.GroupStatusOpen, group.Status)
+		assert.Equal(t, originalUpdatedAt, group.UpdatedAt)
+	})
+
+	t.Run("should return conflict error when group is already archived", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		user1 := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().
+			WithOwnerID(owner.ID).
+			WithUsers([]domain.User{owner, user1}).
+			WithStatus(domain.GroupStatusArchived).Build()
+		originalUpdatedAt := group.UpdatedAt
+
+		// when
+		err := group.Archive(owner.ID)
+
+		// then
+		assert.Error(t, err)
+		var conflictErr *domain.ConflictError
+		assert.ErrorAs(t, err, &conflictErr)
+		assert.EqualError(t, conflictErr, "group is already archived")
+		assert.Equal(t, domain.GroupStatusArchived, group.Status)
+		assert.Equal(t, originalUpdatedAt, group.UpdatedAt)
+	})
 }
 
 func Test_Group_GenerateMatches(t *testing.T) {
@@ -328,6 +543,24 @@ func Test_Group_GenerateMatches(t *testing.T) {
 		var conflictError *domain.ConflictError
 		assert.ErrorAs(t, err, &conflictError)
 		assert.EqualError(t, conflictError, "group must have at least 3 users to generate matches")
+		assert.Empty(t, group.Matches)
+	})
+
+	t.Run("should return an error when group is not open for matches", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		user1 := build_domain.NewUserBuilder().Build()
+
+		group := build_domain.NewGroupBuilder().WithOwnerID(owner.ID).WithUsers([]domain.User{owner, user1}).WithStatus(domain.GroupStatusMatched).Build()
+
+		// when
+		err := group.GenerateMatches(owner.ID)
+
+		// then
+		assert.Error(t, err)
+		var conflictError *domain.ConflictError
+		assert.ErrorAs(t, err, &conflictError)
+		assert.EqualError(t, conflictError, "group is not open for matches")
 		assert.Empty(t, group.Matches)
 	})
 }

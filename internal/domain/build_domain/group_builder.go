@@ -20,6 +20,7 @@ func NewGroupBuilder() *GroupBuilder {
 			ID:        uuid.New().String(),
 			Name:      "Test Group",
 			Users:     []domain.User{user},
+			Status:    domain.GroupStatusOpen,
 			OwnerID:   user.ID,
 			CreatedAt: now,
 			UpdatedAt: now,
@@ -44,6 +45,11 @@ func (b *GroupBuilder) WithUsers(users []domain.User) *GroupBuilder {
 
 func (b *GroupBuilder) WithMatches(matches []domain.Match) *GroupBuilder {
 	b.group.Matches = matches
+	return b
+}
+
+func (b *GroupBuilder) WithStatus(status domain.GroupStatus) *GroupBuilder {
+	b.group.Status = status
 	return b
 }
 
