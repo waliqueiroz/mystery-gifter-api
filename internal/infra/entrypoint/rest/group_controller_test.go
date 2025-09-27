@@ -819,3 +819,194 @@ func Test_GroupController_RemoveUser(t *testing.T) {
 		})
 	})
 }
+
+func Test_GroupController_GenerateMatches(t *testing.T) {
+	route := "/api/groups/:groupID/matches"
+
+	t.Run("should return status 200 and the group with generated matches when successfully", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+		authUserID := uuid.New().String()
+
+		giver := build_domain.NewUserBuilder().WithID(authUserID).Build()
+		receiver := build_domain.NewUserBuilder().Build()
+		match := build_domain.NewMatchBuilder().WithGiverID(giver.ID).WithReceiverID(receiver.ID).Build()
+
+		group := build_domain.NewGroupBuilder().WithID(groupID).WithOwnerID(giver.ID).WithUsers([]domain.User{giver, receiver}).WithMatches([]domain.Match{match}).Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
+		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
+		mockedGroupService.EXPECT().GenerateMatches(gomock.Any(), groupID, authUserID).Return(&group, nil)
+
+		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/matches", groupID), nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Post(route, groupController.GenerateMatches)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, response.StatusCode)
+
+		var result rest.GroupDTO
+		helper.DecodeJSON(t, response.Body, &result)
+
+		expectedGiverDTO := build_rest.NewUserDTOBuilder().
+			WithID(giver.ID).
+			WithName(giver.Name).
+			WithEmail(giver.Email).
+			WithCreatedAt(giver.CreatedAt).
+			WithUpdatedAt(giver.UpdatedAt).
+			Build()
+
+		expectedReceiverDTO := build_rest.NewUserDTOBuilder().
+			WithID(receiver.ID).
+			WithName(receiver.Name).
+			WithEmail(receiver.Email).
+			WithCreatedAt(receiver.CreatedAt).
+			WithUpdatedAt(receiver.UpdatedAt).
+			Build()
+
+		expectedMatchDTO := build_rest.NewMatchDTOBuilder().
+			WithGiverID(match.GiverID).
+			WithReceiverID(match.ReceiverID).
+			Build()
+
+		expectedGroupDTO := build_rest.NewGroupDTOBuilder().
+			WithID(group.ID).
+			WithName(group.Name).
+			WithUsers([]rest.UserDTO{expectedGiverDTO, expectedReceiverDTO}).
+			WithOwnerID(group.OwnerID).
+			WithMatches([]rest.MatchDTO{expectedMatchDTO}).
+			WithCreatedAt(group.CreatedAt).
+			WithUpdatedAt(group.UpdatedAt).
+			Build()
+
+		assert.Equal(t, expectedGroupDTO, result)
+	})
+
+	t.Run("should return internal_server_error when session manager fails", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return("", assert.AnError)
+
+		groupController := rest.NewGroupController(nil, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/matches", groupID), nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Post(route, groupController.GenerateMatches)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusInternalServerError, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, "internal_server_error", result.Code)
+		assert.Equal(t, assert.AnError.Error(), result.Message)
+	})
+
+	t.Run("should return internal_server_error when group service fails", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+		authUserID := uuid.New().String()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
+		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
+		mockedGroupService.EXPECT().GenerateMatches(gomock.Any(), groupID, authUserID).Return(nil, assert.AnError)
+
+		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/matches", groupID), nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Post(route, groupController.GenerateMatches)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusInternalServerError, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, "internal_server_error", result.Code)
+		assert.Equal(t, assert.AnError.Error(), result.Message)
+	})
+
+	t.Run("should return bad_request with an error message when fails to map group from domain", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+		authUserID := uuid.New().String()
+
+		giver := build_domain.NewUserBuilder().WithID(authUserID).Build()
+		receiver := build_domain.NewUserBuilder().Build()
+		match := build_domain.NewMatchBuilder().WithGiverID(giver.ID).WithReceiverID(receiver.ID).Build()
+
+		group := build_domain.NewGroupBuilder().WithName("").WithID(groupID).WithOwnerID(giver.ID).WithUsers([]domain.User{giver, receiver}).WithMatches([]domain.Match{match}).Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
+		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
+		mockedGroupService.EXPECT().GenerateMatches(gomock.Any(), groupID, authUserID).Return(&group, nil)
+
+		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/matches", groupID), nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Post(route, groupController.GenerateMatches)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, "bad_request", result.Code)
+		assert.Equal(t, "validation failed", result.Message)
+		assert.Len(t, result.Details, 1)
+		assert.Contains(t, result.Details, map[string]any{
+			"field": "name",
+			"error": "name is a required field",
+		})
+	})
+}

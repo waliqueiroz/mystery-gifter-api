@@ -19,12 +19,13 @@ func (g *CreateGroupDTO) Validate() error {
 }
 
 type GroupDTO struct {
-	ID        string    `json:"id" validate:"required,uuid"`
-	Name      string    `json:"name" validate:"required"`
-	Users     []UserDTO `json:"users" validate:"required,min=1"`
-	OwnerID   string    `json:"owner_id" validate:"required,uuid"`
-	CreatedAt time.Time `json:"created_at" validate:"required"`
-	UpdatedAt time.Time `json:"updated_at" validate:"required"`
+	ID        string     `json:"id" validate:"required,uuid"`
+	Name      string     `json:"name" validate:"required"`
+	Users     []UserDTO  `json:"users" validate:"required,min=1"`
+	OwnerID   string     `json:"owner_id" validate:"required,uuid"`
+	Matches   []MatchDTO `json:"matches" validate:"dive,omitempty"`
+	CreatedAt time.Time  `json:"created_at" validate:"required"`
+	UpdatedAt time.Time  `json:"updated_at" validate:"required"`
 }
 
 func (g *GroupDTO) Validate() error {
@@ -40,11 +41,17 @@ func mapGroupFromDomain(group domain.Group) (*GroupDTO, error) {
 		return nil, err
 	}
 
+	matches, err := mapMatchesFromDomain(group.Matches)
+	if err != nil {
+		return nil, err
+	}
+
 	groupDTO := GroupDTO{
 		ID:        group.ID,
 		Name:      group.Name,
 		Users:     users,
 		OwnerID:   group.OwnerID,
+		Matches:   matches,
 		CreatedAt: group.CreatedAt,
 		UpdatedAt: group.UpdatedAt,
 	}

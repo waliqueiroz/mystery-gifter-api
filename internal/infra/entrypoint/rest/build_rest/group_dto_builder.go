@@ -57,6 +57,11 @@ func (b *GroupDTOBuilder) WithUpdatedAt(updatedAt time.Time) *GroupDTOBuilder {
 	return b
 }
 
+func (b *GroupDTOBuilder) WithMatches(matches []rest.MatchDTO) *GroupDTOBuilder {
+	b.groupDTO.Matches = matches
+	return b
+}
+
 func (b *GroupDTOBuilder) Build() rest.GroupDTO {
 	return b.groupDTO
 }
