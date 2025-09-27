@@ -139,3 +139,24 @@ func (c *GroupController) GenerateMatches(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(groupDTO)
 }
+
+func (c *GroupController) GetUserMatch(ctx *fiber.Ctx) error {
+	groupID := ctx.Params("groupID")
+
+	authUserID, err := c.AuthTokenManager.GetAuthUserID(ctx.Locals("user"))
+	if err != nil {
+		return err
+	}
+
+	user, err := c.groupService.GetUserMatch(ctx.Context(), groupID, authUserID)
+	if err != nil {
+		return err
+	}
+
+	userDTO, err := mapUserFromDomain(*user)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(userDTO)
+}

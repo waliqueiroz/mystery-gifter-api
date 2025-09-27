@@ -217,3 +217,29 @@ func (g *Group) Archive(requesterID string) error {
 
 	return g.Validate()
 }
+
+func (g *Group) GetUserMatch(requesterID string) (*User, error) {
+	if !g.IsMatched() {
+		return nil, NewConflictError("group is not matched")
+	}
+
+	var userMatch *Match
+	for _, match := range g.Matches {
+		if match.GiverID == requesterID {
+			userMatch = &match
+			break
+		}
+	}
+
+	if userMatch == nil {
+		return nil, NewConflictError("match not found for the given user")
+	}
+
+	for _, user := range g.Users {
+		if user.ID == userMatch.ReceiverID {
+			return &user, nil
+		}
+	}
+
+	return nil, NewConflictError("receiver user not found for the identified match")
+}

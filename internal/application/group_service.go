@@ -14,6 +14,7 @@ type GroupService interface {
 	AddUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error)
 	RemoveUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error)
 	GenerateMatches(ctx context.Context, groupID, requesterID string) (*domain.Group, error)
+	GetUserMatch(ctx context.Context, groupID, requesterID string) (*domain.User, error)
 }
 
 type groupService struct {
@@ -119,4 +120,13 @@ func (s *groupService) GenerateMatches(ctx context.Context, groupID, requesterID
 	}
 
 	return group, nil
+}
+
+func (s *groupService) GetUserMatch(ctx context.Context, groupID, requesterID string) (*domain.User, error) {
+	group, err := s.groupRepository.GetByID(ctx, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	return group.GetUserMatch(requesterID)
 }

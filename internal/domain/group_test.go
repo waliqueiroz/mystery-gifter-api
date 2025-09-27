@@ -564,3 +564,107 @@ func Test_Group_GenerateMatches(t *testing.T) {
 		assert.Empty(t, group.Matches)
 	})
 }
+
+func Test_Group_GetUserMatch(t *testing.T) {
+	t.Run("should return the receiver user successfully when match exists", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		user1 := build_domain.NewUserBuilder().Build()
+		user2 := build_domain.NewUserBuilder().Build()
+		user3 := build_domain.NewUserBuilder().Build()
+
+		group := build_domain.NewGroupBuilder().
+			WithOwnerID(owner.ID).
+			WithUsers([]domain.User{owner, user1, user2, user3}).
+			WithStatus(domain.GroupStatusMatched).
+			WithMatches([]domain.Match{
+				build_domain.NewMatchBuilder().WithGiverID(owner.ID).WithReceiverID(user1.ID).Build(),
+				build_domain.NewMatchBuilder().WithGiverID(user1.ID).WithReceiverID(user2.ID).Build(),
+				build_domain.NewMatchBuilder().WithGiverID(user2.ID).WithReceiverID(user3.ID).Build(),
+				build_domain.NewMatchBuilder().WithGiverID(user3.ID).WithReceiverID(owner.ID).Build(),
+			}).
+			Build()
+
+		// when
+		receiver, err := group.GetUserMatch(owner.ID)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, user1, *receiver)
+	})
+
+	t.Run("should return not found error when user has no match", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		user1 := build_domain.NewUserBuilder().Build()
+
+		group := build_domain.NewGroupBuilder().
+			WithOwnerID(owner.ID).
+			WithUsers([]domain.User{owner, user1}).
+			WithStatus(domain.GroupStatusMatched).
+			WithMatches([]domain.Match{
+				build_domain.NewMatchBuilder().WithGiverID(owner.ID).WithReceiverID(user1.ID).Build(),
+				build_domain.NewMatchBuilder().WithGiverID(user1.ID).WithReceiverID(owner.ID).Build(),
+			}).
+			Build()
+
+		unknownUserID := uuid.New().String()
+
+		// when
+		receiver, err := group.GetUserMatch(unknownUserID)
+
+		// then
+		assert.Error(t, err)
+		var notFoundErr *domain.ConflictError
+		assert.ErrorAs(t, err, &notFoundErr)
+		assert.EqualError(t, notFoundErr, "match not found for the given user")
+		assert.Nil(t, receiver)
+	})
+
+	t.Run("should return not found error when receiver user is not found in the group", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		user1 := build_domain.NewUserBuilder().Build()
+
+		// Create a match where the receiver is NOT in the group's Users slice
+		matchWithMissingReceiver := build_domain.NewMatchBuilder().WithGiverID(owner.ID).WithReceiverID(uuid.New().String()).Build()
+
+		group := build_domain.NewGroupBuilder().
+			WithOwnerID(owner.ID).
+			WithUsers([]domain.User{owner, user1}). // user1 is in the group, but matchWithMissingReceiver's receiver is not
+			WithStatus(domain.GroupStatusMatched).
+			WithMatches([]domain.Match{
+				matchWithMissingReceiver,
+				build_domain.NewMatchBuilder().WithGiverID(user1.ID).WithReceiverID(owner.ID).Build(),
+			}).
+			Build()
+
+		// when
+		receiver, err := group.GetUserMatch(owner.ID)
+
+		// then
+		assert.Error(t, err)
+		var notFoundErr *domain.ConflictError
+		assert.ErrorAs(t, err, &notFoundErr)
+		assert.EqualError(t, notFoundErr, "receiver user not found for the identified match")
+		assert.Nil(t, receiver)
+	})
+
+	t.Run("should return conflict error when group is not matched", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		user1 := build_domain.NewUserBuilder().Build()
+
+		group := build_domain.NewGroupBuilder().WithOwnerID(owner.ID).WithUsers([]domain.User{owner, user1}).Build()
+
+		// when
+		receiver, err := group.GetUserMatch(owner.ID)
+
+		// then
+		assert.Error(t, err)
+		var conflictErr *domain.ConflictError
+		assert.ErrorAs(t, err, &conflictErr)
+		assert.EqualError(t, conflictErr, "group is not matched")
+		assert.Nil(t, receiver)
+	})
+}

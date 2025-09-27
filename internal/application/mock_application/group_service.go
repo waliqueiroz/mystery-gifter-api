@@ -101,6 +101,21 @@ func (mr *MockGroupServiceMockRecorder) GetByID(ctx, groupID any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockGroupService)(nil).GetByID), ctx, groupID)
 }
 
+// GetUserMatch mocks base method.
+func (m *MockGroupService) GetUserMatch(ctx context.Context, groupID, requesterID string) (*domain.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserMatch", ctx, groupID, requesterID)
+	ret0, _ := ret[0].(*domain.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserMatch indicates an expected call of GetUserMatch.
+func (mr *MockGroupServiceMockRecorder) GetUserMatch(ctx, groupID, requesterID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserMatch", reflect.TypeOf((*MockGroupService)(nil).GetUserMatch), ctx, groupID, requesterID)
+}
+
 // RemoveUser mocks base method.
 func (m *MockGroupService) RemoveUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error) {
 	m.ctrl.T.Helper()

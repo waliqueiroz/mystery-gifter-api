@@ -700,3 +700,75 @@ func Test_groupService_GenerateMatches(t *testing.T) {
 		assert.ErrorIs(t, err, assert.AnError)
 	})
 }
+
+func Test_groupService_GetUserMatch(t *testing.T) {
+	t.Run("should return user match successfully", func(t *testing.T) {
+		// given
+		requester := build_domain.NewUserBuilder().Build()
+		matchedUser := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().
+			WithUsers([]domain.User{requester, matchedUser}).
+			WithMatches([]domain.Match{{GiverID: requester.ID, ReceiverID: matchedUser.ID}}).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), group.ID).Return(&group, nil)
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.GetUserMatch(context.Background(), group.ID, requester.ID)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, &matchedUser, result)
+	})
+
+	t.Run("should return error when fails to get group", func(t *testing.T) {
+		// given
+		groupID := "some-group-id"
+		requesterID := "some-requester-id"
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), groupID).Return(nil, assert.AnError)
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.GetUserMatch(context.Background(), groupID, requesterID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
+	})
+
+	t.Run("should return error when domain group fails to get user match", func(t *testing.T) {
+		// given
+		requester := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().
+			WithUsers([]domain.User{requester}). // No match for requester
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), group.ID).Return(&group, nil)
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.GetUserMatch(context.Background(), group.ID, requester.ID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		var expectedError *domain.ConflictError
+		assert.ErrorAs(t, err, &expectedError)
+		assert.EqualError(t, expectedError, "match not found for the given user")
+	})
+}

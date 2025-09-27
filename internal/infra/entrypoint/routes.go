@@ -19,4 +19,5 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	api.Post("/groups/:groupID/users", groupController.AddUser)
 	api.Delete("/groups/:groupID/users/:userID", groupController.RemoveUser)
 	api.Post("/groups/:groupID/matches", groupController.GenerateMatches)
+	api.Get("/groups/:groupID/matches/user", groupController.GetUserMatch)
 }
