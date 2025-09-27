@@ -10,6 +10,7 @@ type Group struct {
 	ID        string    `db:"id"`
 	Name      string    `db:"name"`
 	OwnerID   string    `db:"owner_id"`
+	Status    string    `db:"status"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -30,6 +31,7 @@ func mapGroupToDomain(group Group, groupUsers []User, matches []Match) (*domain.
 		Name:      group.Name,
 		OwnerID:   group.OwnerID,
 		Users:     domainUsers,
+		Status:    domain.GroupStatus(group.Status),
 		Matches:   domainMatches,
 		CreatedAt: group.CreatedAt,
 		UpdatedAt: group.UpdatedAt,

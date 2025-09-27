@@ -608,6 +608,7 @@ func Test_groupRepository_GetByID(t *testing.T) {
 		group := build_postgres.NewGroupBuilder().
 			WithID(expectedGroup.ID).
 			WithName(expectedGroup.Name).
+			WithStatus(string(expectedGroup.Status)).
 			WithOwnerID(expectedGroup.OwnerID).
 			WithCreatedAt(expectedGroup.CreatedAt).
 			WithUpdatedAt(expectedGroup.UpdatedAt).

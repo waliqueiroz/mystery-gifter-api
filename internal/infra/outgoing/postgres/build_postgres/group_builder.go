@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/outgoing/postgres"
 )
 
@@ -12,13 +13,15 @@ type GroupBuilder struct {
 }
 
 func NewGroupBuilder() *GroupBuilder {
+	now := time.Now().UTC()
 	return &GroupBuilder{
 		group: postgres.Group{
 			ID:        uuid.New().String(),
 			Name:      "Test Group",
+			Status:    string(domain.GroupStatusOpen),
 			OwnerID:   uuid.New().String(),
-			CreatedAt: time.Now().UTC(),
-			UpdatedAt: time.Now().UTC(),
+			CreatedAt: now,
+			UpdatedAt: now,
 		},
 	}
 }
@@ -30,6 +33,11 @@ func (b *GroupBuilder) WithID(id string) *GroupBuilder {
 
 func (b *GroupBuilder) WithName(name string) *GroupBuilder {
 	b.group.Name = name
+	return b
+}
+
+func (b *GroupBuilder) WithStatus(status string) *GroupBuilder {
+	b.group.Status = status
 	return b
 }
 
