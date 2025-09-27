@@ -30,8 +30,8 @@ func (r *groupRepository) Create(ctx context.Context, group domain.Group) error 
 	defer tx.Rollback()
 
 	query, args, err := squirrel.Insert("groups").
-		Columns("id", "name", "owner_id", "created_at", "updated_at").
-		Values(group.ID, group.Name, group.OwnerID, group.CreatedAt, group.UpdatedAt).
+		Columns("id", "name", "status", "owner_id", "created_at", "updated_at").
+		Values(group.ID, group.Name, group.Status, group.OwnerID, group.CreatedAt, group.UpdatedAt).
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {
@@ -108,6 +108,7 @@ func (r *groupRepository) Update(ctx context.Context, group domain.Group) error 
 
 	query, args, err := squirrel.Update("groups").
 		Set("name", group.Name).
+		Set("status", group.Status).
 		Set("updated_at", group.UpdatedAt).
 		Where(squirrel.Eq{"id": group.ID}).
 		PlaceholderFormat(squirrel.Dollar).
