@@ -13,6 +13,7 @@ type GroupService interface {
 	GetByID(ctx context.Context, groupID string) (*domain.Group, error)
 	AddUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error)
 	RemoveUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error)
+	GenerateMatches(ctx context.Context, groupID, requesterID string) (*domain.Group, error)
 }
 
 type groupService struct {
@@ -91,6 +92,24 @@ func (s *groupService) RemoveUser(ctx context.Context, groupID, requesterID, tar
 	}
 
 	if err := group.RemoveUser(requesterID, targetUserID); err != nil {
+		return nil, err
+	}
+
+	err = s.groupRepository.Update(ctx, *group)
+	if err != nil {
+		return nil, err
+	}
+
+	return group, nil
+}
+
+func (s *groupService) GenerateMatches(ctx context.Context, groupID, requesterID string) (*domain.Group, error) {
+	group, err := s.groupRepository.GetByID(ctx, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := group.GenerateMatches(requesterID); err != nil {
 		return nil, err
 	}
 

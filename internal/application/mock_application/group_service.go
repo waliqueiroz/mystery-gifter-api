@@ -71,6 +71,21 @@ func (mr *MockGroupServiceMockRecorder) Create(ctx, name, ownerID any) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockGroupService)(nil).Create), ctx, name, ownerID)
 }
 
+// GenerateMatches mocks base method.
+func (m *MockGroupService) GenerateMatches(ctx context.Context, groupID, requesterID string) (*domain.Group, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GenerateMatches", ctx, groupID, requesterID)
+	ret0, _ := ret[0].(*domain.Group)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GenerateMatches indicates an expected call of GenerateMatches.
+func (mr *MockGroupServiceMockRecorder) GenerateMatches(ctx, groupID, requesterID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateMatches", reflect.TypeOf((*MockGroupService)(nil).GenerateMatches), ctx, groupID, requesterID)
+}
+
 // GetByID mocks base method.
 func (m *MockGroupService) GetByID(ctx context.Context, groupID string) (*domain.Group, error) {
 	m.ctrl.T.Helper()

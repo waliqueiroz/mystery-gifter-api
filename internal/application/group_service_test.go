@@ -456,3 +456,247 @@ func Test_groupService_RemoveUser(t *testing.T) {
 		assert.EqualError(t, err, "only the group owner can remove other users")
 	})
 }
+
+func Test_groupService_GenerateMatches(t *testing.T) {
+	t.Run("should generate matches successfully for an even number of users", func(t *testing.T) {
+		// given
+		user1 := build_domain.NewUserBuilder().Build()
+		user2 := build_domain.NewUserBuilder().Build()
+		user3 := build_domain.NewUserBuilder().Build()
+		user4 := build_domain.NewUserBuilder().Build()
+		initialGroup := build_domain.NewGroupBuilder().
+			WithOwnerID(user1.ID).
+			WithUsers([]domain.User{user1, user2, user3, user4}).
+			Build()
+		requesterID := user1.ID
+
+		expectedGroup := build_domain.NewGroupBuilder().
+			WithID(initialGroup.ID).
+			WithName(initialGroup.Name).
+			WithOwnerID(initialGroup.OwnerID).
+			WithUsers(initialGroup.Users).
+			WithMatches([]domain.Match{
+				{GiverID: user1.ID, ReceiverID: user2.ID},
+				{GiverID: user2.ID, ReceiverID: user3.ID},
+				{GiverID: user3.ID, ReceiverID: user4.ID},
+				{GiverID: user4.ID, ReceiverID: user1.ID},
+			}).
+			WithCreatedAt(initialGroup.CreatedAt).
+			WithUpdatedAt(initialGroup.UpdatedAt).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), initialGroup.ID).Return(&initialGroup, nil)
+		mockedGroupRepository.EXPECT().Update(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, updatedGroup domain.Group) error {
+			assert.Equal(t, expectedGroup.ID, updatedGroup.ID)
+			assert.ElementsMatch(t, expectedGroup.Users, updatedGroup.Users)
+			// Because GenerateMatches shuffles the users, we can't assert the exact order of matches.
+			// We can only assert that the count is correct and that the matches themselves are valid.
+			assert.Len(t, updatedGroup.Matches, 4)
+			return nil
+		})
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.GenerateMatches(context.Background(), initialGroup.ID, requesterID)
+
+		// then
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Len(t, result.Matches, 4)
+		assert.Equal(t, expectedGroup.ID, result.ID)
+
+		// Check if the generated matches are valid (each user is a giver and a receiver once)
+		gifters := make(map[string]bool)
+		receivers := make(map[string]bool)
+		allUsersMap := make(map[string]bool)
+		for _, u := range initialGroup.Users {
+			allUsersMap[u.ID] = true
+		}
+
+		for _, match := range result.Matches {
+			assert.Contains(t, allUsersMap, match.GiverID)
+			assert.Contains(t, allUsersMap, match.ReceiverID)
+			assert.NotEqual(t, match.GiverID, match.ReceiverID)
+			gifters[match.GiverID] = true
+			receivers[match.ReceiverID] = true
+		}
+		assert.Len(t, gifters, 4)
+		assert.Len(t, receivers, 4)
+	})
+
+	t.Run("should generate matches successfully for an odd number of users", func(t *testing.T) {
+		// given
+		user1 := build_domain.NewUserBuilder().Build()
+		user2 := build_domain.NewUserBuilder().Build()
+		user3 := build_domain.NewUserBuilder().Build()
+		initialGroup := build_domain.NewGroupBuilder().
+			WithOwnerID(user1.ID).
+			WithUsers([]domain.User{user1, user2, user3}).
+			Build()
+		requesterID := user1.ID
+
+		expectedGroup := build_domain.NewGroupBuilder().
+			WithID(initialGroup.ID).
+			WithName(initialGroup.Name).
+			WithOwnerID(initialGroup.OwnerID).
+			WithUsers(initialGroup.Users).
+			WithMatches([]domain.Match{
+				{GiverID: user1.ID, ReceiverID: user2.ID},
+				{GiverID: user2.ID, ReceiverID: user3.ID},
+				{GiverID: user3.ID, ReceiverID: user1.ID},
+			}).
+			WithCreatedAt(initialGroup.CreatedAt).
+			WithUpdatedAt(initialGroup.UpdatedAt).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), initialGroup.ID).Return(&initialGroup, nil)
+		mockedGroupRepository.EXPECT().Update(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, updatedGroup domain.Group) error {
+			assert.Equal(t, expectedGroup.ID, updatedGroup.ID)
+			assert.ElementsMatch(t, expectedGroup.Users, updatedGroup.Users)
+			assert.Len(t, updatedGroup.Matches, 3)
+			return nil
+		})
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.GenerateMatches(context.Background(), initialGroup.ID, requesterID)
+
+		// then
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Len(t, result.Matches, 3)
+		assert.Equal(t, expectedGroup.ID, result.ID)
+
+		// Check if the generated matches are valid (each user is a giver and a receiver once)
+		gifters := make(map[string]bool)
+		receivers := make(map[string]bool)
+		allUsersMap := make(map[string]bool)
+		for _, u := range initialGroup.Users {
+			allUsersMap[u.ID] = true
+		}
+
+		for _, match := range result.Matches {
+			assert.Contains(t, allUsersMap, match.GiverID)
+			assert.Contains(t, allUsersMap, match.ReceiverID)
+			assert.NotEqual(t, match.GiverID, match.ReceiverID)
+			gifters[match.GiverID] = true
+			receivers[match.ReceiverID] = true
+		}
+		assert.Len(t, gifters, 3)
+		assert.Len(t, receivers, 3)
+	})
+
+	t.Run("should return error when fails to get group", func(t *testing.T) {
+		// given
+		groupID := "some-group-id"
+		requesterID := "some-requester-id"
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), groupID).Return(nil, assert.AnError)
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.GenerateMatches(context.Background(), groupID, requesterID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
+	})
+
+	t.Run("should return conflict error when domain group fails to generate matches (not enough users)", func(t *testing.T) {
+		// given
+		groupOwner := build_domain.NewUserBuilder().Build()
+		user2 := build_domain.NewUserBuilder().Build()
+		initialGroup := build_domain.NewGroupBuilder().
+			WithOwnerID(groupOwner.ID).
+			WithUsers([]domain.User{groupOwner, user2}). // Only two users, will cause an error in domain.Group.GenerateMatches
+			Build()
+		requesterID := groupOwner.ID
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), initialGroup.ID).Return(&initialGroup, nil)
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.GenerateMatches(context.Background(), initialGroup.ID, requesterID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		var expectedError *domain.ConflictError
+		assert.ErrorAs(t, err, &expectedError)
+		assert.EqualError(t, expectedError, "group must have at least 3 users to generate matches")
+	})
+
+	t.Run("should return forbidden error when requester is not the group owner", func(t *testing.T) {
+		// given
+		user1 := build_domain.NewUserBuilder().Build()
+		user2 := build_domain.NewUserBuilder().Build()
+		user3 := build_domain.NewUserBuilder().Build()
+		initialGroup := build_domain.NewGroupBuilder().
+			WithOwnerID(user1.ID).
+			WithUsers([]domain.User{user1, user2, user3}).
+			Build()
+		requesterID := "not-owner-id"
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), initialGroup.ID).Return(&initialGroup, nil)
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.GenerateMatches(context.Background(), initialGroup.ID, requesterID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		var expectedError *domain.ForbiddenError
+		assert.ErrorAs(t, err, &expectedError)
+		assert.EqualError(t, expectedError, "only the group owner can generate matches")
+	})
+
+	t.Run("should return error when fails to update group after generating matches", func(t *testing.T) {
+		// given
+		user1 := build_domain.NewUserBuilder().Build()
+		user2 := build_domain.NewUserBuilder().Build()
+		user3 := build_domain.NewUserBuilder().Build()
+		initialGroup := build_domain.NewGroupBuilder().
+			WithOwnerID(user1.ID).
+			WithUsers([]domain.User{user1, user2, user3}).
+			Build()
+		requesterID := user1.ID
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), initialGroup.ID).Return(&initialGroup, nil)
+		mockedGroupRepository.EXPECT().Update(gomock.Any(), gomock.Any()).Return(assert.AnError)
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.GenerateMatches(context.Background(), initialGroup.ID, requesterID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
+	})
+}
