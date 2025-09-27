@@ -151,3 +151,5 @@ func Test_AuthService_Login_Bad(t *testing.T) {
 	// deve retornar um erro quando a criação do token falha
 	// ...
 }
+
+SEMPRE EXECUTE OS TESTES APÓS A IMPLEMENTAÇÃO, IDENTIFIQUE AS FALHAS E CORRIJA.
