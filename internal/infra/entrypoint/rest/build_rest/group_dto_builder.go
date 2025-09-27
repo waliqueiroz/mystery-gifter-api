@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest"
 )
 
@@ -21,6 +22,8 @@ func NewGroupDTOBuilder() *GroupDTOBuilder {
 			Name:      "Default Group",
 			Users:     []rest.UserDTO{user},
 			OwnerID:   user.ID,
+			Matches:   []rest.MatchDTO{},
+			Status:    string(domain.GroupStatusOpen),
 			CreatedAt: now,
 			UpdatedAt: now,
 		},
@@ -59,6 +62,11 @@ func (b *GroupDTOBuilder) WithUpdatedAt(updatedAt time.Time) *GroupDTOBuilder {
 
 func (b *GroupDTOBuilder) WithMatches(matches []rest.MatchDTO) *GroupDTOBuilder {
 	b.groupDTO.Matches = matches
+	return b
+}
+
+func (b *GroupDTOBuilder) WithStatus(status string) *GroupDTOBuilder {
+	b.groupDTO.Status = status
 	return b
 }
 

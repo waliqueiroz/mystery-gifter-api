@@ -24,6 +24,7 @@ type GroupDTO struct {
 	Users     []UserDTO  `json:"users" validate:"required,min=1"`
 	OwnerID   string     `json:"owner_id" validate:"required,uuid"`
 	Matches   []MatchDTO `json:"matches" validate:"dive,omitempty"`
+	Status    string     `json:"status" validate:"required,oneof=OPEN MATCHED ARCHIVED"`
 	CreatedAt time.Time  `json:"created_at" validate:"required"`
 	UpdatedAt time.Time  `json:"updated_at" validate:"required"`
 }
@@ -52,6 +53,7 @@ func mapGroupFromDomain(group domain.Group) (*GroupDTO, error) {
 		Users:     users,
 		OwnerID:   group.OwnerID,
 		Matches:   matches,
+		Status:    string(group.Status),
 		CreatedAt: group.CreatedAt,
 		UpdatedAt: group.UpdatedAt,
 	}

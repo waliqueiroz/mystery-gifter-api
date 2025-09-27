@@ -73,6 +73,7 @@ func Test_GroupController_Create(t *testing.T) {
 			WithName(group.Name).
 			WithUsers([]rest.UserDTO{expectedUserDTO}).
 			WithOwnerID(group.OwnerID).
+			WithStatus(string(group.Status)).
 			WithCreatedAt(group.CreatedAt).
 			WithUpdatedAt(group.UpdatedAt).
 			Build()
@@ -311,6 +312,7 @@ func Test_GroupController_GetByID(t *testing.T) {
 			WithName(group.Name).
 			WithUsers([]rest.UserDTO{expectedUserDTO}).
 			WithOwnerID(group.OwnerID).
+			WithStatus(string(group.Status)).
 			WithCreatedAt(group.CreatedAt).
 			WithUpdatedAt(group.UpdatedAt).
 			Build()
@@ -446,6 +448,7 @@ func Test_GroupController_AddUser(t *testing.T) {
 			WithName(group.Name).
 			WithUsers([]rest.UserDTO{expectedUserDTO}).
 			WithOwnerID(group.OwnerID).
+			WithStatus(string(group.Status)).
 			WithCreatedAt(group.CreatedAt).
 			WithUpdatedAt(group.UpdatedAt).
 			Build()
@@ -697,6 +700,7 @@ func Test_GroupController_RemoveUser(t *testing.T) {
 			WithName(group.Name).
 			WithUsers([]rest.UserDTO{expectedUserDTO}).
 			WithOwnerID(group.OwnerID).
+			WithStatus(string(group.Status)).
 			WithCreatedAt(group.CreatedAt).
 			WithUpdatedAt(group.UpdatedAt).
 			Build()
@@ -888,6 +892,7 @@ func Test_GroupController_GenerateMatches(t *testing.T) {
 			WithUsers([]rest.UserDTO{expectedGiverDTO, expectedReceiverDTO}).
 			WithOwnerID(group.OwnerID).
 			WithMatches([]rest.MatchDTO{expectedMatchDTO}).
+			WithStatus(string(group.Status)).
 			WithCreatedAt(group.CreatedAt).
 			WithUpdatedAt(group.UpdatedAt).
 			Build()
