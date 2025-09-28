@@ -15,6 +15,7 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 
 	api.Get("/users", userController.Search)
 	api.Get("/users/:userID", userController.GetByID)
+	api.Get("/groups", groupController.Search)
 	api.Post("/groups", groupController.Create)
 	api.Get("/groups/:groupID", groupController.GetByID)
 	api.Post("/groups/:groupID/users", groupController.AddUser)

@@ -66,6 +66,31 @@ func (c *GroupController) GetByID(ctx *fiber.Ctx) error {
 	return ctx.JSON(groupDTO)
 }
 
+func (c *GroupController) Search(ctx *fiber.Ctx) error {
+	var groupFiltersDTO GroupFiltersDTO
+
+	if err := ctx.QueryParser(&groupFiltersDTO); err != nil {
+		return fiber.NewError(fiber.StatusUnprocessableEntity)
+	}
+
+	filters, err := mapGroupFiltersDTOToDomain(groupFiltersDTO)
+	if err != nil {
+		return err
+	}
+
+	searchResult, err := c.groupService.Search(ctx.Context(), *filters)
+	if err != nil {
+		return err
+	}
+
+	searchResultDTO, err := mapSearchResultFromDomain(searchResult, mapGroupSummaryFromDomain)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(searchResultDTO)
+}
+
 func (c *GroupController) Reopen(ctx *fiber.Ctx) error {
 	groupID := ctx.Params("groupID")
 
