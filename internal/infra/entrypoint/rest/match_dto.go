@@ -5,8 +5,17 @@ import (
 	"github.com/waliqueiroz/mystery-gifter-api/pkg/validator"
 )
 
+// MatchDTO represents a match between two users in a group
+// swagger:model MatchDTO
 type MatchDTO struct {
-	GiverID    string `json:"giver_id" validate:"required,uuid"`
+	// ID of the user who gives the gift
+	// required: true
+	// example: 01234567-89ab-cdef-0123-456789abcdef
+	GiverID string `json:"giver_id" validate:"required,uuid"`
+
+	// ID of the user who receives the gift
+	// required: true
+	// example: 01234567-89ab-cdef-0123-456789abcdef
 	ReceiverID string `json:"receiver_id" validate:"required,uuid"`
 }
 

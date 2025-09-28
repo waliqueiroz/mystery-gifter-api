@@ -5,14 +5,29 @@ import (
 	"github.com/waliqueiroz/mystery-gifter-api/pkg/validator"
 )
 
+// SearchResultDTO represents a paginated search result
 type SearchResultDTO[T any] struct {
-	Result []T       `json:"result" validate:"required"`
+	// List of results
+	Result []T `json:"result" validate:"required"`
+
+	// Pagination information
 	Paging PagingDTO `json:"paging" validate:"required"`
 }
 
+// PagingDTO represents pagination information
+// swagger:model PagingDTO
 type PagingDTO struct {
-	Total  int `json:"total" validate:"omitempty,min=0"`
-	Limit  int `json:"limit" validate:"required,min=1"`
+	// Total number of results
+	// example: 100
+	Total int `json:"total" validate:"omitempty,min=0"`
+
+	// Maximum number of results per page
+	// required: true
+	// example: 10
+	Limit int `json:"limit" validate:"required,min=1"`
+
+	// Number of results to skip
+	// example: 0
 	Offset int `json:"offset" validate:"omitempty,min=0"`
 }
 
@@ -59,4 +74,28 @@ func mapResultsFromDomain[T any, R any](results []T, mapResultFromDomain ResultM
 	}
 
 	return resultsDTOs, nil
+}
+
+// UserSearchResultDTO represents a paginated search result for users
+// swagger:model UserSearchResultDTO
+type UserSearchResultDTO struct {
+	// List of users
+	// required: true
+	Result []UserDTO `json:"result" validate:"required"`
+
+	// Pagination information
+	// required: true
+	Paging PagingDTO `json:"paging" validate:"required"`
+}
+
+// GroupSearchResultDTO represents a paginated search result for groups
+// swagger:model GroupSearchResultDTO
+type GroupSearchResultDTO struct {
+	// List of groups
+	// required: true
+	Result []GroupSummaryDTO `json:"result" validate:"required"`
+
+	// Pagination information
+	// required: true
+	Paging PagingDTO `json:"paging" validate:"required"`
 }

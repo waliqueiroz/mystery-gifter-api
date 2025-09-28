@@ -8,10 +8,19 @@ import (
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 )
 
+// WebError represents an error response
+// swagger:model WebError
 type WebError struct {
-	Code    string `json:"code"`
+	// Error code
+	// example: bad_request
+	Code string `json:"code"`
+
+	// Error message
+	// example: validation failed
 	Message string `json:"message"`
-	Details any    `json:"details,omitempty"`
+
+	// Additional error details
+	Details interface{} `json:"details,omitempty"`
 }
 
 func CustomErrorHandler(ctx *fiber.Ctx, err error) error {

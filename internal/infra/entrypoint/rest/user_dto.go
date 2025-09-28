@@ -7,11 +7,33 @@ import (
 	"github.com/waliqueiroz/mystery-gifter-api/pkg/validator"
 )
 
+// CreateUserDTO represents the data needed to create a new user
+// swagger:model CreateUserDTO
 type CreateUserDTO struct {
-	Name            string `json:"name" validate:"required"`
-	Surname         string `json:"surname" validate:"required"`
-	Email           string `json:"email" validate:"required,email"`
-	Password        string `json:"password" validate:"required,min=8,eqfield=PasswordConfirm"`
+	// User's first name
+	// required: true
+	// example: João
+	Name string `json:"name" validate:"required"`
+
+	// User's last name
+	// required: true
+	// example: Silva
+	Surname string `json:"surname" validate:"required"`
+
+	// User's email address
+	// required: true
+	// example: joao.silva@example.com
+	Email string `json:"email" validate:"required,email"`
+
+	// User's password
+	// required: true
+	// minLength: 8
+	// example: mypassword123
+	Password string `json:"password" validate:"required,min=8,eqfield=PasswordConfirm"`
+
+	// Password confirmation (must match password)
+	// required: true
+	// example: mypassword123
 	PasswordConfirm string `json:"password_confirm" validate:"required"`
 }
 
@@ -35,12 +57,37 @@ func mapCreateUserDTOToDomain(identity domain.IdentityGenerator, passwordManager
 	return user, nil
 }
 
+// UserDTO represents a user in the system
+// swagger:model UserDTO
 type UserDTO struct {
-	ID        string    `json:"id" validate:"required"`
-	Name      string    `json:"name" validate:"required"`
-	Surname   string    `json:"surname" validate:"required"`
-	Email     string    `json:"email" validate:"required,email"`
+	// Unique identifier for the user
+	// required: true
+	// example: 01234567-89ab-cdef-0123-456789abcdef
+	ID string `json:"id" validate:"required"`
+
+	// User's first name
+	// required: true
+	// example: João
+	Name string `json:"name" validate:"required"`
+
+	// User's last name
+	// required: true
+	// example: Silva
+	Surname string `json:"surname" validate:"required"`
+
+	// User's email address
+	// required: true
+	// example: joao.silva@example.com
+	Email string `json:"email" validate:"required,email"`
+
+	// When the user was created
+	// required: true
+	// example: 2023-12-01T10:00:00Z
 	CreatedAt time.Time `json:"created_at" validate:"required"`
+
+	// When the user was last updated
+	// required: true
+	// example: 2023-12-01T10:00:00Z
 	UpdatedAt time.Time `json:"updated_at" validate:"required"`
 }
 
@@ -82,7 +129,12 @@ func mapUsersFromDomain(users []domain.User) ([]UserDTO, error) {
 	return userDTOs, nil
 }
 
+// AddUserDTO represents the data needed to add a user to a group
+// swagger:model AddUserDTO
 type AddUserDTO struct {
+	// ID of the user to add to the group
+	// required: true
+	// example: 01234567-89ab-cdef-0123-456789abcdef
 	UserID string `json:"user_id" validate:"required,uuid"`
 }
 
@@ -93,14 +145,38 @@ func (a *AddUserDTO) Validate() error {
 	return nil
 }
 
+// UserFiltersDTO represents the filters for searching users
+// swagger:model UserFiltersDTO
 type UserFiltersDTO struct {
-	Name          string `query:"name" json:"name"`
-	Surname       string `query:"surname" json:"surname"`
-	Email         string `query:"email" json:"email"`
-	Limit         int    `query:"limit" json:"limit"`
-	Offset        int    `query:"offset" json:"offset"`
+	// Filter by user's first name
+	// example: João
+	Name string `query:"name" json:"name"`
+
+	// Filter by user's last name
+	// example: Silva
+	Surname string `query:"surname" json:"surname"`
+
+	// Filter by user's email
+	// example: joao@example.com
+	Email string `query:"email" json:"email"`
+
+	// Maximum number of results to return
+	// example: 10
+	Limit int `query:"limit" json:"limit"`
+
+	// Number of results to skip
+	// example: 0
+	Offset int `query:"offset" json:"offset"`
+
+	// Sort direction (ASC or DESC)
+	// enum: ASC,DESC
+	// example: ASC
 	SortDirection string `query:"sort_direction" json:"sort_direction" validate:"omitempty,oneof=ASC DESC"`
-	SortBy        string `query:"sort_by" json:"sort_by" validate:"omitempty,oneof=name surname email created_at updated_at"`
+
+	// Field to sort by
+	// enum: name,surname,email,created_at,updated_at
+	// example: name
+	SortBy string `query:"sort_by" json:"sort_by" validate:"omitempty,oneof=name surname email created_at updated_at"`
 }
 
 func (s *UserFiltersDTO) Validate() error {

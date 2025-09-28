@@ -1,0 +1,921 @@
+basePath: /api/v1
+consumes:
+    - application/json
+definitions:
+    AddUserDTO:
+        description: AddUserDTO represents the data needed to add a user to a group
+        properties:
+            user_id:
+                description: ID of the user to add to the group
+                example: 01234567-89ab-cdef-0123-456789abcdef
+                type: string
+                x-go-name: UserID
+        required:
+            - user_id
+        type: object
+        x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
+    AuthSessionDTO:
+        description: AuthSessionDTO represents the authentication session response
+        properties:
+            access_token:
+                description: JWT access token
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                type: string
+                x-go-name: AccessToken
+            expires_in:
+                description: Token expiration time in seconds
+                example: 3600
+                format: int64
+                type: integer
+                x-go-name: ExpiresIn
+            token_type:
+                description: Token type
+                example: Bearer
+                type: string
+                x-go-name: TokenType
+            user:
+                $ref: '#/definitions/UserDTO'
+        required:
+            - user
+            - access_token
+            - token_type
+            - expires_in
+        type: object
+        x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
+    CreateGroupDTO:
+        description: CreateGroupDTO represents the data needed to create a new group
+        properties:
+            name:
+                description: Group name
+                example: Secret Santa 2024
+                type: string
+                x-go-name: Name
+        required:
+            - name
+        type: object
+        x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
+    CreateUserDTO:
+        description: CreateUserDTO represents the data needed to create a new user
+        properties:
+            email:
+                description: User's email address
+                example: joao.silva@example.com
+                type: string
+                x-go-name: Email
+            name:
+                description: User's first name
+                example: João
+                type: string
+                x-go-name: Name
+            password:
+                description: User's password
+                example: mypassword123
+                minLength: 8
+                type: string
+                x-go-name: Password
+            password_confirm:
+                description: Password confirmation (must match password)
+                example: mypassword123
+                type: string
+                x-go-name: PasswordConfirm
+            surname:
+                description: User's last name
+                example: Silva
+                type: string
+                x-go-name: Surname
+        required:
+            - name
+            - surname
+            - email
+            - password
+            - password_confirm
+        type: object
+        x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
+    CredentialsDTO:
+        description: CredentialsDTO represents the login credentials
+        properties:
+            email:
+                description: Email address of the user
+                example: user@example.com
+                type: string
+                x-go-name: Email
+            password:
+                description: Password of the user
+                example: mypassword123
+                type: string
+                x-go-name: Password
+        required:
+            - email
+            - password
+        type: object
+        x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
+    GroupDTO:
+        description: GroupDTO represents a complete group with all its information
+        properties:
+            created_at:
+                description: Group creation timestamp
+                example: "2024-01-01T00:00:00Z"
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            id:
+                description: Unique group identifier
+                example: 01234567-89ab-cdef-0123-456789abcdef
+                type: string
+                x-go-name: ID
+            matches:
+                description: List of matches in the group
+                items:
+                    $ref: '#/definitions/MatchDTO'
+                type: array
+                x-go-name: Matches
+            name:
+                description: Group name
+                example: Secret Santa 2024
+                type: string
+                x-go-name: Name
+            owner_id:
+                description: ID of the group owner
+                example: 01234567-89ab-cdef-0123-456789abcdef
+                type: string
+                x-go-name: OwnerID
+            status:
+                description: Group status
+                enum:
+                    - OPEN
+                    - MATCHED
+                    - ARCHIVED
+                example: OPEN
+                type: string
+                x-go-name: Status
+            updated_at:
+                description: Group last update timestamp
+                example: "2024-01-01T00:00:00Z"
+                format: date-time
+                type: string
+                x-go-name: UpdatedAt
+            users:
+                description: List of users in the group
+                items:
+                    $ref: '#/definitions/UserDTO'
+                type: array
+                x-go-name: Users
+        required:
+            - id
+            - name
+            - users
+            - owner_id
+            - status
+            - created_at
+            - updated_at
+        type: object
+        x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
+    GroupFiltersDTO:
+        description: GroupFiltersDTO represents filters for searching groups
+        properties:
+            limit:
+                description: Maximum number of results to return
+                example: 10
+                format: int64
+                type: integer
+                x-go-name: Limit
+            name:
+                description: Filter by group name
+                example: Secret Santa 2024
+                type: string
+                x-go-name: Name
+            offset:
+                description: Number of results to skip
+                example: 0
+                format: int64
+                type: integer
+                x-go-name: Offset
+            owner_id:
+                description: Filter by group owner ID
+                example: 01234567-89ab-cdef-0123-456789abcdef
+                type: string
+                x-go-name: OwnerID
+            sort:
+                description: Sort direction (asc, desc)
+                example: asc
+                type: string
+                x-go-name: Sort
+            sort_field:
+                description: Field to sort by
+                example: name
+                type: string
+                x-go-name: SortField
+            status:
+                description: Filter by group status
+                example: OPEN
+                type: string
+                x-go-name: Status
+        type: object
+        x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
+    GroupSearchResultDTO:
+        description: GroupSearchResultDTO represents a paginated search result for groups
+        properties:
+            paging:
+                $ref: '#/definitions/PagingDTO'
+            result:
+                description: List of groups
+                items:
+                    $ref: '#/definitions/GroupSummaryDTO'
+                type: array
+                x-go-name: Result
+        required:
+            - result
+            - paging
+        type: object
+        x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
+    GroupSummaryDTO:
+        description: GroupSummaryDTO represents a summary of a group (used in search results)
+        properties:
+            created_at:
+                description: Group creation timestamp
+                example: "2024-01-01T00:00:00Z"
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            id:
+                description: Unique group identifier
+                example: 01234567-89ab-cdef-0123-456789abcdef
+                type: string
+                x-go-name: ID
+            name:
+                description: Group name
+                example: Secret Santa 2024
+                type: string
+                x-go-name: Name
+            owner_id:
+                description: ID of the group owner
+                example: 01234567-89ab-cdef-0123-456789abcdef
+                type: string
+                x-go-name: OwnerID
+            status:
+                description: Group status
+                enum:
+                    - OPEN
+                    - MATCHED
+                    - ARCHIVED
+                example: OPEN
+                type: string
+                x-go-name: Status
+            updated_at:
+                description: Group last update timestamp
+                example: "2024-01-01T00:00:00Z"
+                format: date-time
+                type: string
+                x-go-name: UpdatedAt
+            user_count:
+                description: Number of users in the group
+                example: 5
+                format: int64
+                type: integer
+                x-go-name: UserCount
+        required:
+            - id
+            - name
+            - status
+            - owner_id
+            - user_count
+            - created_at
+            - updated_at
+        type: object
+        x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
+    MatchDTO:
+        description: MatchDTO represents a match between two users in a group
+        properties:
+            giver_id:
+                description: ID of the user who gives the gift
+                example: 01234567-89ab-cdef-0123-456789abcdef
+                type: string
+                x-go-name: GiverID
+            receiver_id:
+                description: ID of the user who receives the gift
+                example: 01234567-89ab-cdef-0123-456789abcdef
+                type: string
+                x-go-name: ReceiverID
+        required:
+            - giver_id
+            - receiver_id
+        type: object
+        x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
+    PagingDTO:
+        description: PagingDTO represents pagination information
+        properties:
+            limit:
+                description: Maximum number of results per page
+                example: 10
+                format: int64
+                type: integer
+                x-go-name: Limit
+            offset:
+                description: Number of results to skip
+                example: 0
+                format: int64
+                type: integer
+                x-go-name: Offset
+            total:
+                description: Total number of results
+                example: 100
+                format: int64
+                type: integer
+                x-go-name: Total
+        required:
+            - limit
+        type: object
+        x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
+    UserDTO:
+        description: UserDTO represents a user in the system
+        properties:
+            created_at:
+                description: When the user was created
+                example: "2023-12-01T10:00:00Z"
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            email:
+                description: User's email address
+                example: joao.silva@example.com
+                type: string
+                x-go-name: Email
+            id:
+                description: Unique identifier for the user
+                example: 01234567-89ab-cdef-0123-456789abcdef
+                type: string
+                x-go-name: ID
+            name:
+                description: User's first name
+                example: João
+                type: string
+                x-go-name: Name
+            surname:
+                description: User's last name
+                example: Silva
+                type: string
+                x-go-name: Surname
+            updated_at:
+                description: When the user was last updated
+                example: "2023-12-01T10:00:00Z"
+                format: date-time
+                type: string
+                x-go-name: UpdatedAt
+        required:
+            - id
+            - name
+            - surname
+            - email
+            - created_at
+            - updated_at
+        type: object
+        x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
+    UserFiltersDTO:
+        description: UserFiltersDTO represents the filters for searching users
+        properties:
+            email:
+                description: Filter by user's email
+                example: joao@example.com
+                type: string
+                x-go-name: Email
+            limit:
+                description: Maximum number of results to return
+                example: 10
+                format: int64
+                type: integer
+                x-go-name: Limit
+            name:
+                description: Filter by user's first name
+                example: João
+                type: string
+                x-go-name: Name
+            offset:
+                description: Number of results to skip
+                example: 0
+                format: int64
+                type: integer
+                x-go-name: Offset
+            sort_by:
+                description: Field to sort by
+                enum:
+                    - name
+                    - surname
+                    - email
+                    - created_at
+                    - updated_at
+                example: name
+                type: string
+                x-go-name: SortBy
+            sort_direction:
+                description: Sort direction (ASC or DESC)
+                enum:
+                    - ASC
+                    - DESC
+                example: ASC
+                type: string
+                x-go-name: SortDirection
+            surname:
+                description: Filter by user's last name
+                example: Silva
+                type: string
+                x-go-name: Surname
+        type: object
+        x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
+    UserSearchResultDTO:
+        description: UserSearchResultDTO represents a paginated search result for users
+        properties:
+            paging:
+                $ref: '#/definitions/PagingDTO'
+            result:
+                description: List of users
+                items:
+                    $ref: '#/definitions/UserDTO'
+                type: array
+                x-go-name: Result
+        required:
+            - result
+            - paging
+        type: object
+        x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
+    WebError:
+        description: WebError represents an error response
+        properties:
+            code:
+                description: Error code
+                example: bad_request
+                type: string
+                x-go-name: Code
+            details:
+                description: Additional error details
+                x-go-name: Details
+            message:
+                description: Error message
+                example: validation failed
+                type: string
+                x-go-name: Message
+        type: object
+        x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint
+host: localhost:8080
+info:
+    description: API for managing secret santa groups and gift exchanges
+    title: Mystery Gifter API
+    version: 1.0.0
+paths:
+    /api/v1/groups:
+        get:
+            description: |-
+                This endpoint searches for groups based on filters and returns paginated results.
+                Requires authentication.
+            operationId: SearchGroups
+            parameters:
+                - description: Filter by group name
+                  in: query
+                  name: name
+                  type: string
+                - description: Filter by group owner ID
+                  in: query
+                  name: owner_id
+                  type: string
+                - description: Filter by group status
+                  in: query
+                  name: status
+                  type: string
+                - description: Number of results per page
+                  in: query
+                  name: limit
+                  type: integer
+                - description: Number of results to skip
+                  in: query
+                  name: offset
+                  type: integer
+                - description: Sort direction (asc, desc)
+                  in: query
+                  name: sort
+                  type: string
+                - description: Field to sort by
+                  in: query
+                  name: sort_field
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Search completed successfully
+                    schema:
+                        $ref: '#/definitions/GroupSearchResultDTO'
+                "400":
+                    description: Invalid search parameters
+                "401":
+                    description: Authentication required
+                "422":
+                    description: Invalid query parameters
+            security:
+                - Bearer: []
+            summary: Search groups with filters and pagination
+            tags:
+                - groups
+        post:
+            consumes:
+                - application/json
+            description: |-
+                This endpoint creates a new secret santa group.
+                The authenticated user becomes the group owner.
+            operationId: CreateGroup
+            parameters:
+                - description: Group information for creation
+                  in: body
+                  name: CreateGroupDTO
+                  required: true
+                  schema:
+                    $ref: '#/definitions/CreateGroupDTO'
+            produces:
+                - application/json
+            responses:
+                "201":
+                    description: Group created successfully
+                    schema:
+                        $ref: '#/definitions/GroupDTO'
+                "400":
+                    description: Invalid group data
+                "401":
+                    description: Authentication required
+                "422":
+                    description: Invalid request body
+            security:
+                - Bearer: []
+            summary: Create a new group
+            tags:
+                - groups
+    /api/v1/groups/{groupID}:
+        get:
+            description: |-
+                This endpoint retrieves a specific group by its ID.
+                Requires authentication.
+            operationId: GetGroupByID
+            parameters:
+                - description: Unique group identifier
+                  in: path
+                  name: groupID
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Group found successfully
+                    schema:
+                        $ref: '#/definitions/GroupDTO'
+                "401":
+                    description: Authentication required
+                "404":
+                    description: Group not found
+            security:
+                - Bearer: []
+            summary: Get group by ID
+            tags:
+                - groups
+    /api/v1/groups/{groupID}/archive:
+        post:
+            description: |-
+                This endpoint archives a group.
+                Only the group owner can archive groups.
+            operationId: ArchiveGroup
+            parameters:
+                - description: Unique group identifier
+                  in: path
+                  name: groupID
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Group archived successfully
+                    schema:
+                        $ref: '#/definitions/GroupDTO'
+                "401":
+                    description: Authentication required
+                "403":
+                    description: Insufficient permissions
+                "404":
+                    description: Group not found
+                "409":
+                    description: Group cannot be archived
+            security:
+                - Bearer: []
+            summary: Archive a group
+            tags:
+                - groups
+    /api/v1/groups/{groupID}/matches:
+        post:
+            description: |-
+                This endpoint generates random matches between users in the group.
+                Only the group owner can generate matches.
+            operationId: GenerateMatches
+            parameters:
+                - description: Unique group identifier
+                  in: path
+                  name: groupID
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Matches generated successfully
+                    schema:
+                        $ref: '#/definitions/GroupDTO'
+                "401":
+                    description: Authentication required
+                "403":
+                    description: Insufficient permissions
+                "404":
+                    description: Group not found
+                "409":
+                    description: Cannot generate matches (insufficient users)
+            security:
+                - Bearer: []
+            summary: Generate matches for the group
+            tags:
+                - groups
+    /api/v1/groups/{groupID}/matches/user:
+        get:
+            description: |-
+                This endpoint returns the user that the authenticated user should give a gift to.
+                Requires authentication and the user must be a member of the group.
+            operationId: GetUserMatch
+            parameters:
+                - description: Unique group identifier
+                  in: path
+                  name: groupID
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: User match found successfully
+                    schema:
+                        $ref: '#/definitions/UserDTO'
+                "401":
+                    description: Authentication required
+                "403":
+                    description: User not a member of group
+                "404":
+                    description: Group not found or no match available
+            security:
+                - Bearer: []
+            summary: Get user's match in the group
+            tags:
+                - groups
+    /api/v1/groups/{groupID}/reopen:
+        post:
+            description: |-
+                This endpoint reopens an archived group.
+                Only the group owner can reopen groups.
+            operationId: ReopenGroup
+            parameters:
+                - description: Unique group identifier
+                  in: path
+                  name: groupID
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Group reopened successfully
+                    schema:
+                        $ref: '#/definitions/GroupDTO'
+                "401":
+                    description: Authentication required
+                "403":
+                    description: Insufficient permissions
+                "404":
+                    description: Group not found
+                "409":
+                    description: Group cannot be reopened
+            security:
+                - Bearer: []
+            summary: Reopen an archived group
+            tags:
+                - groups
+    /api/v1/groups/{groupID}/users:
+        post:
+            consumes:
+                - application/json
+            description: |-
+                This endpoint adds a user to an existing group.
+                Only the group owner can add users.
+            operationId: AddUserToGroup
+            parameters:
+                - description: Unique group identifier
+                  in: path
+                  name: groupID
+                  required: true
+                  type: string
+                - description: User information to add to group
+                  in: body
+                  name: AddUserDTO
+                  required: true
+                  schema:
+                    $ref: '#/definitions/AddUserDTO'
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: User added successfully
+                    schema:
+                        $ref: '#/definitions/GroupDTO'
+                "400":
+                    description: Invalid request data
+                "401":
+                    description: Authentication required
+                "403":
+                    description: Insufficient permissions
+                "404":
+                    description: Group not found
+                "409":
+                    description: User already in group
+                "422":
+                    description: Invalid request body
+            security:
+                - Bearer: []
+            summary: Add user to group
+            tags:
+                - groups
+    /api/v1/groups/{groupID}/users/{userID}:
+        delete:
+            description: |-
+                This endpoint removes a user from a group.
+                Only the group owner can remove users.
+            operationId: RemoveUserFromGroup
+            parameters:
+                - description: Unique group identifier
+                  in: path
+                  name: groupID
+                  required: true
+                  type: string
+                - description: Unique user identifier
+                  in: path
+                  name: userID
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: User removed successfully
+                    schema:
+                        $ref: '#/definitions/GroupDTO'
+                "401":
+                    description: Authentication required
+                "403":
+                    description: Insufficient permissions
+                "404":
+                    description: Group or user not found
+            security:
+                - Bearer: []
+            summary: Remove user from group
+            tags:
+                - groups
+    /api/v1/login:
+        post:
+            consumes:
+                - application/json
+            description: This endpoint authenticates a user with email and password and returns a JWT token.
+            operationId: Login
+            parameters:
+                - description: User credentials for authentication
+                  in: body
+                  name: CredentialsDTO
+                  required: true
+                  schema:
+                    $ref: '#/definitions/CredentialsDTO'
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Authentication successful
+                    schema:
+                        $ref: '#/definitions/AuthSessionDTO'
+                "400":
+                    description: Invalid credentials
+                "401":
+                    description: Authentication failed
+                "422":
+                    description: Invalid request body
+            summary: Authenticate user and get access token
+            tags:
+                - auth
+    /api/v1/users:
+        get:
+            description: |-
+                This endpoint searches for users based on filters and returns paginated results.
+                Requires authentication.
+            operationId: SearchUsers
+            parameters:
+                - description: Filter by user name
+                  in: query
+                  name: name
+                  type: string
+                - description: Filter by user email
+                  in: query
+                  name: email
+                  type: string
+                - description: Number of results per page
+                  in: query
+                  name: limit
+                  type: integer
+                - description: Number of results to skip
+                  in: query
+                  name: offset
+                  type: integer
+                - description: Sort direction (asc, desc)
+                  in: query
+                  name: sort
+                  type: string
+                - description: Field to sort by
+                  in: query
+                  name: sort_field
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Search completed successfully
+                    schema:
+                        $ref: '#/definitions/UserSearchResultDTO'
+                "400":
+                    description: Invalid search parameters
+                "401":
+                    description: Authentication required
+                "422":
+                    description: Invalid query parameters
+            security:
+                - Bearer: []
+            summary: Search users with filters and pagination
+            tags:
+                - users
+        post:
+            consumes:
+                - application/json
+            description: This endpoint creates a new user account with the provided information.
+            operationId: CreateUser
+            parameters:
+                - description: User information for account creation
+                  in: body
+                  name: CreateUserDTO
+                  required: true
+                  schema:
+                    $ref: '#/definitions/CreateUserDTO'
+            produces:
+                - application/json
+            responses:
+                "201":
+                    description: User created successfully
+                    schema:
+                        $ref: '#/definitions/UserDTO'
+                "400":
+                    description: Invalid user data
+                "409":
+                    description: User already exists
+                "422":
+                    description: Invalid request body
+            summary: Create a new user
+            tags:
+                - users
+    /api/v1/users/{userID}:
+        get:
+            description: |-
+                This endpoint retrieves a specific user by their ID.
+                Requires authentication.
+            operationId: GetUserByID
+            parameters:
+                - description: Unique user identifier
+                  in: path
+                  name: userID
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: User found successfully
+                    schema:
+                        $ref: '#/definitions/UserDTO'
+                "401":
+                    description: Authentication required
+                "404":
+                    description: User not found
+            security:
+                - Bearer: []
+            summary: Get user by ID
+            tags:
+                - users
+produces:
+    - application/json
+schemes:
+    - http
+    - https
+swagger: "2.0"
