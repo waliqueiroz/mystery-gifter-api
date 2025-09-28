@@ -69,3 +69,18 @@ func (mr *MockUserServiceMockRecorder) GetByID(ctx, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockUserService)(nil).GetByID), ctx, userID)
 }
+
+// Search mocks base method.
+func (m *MockUserService) Search(ctx context.Context, filters domain.UserFilters) (*domain.SearchResult[domain.User], error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Search", ctx, filters)
+	ret0, _ := ret[0].(*domain.SearchResult[domain.User])
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Search indicates an expected call of Search.
+func (mr *MockUserServiceMockRecorder) Search(ctx, filters any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockUserService)(nil).Search), ctx, filters)
+}

@@ -76,7 +76,7 @@ type UserFilters struct {
 	Surname       *string
 	Email         *string
 	Limit         int               `validate:"required,min=1"`
-	Offset        int               `validate:"required,min=0"`
+	Offset        int               `validate:"min=0"`
 	SortDirection SortDirectionType `validate:"required,oneof=ASC DESC"`
 	SortBy        string            `validate:"required,oneof=name surname email created_at updated_at"`
 }

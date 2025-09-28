@@ -106,3 +106,112 @@ func Test_userService_GetByID(t *testing.T) {
 		assert.Nil(t, result)
 	})
 }
+
+func Test_userService_Search(t *testing.T) {
+	t.Run("should search users successfully", func(t *testing.T) {
+		// given
+		filters := build_domain.NewUserFiltersBuilder().
+			WithName("John").
+			WithLimit(10).
+			WithOffset(0).
+			Build()
+
+		users := []domain.User{
+			build_domain.NewUserBuilder().WithName("John").WithSurname("Doe").Build(),
+			build_domain.NewUserBuilder().WithName("John").WithSurname("Smith").Build(),
+		}
+
+		expectedSearchResult := build_domain.NewSearchResultBuilder[domain.User]().
+			WithResult(users).
+			WithLimit(10).
+			WithOffset(0).
+			WithTotal(2).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+		mockedUserRepository := mock_domain.NewMockUserRepository(mockCtrl)
+		mockedUserRepository.EXPECT().Search(gomock.Any(), filters).Return(&expectedSearchResult, nil)
+
+		userService := application.NewUserService(mockedUserRepository)
+
+		// when
+		result, err := userService.Search(context.Background(), filters)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, expectedSearchResult, *result)
+		assert.Len(t, result.Result, 2)
+		assert.Equal(t, 10, result.Paging.Limit)
+		assert.Equal(t, 0, result.Paging.Offset)
+		assert.Equal(t, 2, result.Paging.Total)
+	})
+
+	t.Run("should return an error when repository fails", func(t *testing.T) {
+		// given
+		filters := build_domain.NewUserFiltersBuilder().Build()
+
+		mockCtrl := gomock.NewController(t)
+		mockedUserRepository := mock_domain.NewMockUserRepository(mockCtrl)
+		mockedUserRepository.EXPECT().Search(gomock.Any(), filters).Return(nil, assert.AnError)
+
+		userService := application.NewUserService(mockedUserRepository)
+
+		// when
+		result, err := userService.Search(context.Background(), filters)
+
+		// then
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
+		assert.Nil(t, result)
+	})
+
+	t.Run("should return a validation error when filters are invalid", func(t *testing.T) {
+		// given
+		invalidFilters := build_domain.NewUserFiltersBuilder().
+			WithLimit(0). // Invalid: limit must be at least 1
+			Build()
+
+		userService := application.NewUserService(nil)
+
+		// when
+		result, err := userService.Search(context.Background(), invalidFilters)
+
+		// then
+		assert.Error(t, err)
+		var expectedError *domain.ValidationError
+		assert.ErrorAs(t, err, &expectedError)
+		assert.Equal(t, "validation failed", expectedError.Error())
+		errors := expectedError.Details()
+		assert.Contains(t, errors, validator.FieldError{Field: "Limit", Error: "Limit is a required field"})
+		assert.Nil(t, result)
+	})
+
+	t.Run("should return empty result when no users match filters", func(t *testing.T) {
+		// given
+		filters := build_domain.NewUserFiltersBuilder().
+			WithName("NonExistentUser").
+			Build()
+
+		emptyResult := build_domain.NewSearchResultBuilder[domain.User]().
+			WithResult([]domain.User{}).
+			WithLimit(10).
+			WithOffset(0).
+			WithTotal(0).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+		mockedUserRepository := mock_domain.NewMockUserRepository(mockCtrl)
+		mockedUserRepository.EXPECT().Search(gomock.Any(), filters).Return(&emptyResult, nil)
+
+		userService := application.NewUserService(mockedUserRepository)
+
+		// when
+		result, err := userService.Search(context.Background(), filters)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, emptyResult, *result)
+		assert.Empty(t, result.Result)
+		assert.Equal(t, 0, result.Paging.Total)
+	})
+}
