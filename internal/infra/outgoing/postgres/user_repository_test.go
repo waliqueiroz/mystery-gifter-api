@@ -211,3 +211,181 @@ func Test_userRepository_GetByEmail(t *testing.T) {
 		assert.Nil(t, result)
 	})
 }
+
+func Test_userRepository_Search(t *testing.T) {
+	t.Run("should search users successfully with filters", func(t *testing.T) {
+		// given
+		name := "John"
+		surname := "Doe"
+		email := "john@mail.com"
+		limit := 10
+		offset := 0
+		sortBy := "name"
+		sortDirection := domain.SortDirectionTypeAsc
+
+		filters := build_domain.NewUserFiltersBuilder().
+			WithName(name).
+			WithSurname(surname).
+			WithEmail(email).
+			WithLimit(limit).
+			WithOffset(offset).
+			WithSortBy(sortBy).
+			WithSortDirection(sortDirection).
+			Build()
+
+		userID := uuid.New().String()
+		now := time.Now().UTC()
+		dbUsers := []postgres.User{
+			build_postgres.NewUserBuilder().WithID(userID).WithName(name).WithSurname(surname).WithEmail(email).WithCreatedAt(now).WithUpdatedAt(now).Build(),
+		}
+
+		domainUsers := []domain.User{
+			build_domain.NewUserBuilder().WithID(userID).WithName(name).WithSurname(surname).WithEmail(email).WithCreatedAt(now).WithUpdatedAt(now).Build(),
+		}
+
+		expectedSearchResult := &domain.SearchResult[domain.User]{
+			Result: domainUsers,
+			Paging: domain.Paging{
+				Total:  1,
+				Limit:  limit,
+				Offset: offset,
+			},
+		}
+
+		searchQuery := `SELECT * FROM users WHERE name ILIKE $1 AND surname ILIKE $2 AND email ILIKE $3 ORDER BY name ASC LIMIT 10 OFFSET 0`
+		countQuery := `SELECT COUNT(*) FROM users WHERE name ILIKE $1 AND surname ILIKE $2 AND email ILIKE $3`
+
+		mockCtrl := gomock.NewController(t)
+		mockedDB := mock_postgres.NewMockDB(mockCtrl)
+		mockedDB.EXPECT().SelectContext(gomock.Any(), gomock.Any(), searchQuery, "%"+name+"%", "%"+surname+"%", "%"+email+"%").SetArg(1, dbUsers).Return(nil)
+		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), countQuery, "%"+name+"%", "%"+surname+"%", "%"+email+"%").SetArg(1, 1).Return(nil)
+
+		userRepository := postgres.NewUserRepository(mockedDB)
+
+		// when
+		result, err := userRepository.Search(context.Background(), filters)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, expectedSearchResult, result)
+	})
+
+	t.Run("should search users successfully without filters", func(t *testing.T) {
+		// given
+		limit := 10
+		offset := 0
+		sortBy := "created_at"
+		sortDirection := domain.SortDirectionTypeDesc
+
+		filters := build_domain.NewUserFiltersBuilder().
+			WithLimit(limit).
+			WithOffset(offset).
+			WithSortBy(sortBy).
+			WithSortDirection(sortDirection).
+			Build()
+
+		userID := uuid.New().String()
+		now := time.Now().UTC()
+		dbUsers := []postgres.User{
+			build_postgres.NewUserBuilder().WithID(userID).WithCreatedAt(now).WithUpdatedAt(now).Build(),
+		}
+
+		domainUsers := []domain.User{
+			build_domain.NewUserBuilder().WithID(userID).WithCreatedAt(now).WithUpdatedAt(now).Build(),
+		}
+
+		expectedSearchResult := &domain.SearchResult[domain.User]{
+			Result: domainUsers,
+			Paging: domain.Paging{
+				Total:  1,
+				Limit:  limit,
+				Offset: offset,
+			},
+		}
+
+		searchQuery := `SELECT * FROM users ORDER BY created_at DESC LIMIT 10 OFFSET 0`
+		countQuery := `SELECT COUNT(*) FROM users`
+
+		mockCtrl := gomock.NewController(t)
+		mockedDB := mock_postgres.NewMockDB(mockCtrl)
+		mockedDB.EXPECT().SelectContext(gomock.Any(), gomock.Any(), searchQuery).SetArg(1, dbUsers).Return(nil)
+		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), countQuery).SetArg(1, 1).Return(nil)
+
+		userRepository := postgres.NewUserRepository(mockedDB)
+
+		// when
+		result, err := userRepository.Search(context.Background(), filters)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, expectedSearchResult, result)
+	})
+
+	t.Run("should fail when SelectContext returns error", func(t *testing.T) {
+		// given
+		limit := 10
+		offset := 0
+		sortBy := "name"
+		sortDirection := domain.SortDirectionTypeAsc
+
+		filters := build_domain.NewUserFiltersBuilder().
+			WithLimit(limit).
+			WithOffset(offset).
+			WithSortBy(sortBy).
+			WithSortDirection(sortDirection).
+			Build()
+
+		searchQuery := `SELECT * FROM users ORDER BY name ASC LIMIT 10 OFFSET 0`
+
+		mockCtrl := gomock.NewController(t)
+		mockedDB := mock_postgres.NewMockDB(mockCtrl)
+		mockedDB.EXPECT().SelectContext(gomock.Any(), gomock.Any(), searchQuery).Return(assert.AnError)
+
+		userRepository := postgres.NewUserRepository(mockedDB)
+
+		// when
+		result, err := userRepository.Search(context.Background(), filters)
+
+		// then
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
+		assert.Nil(t, result)
+	})
+
+	t.Run("should fail when countUsers returns error", func(t *testing.T) {
+		// given
+		limit := 10
+		offset := 0
+		sortBy := "name"
+		sortDirection := domain.SortDirectionTypeAsc
+
+		filters := build_domain.NewUserFiltersBuilder().
+			WithLimit(limit).
+			WithOffset(offset).
+			WithSortBy(sortBy).
+			WithSortDirection(sortDirection).
+			Build()
+
+		dbUsers := []postgres.User{
+			build_postgres.NewUserBuilder().Build(),
+		}
+
+		searchQuery := `SELECT * FROM users ORDER BY name ASC LIMIT 10 OFFSET 0`
+		countQuery := `SELECT COUNT(*) FROM users`
+
+		mockCtrl := gomock.NewController(t)
+		mockedDB := mock_postgres.NewMockDB(mockCtrl)
+		mockedDB.EXPECT().SelectContext(gomock.Any(), gomock.Any(), searchQuery).SetArg(1, dbUsers).Return(nil)
+		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), countQuery).Return(assert.AnError)
+
+		userRepository := postgres.NewUserRepository(mockedDB)
+
+		// when
+		result, err := userRepository.Search(context.Background(), filters)
+
+		// then
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
+		assert.Nil(t, result)
+	})
+}
