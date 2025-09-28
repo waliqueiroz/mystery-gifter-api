@@ -243,14 +243,12 @@ func Test_userRepository_Search(t *testing.T) {
 			build_domain.NewUserBuilder().WithID(userID).WithName(name).WithSurname(surname).WithEmail(email).WithCreatedAt(now).WithUpdatedAt(now).Build(),
 		}
 
-		expectedSearchResult := &domain.SearchResult[domain.User]{
-			Result: domainUsers,
-			Paging: domain.Paging{
-				Total:  1,
-				Limit:  limit,
-				Offset: offset,
-			},
-		}
+		expectedSearchResult := build_domain.NewSearchResultBuilder[domain.User]().
+			WithResult(domainUsers).
+			WithLimit(limit).
+			WithOffset(offset).
+			WithTotal(1).
+			Build()
 
 		searchQuery := `SELECT * FROM users WHERE name ILIKE $1 AND surname ILIKE $2 AND email ILIKE $3 ORDER BY name ASC LIMIT 10 OFFSET 0`
 		countQuery := `SELECT COUNT(*) FROM users WHERE name ILIKE $1 AND surname ILIKE $2 AND email ILIKE $3`
@@ -267,7 +265,7 @@ func Test_userRepository_Search(t *testing.T) {
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, expectedSearchResult, result)
+		assert.Equal(t, &expectedSearchResult, result)
 	})
 
 	t.Run("should search users successfully without filters", func(t *testing.T) {
@@ -294,14 +292,12 @@ func Test_userRepository_Search(t *testing.T) {
 			build_domain.NewUserBuilder().WithID(userID).WithCreatedAt(now).WithUpdatedAt(now).Build(),
 		}
 
-		expectedSearchResult := &domain.SearchResult[domain.User]{
-			Result: domainUsers,
-			Paging: domain.Paging{
-				Total:  1,
-				Limit:  limit,
-				Offset: offset,
-			},
-		}
+		expectedSearchResult := build_domain.NewSearchResultBuilder[domain.User]().
+			WithResult(domainUsers).
+			WithLimit(limit).
+			WithOffset(offset).
+			WithTotal(1).
+			Build()
 
 		searchQuery := `SELECT * FROM users ORDER BY created_at DESC LIMIT 10 OFFSET 0`
 		countQuery := `SELECT COUNT(*) FROM users`
@@ -318,7 +314,7 @@ func Test_userRepository_Search(t *testing.T) {
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, expectedSearchResult, result)
+		assert.Equal(t, &expectedSearchResult, result)
 	})
 
 	t.Run("should fail when SelectContext returns error", func(t *testing.T) {
