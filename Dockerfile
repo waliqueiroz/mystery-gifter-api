@@ -1,5 +1,5 @@
 # Multi-stage build para otimizar o tamanho da imagem final
-FROM golang:1.23.5-alpine AS builder
+FROM golang:1.25.1-alpine AS builder
 
 # Instalar dependências necessárias para compilação
 RUN apk add --no-cache git ca-certificates tzdata

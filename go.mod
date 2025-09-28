@@ -1,6 +1,6 @@
 module github.com/waliqueiroz/mystery-gifter-api
 
-go 1.23.5
+go 1.25.1
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
