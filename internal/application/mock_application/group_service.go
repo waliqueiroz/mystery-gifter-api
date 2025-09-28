@@ -130,3 +130,18 @@ func (mr *MockGroupServiceMockRecorder) RemoveUser(ctx, groupID, requesterID, ta
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveUser", reflect.TypeOf((*MockGroupService)(nil).RemoveUser), ctx, groupID, requesterID, targetUserID)
 }
+
+// Reopen mocks base method.
+func (m *MockGroupService) Reopen(ctx context.Context, groupID, requesterID string) (*domain.Group, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Reopen", ctx, groupID, requesterID)
+	ret0, _ := ret[0].(*domain.Group)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Reopen indicates an expected call of Reopen.
+func (mr *MockGroupServiceMockRecorder) Reopen(ctx, groupID, requesterID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reopen", reflect.TypeOf((*MockGroupService)(nil).Reopen), ctx, groupID, requesterID)
+}

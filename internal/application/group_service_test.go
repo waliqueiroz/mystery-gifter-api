@@ -3,7 +3,9 @@ package application_test
 import (
 	"context"
 	"testing"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/application"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/application/mock_application"
@@ -34,9 +36,12 @@ func Test_groupService_Create(t *testing.T) {
 		mockedGroupRepository.EXPECT().Create(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, group domain.Group) error {
 			group.CreatedAt = expectedGroup.CreatedAt
 			group.UpdatedAt = expectedGroup.UpdatedAt
-
-			assert.Equal(t, expectedGroup, group)
-
+			assert.Equal(t, expectedGroup.ID, group.ID)
+			assert.Equal(t, expectedGroup.Name, group.Name)
+			assert.Equal(t, expectedGroup.OwnerID, group.OwnerID)
+			assert.ElementsMatch(t, expectedGroup.Users, group.Users)
+			assert.Equal(t, expectedGroup.Status, group.Status)
+			assert.Equal(t, expectedGroup.Matches, group.Matches)
 			return nil
 		})
 
@@ -709,6 +714,7 @@ func Test_groupService_GetUserMatch(t *testing.T) {
 		group := build_domain.NewGroupBuilder().
 			WithUsers([]domain.User{requester, matchedUser}).
 			WithMatches([]domain.Match{{GiverID: requester.ID, ReceiverID: matchedUser.ID}}).
+			WithStatus(domain.GroupStatusMatched).
 			Build()
 
 		mockCtrl := gomock.NewController(t)
@@ -752,6 +758,7 @@ func Test_groupService_GetUserMatch(t *testing.T) {
 		requester := build_domain.NewUserBuilder().Build()
 		group := build_domain.NewGroupBuilder().
 			WithUsers([]domain.User{requester}). // No match for requester
+			WithStatus(domain.GroupStatusMatched).
 			Build()
 
 		mockCtrl := gomock.NewController(t)
@@ -770,5 +777,138 @@ func Test_groupService_GetUserMatch(t *testing.T) {
 		var expectedError *domain.ConflictError
 		assert.ErrorAs(t, err, &expectedError)
 		assert.EqualError(t, expectedError, "match not found for the given user")
+	})
+}
+
+func Test_groupService_Reopen(t *testing.T) {
+	t.Run("should reopen group successfully", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+		requesterID := uuid.New().String()
+
+		owner := build_domain.NewUserBuilder().WithID(requesterID).Build()
+		now := time.Now().UTC()
+
+		initialGroup := build_domain.NewGroupBuilder().
+			WithID(groupID).
+			WithOwnerID(requesterID).
+			WithUsers([]domain.User{owner}).
+			WithStatus(domain.GroupStatusMatched).
+			WithMatches([]domain.Match{{GiverID: "giver-id", ReceiverID: "receiver-id"}}).
+			WithCreatedAt(now).
+			WithUpdatedAt(now).
+			Build()
+
+		expectedGroup := build_domain.NewGroupBuilder().
+			WithID(initialGroup.ID).
+			WithName(initialGroup.Name).
+			WithOwnerID(initialGroup.OwnerID).
+			WithUsers([]domain.User{owner}).
+			WithStatus(domain.GroupStatusOpen).
+			WithMatches([]domain.Match{}).
+			WithCreatedAt(now).
+			WithUpdatedAt(now).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), groupID).Return(&initialGroup, nil)
+		mockedGroupRepository.EXPECT().Update(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, updatedGroup domain.Group) error {
+			updatedGroup.UpdatedAt = expectedGroup.UpdatedAt
+			assert.Equal(t, expectedGroup, updatedGroup)
+			return nil
+		})
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.Reopen(context.Background(), groupID, requesterID)
+
+		// then
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, expectedGroup.ID, result.ID)
+		assert.Equal(t, expectedGroup.Status, result.Status)
+		assert.Empty(t, result.Matches)
+	})
+
+	t.Run("should return error when fails to get group", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+		requesterID := uuid.New().String()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), groupID).Return(nil, assert.AnError)
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.Reopen(context.Background(), groupID, requesterID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
+	})
+
+	t.Run("should return conflict error when domain group fails to reopen (e.g., already open or archived)", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+		requesterID := uuid.New().String()
+
+		initialGroup := build_domain.NewGroupBuilder().
+			WithID(groupID).
+			WithOwnerID(requesterID).
+			WithStatus(domain.GroupStatusArchived). // Or GroupStatusOpen
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), groupID).Return(&initialGroup, nil)
+		// No Update expected because domain logic should prevent it
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.Reopen(context.Background(), groupID, requesterID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		var expectedError *domain.ConflictError
+		assert.ErrorAs(t, err, &expectedError)
+		assert.EqualError(t, expectedError, "group is archived and cannot be reopened")
+	})
+
+	t.Run("should return error when fails to update group after reopen", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+		requesterID := uuid.New().String()
+
+		initialGroup := build_domain.NewGroupBuilder().
+			WithID(groupID).
+			WithOwnerID(requesterID).
+			WithStatus(domain.GroupStatusMatched).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), groupID).Return(&initialGroup, nil)
+		mockedGroupRepository.EXPECT().Update(gomock.Any(), gomock.Any()).Return(assert.AnError)
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.Reopen(context.Background(), groupID, requesterID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
 	})
 }

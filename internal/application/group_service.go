@@ -14,6 +14,7 @@ type GroupService interface {
 	AddUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error)
 	RemoveUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error)
 	GenerateMatches(ctx context.Context, groupID, requesterID string) (*domain.Group, error)
+	Reopen(ctx context.Context, groupID, requesterID string) (*domain.Group, error)
 	GetUserMatch(ctx context.Context, groupID, requesterID string) (*domain.User, error)
 }
 
@@ -116,6 +117,23 @@ func (s *groupService) GenerateMatches(ctx context.Context, groupID, requesterID
 
 	err = s.groupRepository.Update(ctx, *group)
 	if err != nil {
+		return nil, err
+	}
+
+	return group, nil
+}
+
+func (s *groupService) Reopen(ctx context.Context, groupID, requesterID string) (*domain.Group, error) {
+	group, err := s.groupRepository.GetByID(ctx, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := group.Reopen(requesterID); err != nil {
+		return nil, err
+	}
+
+	if err := s.groupRepository.Update(ctx, *group); err != nil {
 		return nil, err
 	}
 

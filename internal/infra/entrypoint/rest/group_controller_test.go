@@ -1175,3 +1175,131 @@ func Test_GroupController_GetUserMatch(t *testing.T) {
 		})
 	})
 }
+
+func Test_GroupController_Reopen(t *testing.T) {
+	route := "/api/groups/:groupID/reopen"
+
+	t.Run("should return status 200 and the group when group reopened successfully", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+		authUserID := uuid.New().String()
+
+		user := build_domain.NewUserBuilder().WithID(authUserID).Build()
+		reopenedGroup := build_domain.NewGroupBuilder().WithID(groupID).WithOwnerID(user.ID).WithUsers([]domain.User{user}).WithStatus(domain.GroupStatusOpen).WithMatches([]domain.Match{}).Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
+		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
+		mockedGroupService.EXPECT().Reopen(gomock.Any(), groupID, authUserID).Return(&reopenedGroup, nil)
+
+		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/reopen", groupID), nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Post(route, groupController.Reopen)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, response.StatusCode)
+
+		var result rest.GroupDTO
+		helper.DecodeJSON(t, response.Body, &result)
+
+		expectedUserDTO := build_rest.NewUserDTOBuilder().
+			WithID(user.ID).
+			WithName(user.Name).
+			WithEmail(user.Email).
+			WithCreatedAt(user.CreatedAt).
+			WithUpdatedAt(user.UpdatedAt).
+			Build()
+
+		expectedGroupDTO := build_rest.NewGroupDTOBuilder().
+			WithID(reopenedGroup.ID).
+			WithName(reopenedGroup.Name).
+			WithUsers([]rest.UserDTO{expectedUserDTO}).
+			WithOwnerID(reopenedGroup.OwnerID).
+			WithStatus(string(reopenedGroup.Status)).
+			WithCreatedAt(reopenedGroup.CreatedAt).
+			WithUpdatedAt(reopenedGroup.UpdatedAt).
+			Build()
+
+		assert.Equal(t, expectedGroupDTO, result)
+	})
+
+	t.Run("should return internal_server_error when token manager fails", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return("", assert.AnError)
+
+		groupController := rest.NewGroupController(nil, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/reopen", groupID), nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Post(route, groupController.Reopen)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusInternalServerError, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, "internal_server_error", result.Code)
+		assert.Equal(t, assert.AnError.Error(), result.Message)
+	})
+
+	t.Run("should return error returned by group service", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+		authUserID := uuid.New().String()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
+		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
+		mockedGroupService.EXPECT().Reopen(gomock.Any(), groupID, authUserID).Return(nil, domain.NewConflictError("group is already open"))
+
+		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/reopen", groupID), nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Post(route, groupController.Reopen)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusConflict, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, "conflict", result.Code)
+		assert.Equal(t, "group is already open", result.Message)
+	})
+}

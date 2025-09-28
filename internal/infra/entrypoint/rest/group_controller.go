@@ -66,6 +66,27 @@ func (c *GroupController) GetByID(ctx *fiber.Ctx) error {
 	return ctx.JSON(groupDTO)
 }
 
+func (c *GroupController) Reopen(ctx *fiber.Ctx) error {
+	groupID := ctx.Params("groupID")
+
+	authUserID, err := c.AuthTokenManager.GetAuthUserID(ctx.Locals("user"))
+	if err != nil {
+		return err
+	}
+
+	group, err := c.groupService.Reopen(ctx.Context(), groupID, authUserID)
+	if err != nil {
+		return err
+	}
+
+	groupDTO, err := mapGroupFromDomain(*group)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(groupDTO)
+}
+
 func (c *GroupController) AddUser(ctx *fiber.Ctx) error {
 	groupID := ctx.Params("groupID")
 
