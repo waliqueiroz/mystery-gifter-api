@@ -56,6 +56,21 @@ func (mr *MockGroupServiceMockRecorder) AddUser(ctx, groupID, requesterID, targe
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUser", reflect.TypeOf((*MockGroupService)(nil).AddUser), ctx, groupID, requesterID, targetUserID)
 }
 
+// Archive mocks base method.
+func (m *MockGroupService) Archive(ctx context.Context, groupID, requesterID string) (*domain.Group, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Archive", ctx, groupID, requesterID)
+	ret0, _ := ret[0].(*domain.Group)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Archive indicates an expected call of Archive.
+func (mr *MockGroupServiceMockRecorder) Archive(ctx, groupID, requesterID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Archive", reflect.TypeOf((*MockGroupService)(nil).Archive), ctx, groupID, requesterID)
+}
+
 // Create mocks base method.
 func (m *MockGroupService) Create(ctx context.Context, name, ownerID string) (*domain.Group, error) {
 	m.ctrl.T.Helper()

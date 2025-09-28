@@ -1303,3 +1303,131 @@ func Test_GroupController_Reopen(t *testing.T) {
 		assert.Equal(t, "group is already open", result.Message)
 	})
 }
+
+func Test_GroupController_Archive(t *testing.T) {
+	route := "/api/groups/:groupID/archive"
+
+	t.Run("should return status 200 and the group when group archived successfully", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+		authUserID := uuid.New().String()
+
+		user := build_domain.NewUserBuilder().WithID(authUserID).Build()
+		archivedGroup := build_domain.NewGroupBuilder().WithID(groupID).WithOwnerID(user.ID).WithUsers([]domain.User{user}).WithStatus(domain.GroupStatusArchived).Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
+		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
+		mockedGroupService.EXPECT().Archive(gomock.Any(), groupID, authUserID).Return(&archivedGroup, nil)
+
+		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/archive", groupID), nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Post(route, groupController.Archive)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, response.StatusCode)
+
+		var result rest.GroupDTO
+		helper.DecodeJSON(t, response.Body, &result)
+
+		expectedUserDTO := build_rest.NewUserDTOBuilder().
+			WithID(user.ID).
+			WithName(user.Name).
+			WithEmail(user.Email).
+			WithCreatedAt(user.CreatedAt).
+			WithUpdatedAt(user.UpdatedAt).
+			Build()
+
+		expectedGroupDTO := build_rest.NewGroupDTOBuilder().
+			WithID(archivedGroup.ID).
+			WithName(archivedGroup.Name).
+			WithUsers([]rest.UserDTO{expectedUserDTO}).
+			WithOwnerID(archivedGroup.OwnerID).
+			WithStatus(string(archivedGroup.Status)).
+			WithCreatedAt(archivedGroup.CreatedAt).
+			WithUpdatedAt(archivedGroup.UpdatedAt).
+			Build()
+
+		assert.Equal(t, expectedGroupDTO, result)
+	})
+
+	t.Run("should return internal_server_error when token manager fails", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return("", assert.AnError)
+
+		groupController := rest.NewGroupController(nil, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/archive", groupID), nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Post(route, groupController.Archive)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusInternalServerError, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, "internal_server_error", result.Code)
+		assert.Equal(t, assert.AnError.Error(), result.Message)
+	})
+
+	t.Run("should return error returned by group service", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+		authUserID := uuid.New().String()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
+		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
+		mockedGroupService.EXPECT().Archive(gomock.Any(), groupID, authUserID).Return(nil, domain.NewConflictError("group is already archived"))
+
+		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/archive", groupID), nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Post(route, groupController.Archive)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusConflict, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, "conflict", result.Code)
+		assert.Equal(t, "group is already archived", result.Message)
+	})
+}

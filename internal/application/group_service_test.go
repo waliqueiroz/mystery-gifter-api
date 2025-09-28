@@ -912,3 +912,137 @@ func Test_groupService_Reopen(t *testing.T) {
 		assert.ErrorIs(t, err, assert.AnError)
 	})
 }
+
+func Test_groupService_Archive(t *testing.T) {
+	t.Run("should archive group successfully", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+		requesterID := uuid.New().String()
+
+		owner := build_domain.NewUserBuilder().WithID(requesterID).Build()
+		now := time.Now().UTC()
+
+		initialGroup := build_domain.NewGroupBuilder().
+			WithID(groupID).
+			WithOwnerID(requesterID).
+			WithUsers([]domain.User{owner}).
+			WithStatus(domain.GroupStatusOpen).
+			WithCreatedAt(now).
+			WithUpdatedAt(now).
+			Build()
+
+		expectedGroup := build_domain.NewGroupBuilder().
+			WithID(initialGroup.ID).
+			WithName(initialGroup.Name).
+			WithOwnerID(initialGroup.OwnerID).
+			WithUsers([]domain.User{owner}).
+			WithStatus(domain.GroupStatusArchived).
+			WithCreatedAt(now).
+			WithUpdatedAt(now).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), groupID).Return(&initialGroup, nil)
+		mockedGroupRepository.EXPECT().Update(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, updatedGroup domain.Group) error {
+			updatedGroup.UpdatedAt = expectedGroup.UpdatedAt
+			assert.Equal(t, expectedGroup, updatedGroup)
+			return nil
+		})
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.Archive(context.Background(), groupID, requesterID)
+
+		// then
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, expectedGroup.ID, result.ID)
+		assert.Equal(t, expectedGroup.Status, result.Status)
+	})
+
+	t.Run("should return error when fails to get group", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+		requesterID := uuid.New().String()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), groupID).Return(nil, assert.AnError)
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.Archive(context.Background(), groupID, requesterID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
+	})
+
+	t.Run("should return conflict error when domain group fails to archive (e.g., already archived)", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+		requesterID := uuid.New().String()
+
+		owner := build_domain.NewUserBuilder().WithID(requesterID).Build()
+		initialGroup := build_domain.NewGroupBuilder().
+			WithID(groupID).
+			WithOwnerID(requesterID).
+			WithUsers([]domain.User{owner}).
+			WithStatus(domain.GroupStatusArchived). // Already archived
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), groupID).Return(&initialGroup, nil)
+		// No Update expected because domain logic should prevent it
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.Archive(context.Background(), groupID, requesterID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		var expectedError *domain.ConflictError
+		assert.ErrorAs(t, err, &expectedError)
+		assert.EqualError(t, expectedError, "group is already archived")
+	})
+
+	t.Run("should return error when fails to update group after archive", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+		requesterID := uuid.New().String()
+
+		owner := build_domain.NewUserBuilder().WithID(requesterID).Build()
+		initialGroup := build_domain.NewGroupBuilder().
+			WithID(groupID).
+			WithOwnerID(requesterID).
+			WithUsers([]domain.User{owner}).
+			WithStatus(domain.GroupStatusOpen).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), groupID).Return(&initialGroup, nil)
+		mockedGroupRepository.EXPECT().Update(gomock.Any(), gomock.Any()).Return(assert.AnError)
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.Archive(context.Background(), groupID, requesterID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
+	})
+}
