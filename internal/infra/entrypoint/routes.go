@@ -6,7 +6,7 @@ import (
 )
 
 func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userController *rest.UserController, authController *rest.AuthController, groupController *rest.GroupController) {
-	api := router.Group("/api")
+	api := router.Group("/api/v1")
 
 	api.Post("/login", authController.Login)
 	api.Post("/users", userController.Create)

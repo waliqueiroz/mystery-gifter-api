@@ -16,7 +16,7 @@ import (
 )
 
 func Test_AuthController_Login(t *testing.T) {
-	route := "/api/login"
+	route := "/api/v1/login"
 
 	t.Run("should authenticate user successfully", func(t *testing.T) {
 		// given

@@ -21,7 +21,7 @@ import (
 )
 
 func Test_UserController_Create(t *testing.T) {
-	route := "/api/users"
+	route := "/api/v1/users"
 
 	t.Run("should return status 201 and the user when the user is created successfully", func(t *testing.T) {
 		// given
@@ -381,7 +381,7 @@ func Test_UserController_Create(t *testing.T) {
 }
 
 func Test_UserController_GetByID(t *testing.T) {
-	route := "/api/users/:userID"
+	route := "/api/v1/users/:userID"
 
 	t.Run("should return status 200 and the user when the user is found successfully", func(t *testing.T) {
 		// given
@@ -495,7 +495,7 @@ func Test_UserController_GetByID(t *testing.T) {
 }
 
 func Test_UserController_Search(t *testing.T) {
-	route := "/api/users/search"
+	route := "/api/v1/users/search"
 
 	t.Run("should return status 200 and search result when search is successful", func(t *testing.T) {
 		// given

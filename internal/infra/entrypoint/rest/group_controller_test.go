@@ -20,7 +20,7 @@ import (
 )
 
 func Test_GroupController_Create(t *testing.T) {
-	route := "/api/groups"
+	route := "/api/v1/groups"
 
 	t.Run("should return status 201 and the group when created successfully", func(t *testing.T) {
 		// given
@@ -267,7 +267,7 @@ func Test_GroupController_Create(t *testing.T) {
 }
 
 func Test_GroupController_GetByID(t *testing.T) {
-	route := "/api/groups/:groupID"
+	route := "/api/v1/groups/:groupID"
 
 	t.Run("should return status 200 and the group when found successfully", func(t *testing.T) {
 		// given
@@ -393,7 +393,7 @@ func Test_GroupController_GetByID(t *testing.T) {
 }
 
 func Test_GroupController_AddUser(t *testing.T) {
-	route := "/api/groups/:groupID/users"
+	route := "/api/v1/groups/:groupID/users"
 
 	t.Run("should return status 200 and the updated group when the user is added successfully", func(t *testing.T) {
 		// given
@@ -649,7 +649,7 @@ func Test_GroupController_AddUser(t *testing.T) {
 }
 
 func Test_GroupController_RemoveUser(t *testing.T) {
-	route := "/api/groups/:groupID/users/:userID"
+	route := "/api/v1/groups/:groupID/users/:userID"
 
 	t.Run("should return status 200 and the updated group when the user is removed successfully", func(t *testing.T) {
 		// given
@@ -825,7 +825,7 @@ func Test_GroupController_RemoveUser(t *testing.T) {
 }
 
 func Test_GroupController_GenerateMatches(t *testing.T) {
-	route := "/api/groups/:groupID/matches"
+	route := "/api/v1/groups/:groupID/matches"
 
 	t.Run("should return status 200 and the group with generated matches when successfully", func(t *testing.T) {
 		// given
@@ -1017,7 +1017,7 @@ func Test_GroupController_GenerateMatches(t *testing.T) {
 }
 
 func Test_GroupController_GetUserMatch(t *testing.T) {
-	route := "/api/groups/:groupID/matches/user"
+	route := "/api/v1/groups/:groupID/matches/user"
 
 	t.Run("should return status 200 and the user match when found successfully", func(t *testing.T) {
 		// given
@@ -1177,7 +1177,7 @@ func Test_GroupController_GetUserMatch(t *testing.T) {
 }
 
 func Test_GroupController_Reopen(t *testing.T) {
-	route := "/api/groups/:groupID/reopen"
+	route := "/api/v1/groups/:groupID/reopen"
 
 	t.Run("should return status 200 and the group when group reopened successfully", func(t *testing.T) {
 		// given
@@ -1305,7 +1305,7 @@ func Test_GroupController_Reopen(t *testing.T) {
 }
 
 func Test_GroupController_Archive(t *testing.T) {
-	route := "/api/groups/:groupID/archive"
+	route := "/api/v1/groups/:groupID/archive"
 
 	t.Run("should return status 200 and the group when group archived successfully", func(t *testing.T) {
 		// given
@@ -1433,7 +1433,7 @@ func Test_GroupController_Archive(t *testing.T) {
 }
 
 func Test_GroupController_Search(t *testing.T) {
-	route := "/api/groups"
+	route := "/api/v1/groups"
 
 	t.Run("should return status 200 and search result when search is successful", func(t *testing.T) {
 		// given
