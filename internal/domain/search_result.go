@@ -2,6 +2,13 @@ package domain
 
 import "github.com/waliqueiroz/mystery-gifter-api/pkg/validator"
 
+type SortDirectionType string
+
+const (
+	SortDirectionTypeAsc  SortDirectionType = "ASC"
+	SortDirectionTypeDesc SortDirectionType = "DESC"
+)
+
 type Paging struct {
 	Total  int `validate:"min=0"`
 	Limit  int `validate:"required,min=1"`

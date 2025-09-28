@@ -12,10 +12,10 @@ func NewUserFiltersBuilder() *UserFiltersBuilder {
 			Name:          "",
 			Surname:       "",
 			Email:         "",
-			Limit:         domain.DefaultLimit,
-			Offset:        domain.DefaultOffset,
-			SortDirection: domain.DefaultSortDirection,
-			SortBy:        domain.DefaultSortBy,
+			Limit:         domain.DefaultUserLimit,
+			Offset:        domain.DefaultUserOffset,
+			SortDirection: domain.DefaultUserSortDirection,
+			SortBy:        domain.DefaultUserSortBy,
 		},
 	}
 }

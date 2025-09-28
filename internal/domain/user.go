@@ -64,18 +64,11 @@ func (u *User) Validate() error {
 	return nil
 }
 
-type SortDirectionType string
-
 const (
-	SortDirectionTypeAsc  SortDirectionType = "ASC"
-	SortDirectionTypeDesc SortDirectionType = "DESC"
-)
-
-const (
-	DefaultLimit         = 15
-	DefaultOffset        = 0
-	DefaultSortDirection = SortDirectionTypeAsc
-	DefaultSortBy        = "created_at"
+	DefaultUserLimit         = 15
+	DefaultUserOffset        = 0
+	DefaultUserSortDirection = SortDirectionTypeAsc
+	DefaultUserSortBy        = "created_at"
 )
 
 type UserFilters struct {
@@ -90,17 +83,17 @@ type UserFilters struct {
 
 func NewUserFilters(name, surname, email string, limit, offset int, sortDirection SortDirectionType, sortBy string) (*UserFilters, error) {
 	if limit <= 0 {
-		limit = DefaultLimit
+		limit = DefaultUserLimit
 	}
 
-	offset = max(offset, DefaultOffset)
+	offset = max(offset, DefaultUserOffset)
 
 	if sortDirection == "" {
-		sortDirection = DefaultSortDirection
+		sortDirection = DefaultUserSortDirection
 	}
 
 	if sortBy == "" {
-		sortBy = DefaultSortBy
+		sortBy = DefaultUserSortBy
 	}
 
 	userFilters := UserFilters{
