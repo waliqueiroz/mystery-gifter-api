@@ -126,16 +126,16 @@ func (r *userRepository) Search(ctx context.Context, filters domain.UserFilters)
 }
 
 func (r *userRepository) applyUserFilters(query squirrel.SelectBuilder, filters domain.UserFilters) squirrel.SelectBuilder {
-	if filters.Name != nil && *filters.Name != "" {
-		query = query.Where(squirrel.ILike{"name": "%" + *filters.Name + "%"})
+	if filters.Name != "" {
+		query = query.Where(squirrel.ILike{"name": "%" + filters.Name + "%"})
 	}
 
-	if filters.Surname != nil && *filters.Surname != "" {
-		query = query.Where(squirrel.ILike{"surname": "%" + *filters.Surname + "%"})
+	if filters.Surname != "" {
+		query = query.Where(squirrel.ILike{"surname": "%" + filters.Surname + "%"})
 	}
 
-	if filters.Email != nil && *filters.Email != "" {
-		query = query.Where(squirrel.ILike{"email": "%" + *filters.Email + "%"})
+	if filters.Email != "" {
+		query = query.Where(squirrel.ILike{"email": "%" + filters.Email + "%"})
 	}
 
 	return query

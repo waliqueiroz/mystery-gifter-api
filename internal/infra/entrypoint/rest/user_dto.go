@@ -92,3 +92,28 @@ func (a *AddUserDTO) Validate() error {
 	}
 	return nil
 }
+
+type UserFiltersDTO struct {
+	Name          string `query:"name" json:"name"`
+	Surname       string `query:"surname" json:"surname"`
+	Email         string `query:"email" json:"email"`
+	Limit         int    `query:"limit" json:"limit"`
+	Offset        int    `query:"offset" json:"offset"`
+	SortDirection string `query:"sort_direction" json:"sort_direction" validate:"omitempty,oneof=ASC DESC"`
+	SortBy        string `query:"sort_by" json:"sort_by" validate:"omitempty,oneof=name surname email created_at updated_at"`
+}
+
+func (s *UserFiltersDTO) Validate() error {
+	if errs := validator.Validate(s); len(errs) > 0 {
+		return domain.NewValidationError(errs)
+	}
+	return nil
+}
+
+func mapUserFiltersDTOToDomain(filtersDTO UserFiltersDTO) (*domain.UserFilters, error) {
+	if err := filtersDTO.Validate(); err != nil {
+		return nil, err
+	}
+
+	return domain.NewUserFilters(filtersDTO.Name, filtersDTO.Surname, filtersDTO.Email, filtersDTO.Limit, filtersDTO.Offset, domain.SortDirectionType(filtersDTO.SortDirection), filtersDTO.SortBy)
+}

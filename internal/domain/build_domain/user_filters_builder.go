@@ -9,29 +9,29 @@ type UserFiltersBuilder struct {
 func NewUserFiltersBuilder() *UserFiltersBuilder {
 	return &UserFiltersBuilder{
 		userFilters: domain.UserFilters{
-			Name:          nil,
-			Surname:       nil,
-			Email:         nil,
-			Limit:         10,
-			Offset:        0,
-			SortDirection: domain.SortDirectionTypeAsc,
-			SortBy:        "created_at",
+			Name:          "",
+			Surname:       "",
+			Email:         "",
+			Limit:         domain.DefaultLimit,
+			Offset:        domain.DefaultOffset,
+			SortDirection: domain.DefaultSortDirection,
+			SortBy:        domain.DefaultSortBy,
 		},
 	}
 }
 
 func (b *UserFiltersBuilder) WithName(name string) *UserFiltersBuilder {
-	b.userFilters.Name = &name
+	b.userFilters.Name = name
 	return b
 }
 
 func (b *UserFiltersBuilder) WithSurname(surname string) *UserFiltersBuilder {
-	b.userFilters.Surname = &surname
+	b.userFilters.Surname = surname
 	return b
 }
 
 func (b *UserFiltersBuilder) WithEmail(email string) *UserFiltersBuilder {
-	b.userFilters.Email = &email
+	b.userFilters.Email = email
 	return b
 }
 

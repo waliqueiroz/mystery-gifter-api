@@ -13,6 +13,7 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 
 	api.Use(authMiddleware) // from now on, all routes will require authentication
 
+	api.Get("/users", userController.Search)
 	api.Get("/users/:userID", userController.GetByID)
 	api.Post("/groups", groupController.Create)
 	api.Get("/groups/:groupID", groupController.GetByID)

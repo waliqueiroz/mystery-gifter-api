@@ -60,3 +60,28 @@ func (c *UserController) GetByID(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(userDTO)
 }
+
+func (c *UserController) Search(ctx *fiber.Ctx) error {
+	var userFiltersDTO UserFiltersDTO
+
+	if err := ctx.QueryParser(&userFiltersDTO); err != nil {
+		return fiber.NewError(fiber.StatusUnprocessableEntity)
+	}
+
+	filters, err := mapUserFiltersDTOToDomain(userFiltersDTO)
+	if err != nil {
+		return err
+	}
+
+	searchResult, err := c.userService.Search(ctx.Context(), *filters)
+	if err != nil {
+		return err
+	}
+
+	searchResultDTO, err := mapSearchResultFromDomain(searchResult, mapUserFromDomain)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(searchResultDTO)
+}
