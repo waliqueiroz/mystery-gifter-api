@@ -160,3 +160,18 @@ func (mr *MockGroupServiceMockRecorder) Reopen(ctx, groupID, requesterID any) *g
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reopen", reflect.TypeOf((*MockGroupService)(nil).Reopen), ctx, groupID, requesterID)
 }
+
+// Search mocks base method.
+func (m *MockGroupService) Search(ctx context.Context, filters domain.GroupFilters) (*domain.SearchResult[domain.GroupSummary], error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Search", ctx, filters)
+	ret0, _ := ret[0].(*domain.SearchResult[domain.GroupSummary])
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Search indicates an expected call of Search.
+func (mr *MockGroupServiceMockRecorder) Search(ctx, filters any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockGroupService)(nil).Search), ctx, filters)
+}

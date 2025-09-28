@@ -11,6 +11,7 @@ import (
 type GroupService interface {
 	Create(ctx context.Context, name, ownerID string) (*domain.Group, error)
 	GetByID(ctx context.Context, groupID string) (*domain.Group, error)
+	Search(ctx context.Context, filters domain.GroupFilters) (*domain.SearchResult[domain.GroupSummary], error)
 	AddUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error)
 	RemoveUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error)
 	GenerateMatches(ctx context.Context, groupID, requesterID string) (*domain.Group, error)
@@ -63,6 +64,14 @@ func (s *groupService) GetByID(ctx context.Context, groupID string) (*domain.Gro
 	}
 
 	return group, nil
+}
+
+func (s *groupService) Search(ctx context.Context, filters domain.GroupFilters) (*domain.SearchResult[domain.GroupSummary], error) {
+	if err := filters.Validate(); err != nil {
+		return nil, err
+	}
+
+	return s.groupRepository.Search(ctx, filters)
 }
 
 func (s *groupService) AddUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error) {

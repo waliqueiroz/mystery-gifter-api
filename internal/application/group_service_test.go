@@ -1046,3 +1046,113 @@ func Test_groupService_Archive(t *testing.T) {
 		assert.ErrorIs(t, err, assert.AnError)
 	})
 }
+
+func Test_groupService_Search(t *testing.T) {
+	t.Run("should search groups successfully", func(t *testing.T) {
+		// given
+		name := "Birthday Party"
+		status := domain.GroupStatusOpen
+		ownerID := "550e8400-e29b-41d4-a716-446655440000"
+		userID := "550e8400-e29b-41d4-a716-446655440001"
+		limit := 10
+		offset := 0
+		sortBy := "name"
+		sortDirection := domain.SortDirectionTypeAsc
+
+		filters := build_domain.NewGroupFiltersBuilder().
+			WithName(name).
+			WithStatus(status).
+			WithOwnerID(ownerID).
+			WithUserID(userID).
+			WithLimit(limit).
+			WithOffset(offset).
+			WithSortBy(sortBy).
+			WithSortDirection(sortDirection).
+			Build()
+
+		groupID := "550e8400-e29b-41d4-a716-446655440002"
+		userCount := 5
+		now := time.Now().UTC()
+
+		groupSummaries := []domain.GroupSummary{
+			build_domain.NewGroupSummaryBuilder().
+				WithID(groupID).
+				WithName(name).
+				WithStatus(status).
+				WithOwnerID(ownerID).
+				WithUserCount(userCount).
+				WithCreatedAt(now).
+				WithUpdatedAt(now).
+				Build(),
+		}
+
+		expectedSearchResult := build_domain.NewSearchResultBuilder[domain.GroupSummary]().
+			WithResult(groupSummaries).
+			WithLimit(limit).
+			WithOffset(offset).
+			WithTotal(1).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().Search(gomock.Any(), filters).Return(&expectedSearchResult, nil)
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.Search(context.Background(), filters)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, &expectedSearchResult, result)
+	})
+
+	t.Run("should return validation error when filters are invalid", func(t *testing.T) {
+		// given
+		invalidFilters := domain.GroupFilters{
+			Name:          "",
+			Status:        "",
+			OwnerID:       "",
+			UserID:        "",
+			Limit:         0, // Invalid limit
+			Offset:        0,
+			SortDirection: "",
+			SortBy:        "",
+		}
+
+		groupService := application.NewGroupService(nil, nil, nil)
+
+		// when
+		result, err := groupService.Search(context.Background(), invalidFilters)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		var expectedError *domain.ValidationError
+		assert.ErrorAs(t, err, &expectedError)
+	})
+
+	t.Run("should return error when repository fails", func(t *testing.T) {
+		// given
+		filters := build_domain.NewGroupFiltersBuilder().
+			WithLimit(10).
+			WithOffset(0).
+			WithSortBy("name").
+			WithSortDirection(domain.SortDirectionTypeAsc).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().Search(gomock.Any(), filters).Return(nil, assert.AnError)
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.Search(context.Background(), filters)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
+	})
+}
