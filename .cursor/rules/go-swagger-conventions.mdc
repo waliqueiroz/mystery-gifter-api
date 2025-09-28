@@ -254,6 +254,8 @@ type PagingDTO struct {
 ```
 
 #### Parâmetros de Query
+
+##### Método Individual (OBRIGATÓRIO para go-swagger)
 ```go
 // - name: fieldName
 //   in: query
@@ -261,6 +263,14 @@ type PagingDTO struct {
 //   required: false
 //   type: string
 ```
+
+**⚠️ IMPORTANTE**: O go-swagger com OpenAPI 2.0 **NÃO consegue renderizar corretamente** query parameters quando usamos schema reference. Por isso, devemos sempre definir cada parâmetro individualmente.
+
+**Por que não usar schema para query parameters:**
+- ❌ Swagger UI não renderiza os campos corretamente
+- ❌ Parâmetros não aparecem na interface
+- ❌ Experiência do usuário comprometida
+- ❌ Limitação do go-swagger com OpenAPI 2.0
 
 #### Parâmetros de Body
 ```go
@@ -327,7 +337,7 @@ type CreateUserDTO struct {
 }
 ```
 
-### Endpoint Completo
+### Endpoint Completo (POST com Body)
 ```go
 // swagger:operation POST /api/v1/users CreateUser
 //
@@ -362,6 +372,42 @@ type CreateUserDTO struct {
 //     description: Invalid request body
 ```
 
+### Endpoint de Busca (GET com Query Schema)
+```go
+// swagger:operation GET /api/v1/groups SearchGroups
+//
+// Search groups with filters and pagination
+//
+// This endpoint searches for groups based on filters and returns paginated results.
+// Requires authentication.
+//
+// ---
+// tags:
+// - groups
+// produces:
+// - application/json
+// security:
+// - Bearer: []
+// parameters:
+// - name: GroupFiltersDTO
+//   in: query
+//   description: Filters for searching groups
+//   required: false
+//   schema:
+//     "$ref": '#/definitions/GroupFiltersDTO'
+// responses:
+//   '200':
+//     description: Search completed successfully
+//     schema:
+//       "$ref": '#/definitions/GroupSearchResultDTO'
+//   '400':
+//     description: Invalid search parameters
+//   '401':
+//     description: Authentication required
+//   '422':
+//     description: Invalid query parameters
+```
+
 ## Boas Práticas
 
 ### ✅ Recomendado
@@ -371,6 +417,8 @@ type CreateUserDTO struct {
 - Incluir códigos de resposta apropriados
 - Usar tags consistentes para agrupar endpoints
 - Validar DTOs com método `Validate()`
+- **Definir query parameters individualmente** para garantir renderização correta no Swagger UI
+- Manter consistência entre DTOs de filtros e documentação de endpoints
 
 ### ❌ Evitar
 - Campos sem documentação
@@ -379,6 +427,8 @@ type CreateUserDTO struct {
 - Falta de validação em DTOs
 - Documentação desatualizada após mudanças no código
 - Misturar convenções de nomenclatura
+- **Usar schema para query parameters** (não funciona com go-swagger + OpenAPI 2.0)
+- Duplicar informações entre DTOs e documentação de endpoints
 
 ### 🔄 Manutenção
 - Sempre regenerar documentação após mudanças

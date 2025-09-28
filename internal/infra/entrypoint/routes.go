@@ -96,6 +96,11 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//   description: Filter by user name
 	//   required: false
 	//   type: string
+	// - name: surname
+	//   in: query
+	//   description: Filter by user surname
+	//   required: false
+	//   type: string
 	// - name: email
 	//   in: query
 	//   description: Filter by user email
@@ -111,12 +116,12 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//   description: Number of results to skip
 	//   required: false
 	//   type: integer
-	// - name: sort
+	// - name: sort_direction
 	//   in: query
-	//   description: Sort direction (asc, desc)
+	//   description: Sort direction (ASC or DESC)
 	//   required: false
 	//   type: string
-	// - name: sort_field
+	// - name: sort_by
 	//   in: query
 	//   description: Field to sort by
 	//   required: false
@@ -190,6 +195,11 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//   description: Filter by group owner ID
 	//   required: false
 	//   type: string
+	// - name: user_id
+	//   in: query
+	//   description: Filter by group user ID
+	//   required: false
+	//   type: string
 	// - name: status
 	//   in: query
 	//   description: Filter by group status
@@ -205,12 +215,12 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//   description: Number of results to skip
 	//   required: false
 	//   type: integer
-	// - name: sort
+	// - name: sort_direction
 	//   in: query
-	//   description: Sort direction (asc, desc)
+	//   description: Sort direction (ASC or DESC)
 	//   required: false
 	//   type: string
-	// - name: sort_field
+	// - name: sort_by
 	//   in: query
 	//   description: Field to sort by
 	//   required: false

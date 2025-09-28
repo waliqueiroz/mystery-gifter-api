@@ -481,6 +481,10 @@ paths:
                   in: query
                   name: owner_id
                   type: string
+                - description: Filter by group user ID
+                  in: query
+                  name: user_id
+                  type: string
                 - description: Filter by group status
                   in: query
                   name: status
@@ -493,13 +497,13 @@ paths:
                   in: query
                   name: offset
                   type: integer
-                - description: Sort direction (asc, desc)
+                - description: Sort direction (ASC or DESC)
                   in: query
-                  name: sort
+                  name: sort_direction
                   type: string
                 - description: Field to sort by
                   in: query
-                  name: sort_field
+                  name: sort_by
                   type: string
             produces:
                 - application/json
@@ -824,6 +828,10 @@ paths:
                   in: query
                   name: name
                   type: string
+                - description: Filter by user surname
+                  in: query
+                  name: surname
+                  type: string
                 - description: Filter by user email
                   in: query
                   name: email
@@ -836,13 +844,13 @@ paths:
                   in: query
                   name: offset
                   type: integer
-                - description: Sort direction (asc, desc)
+                - description: Sort direction (ASC or DESC)
                   in: query
-                  name: sort
+                  name: sort_direction
                   type: string
                 - description: Field to sort by
                   in: query
-                  name: sort_field
+                  name: sort_by
                   type: string
             produces:
                 - application/json
