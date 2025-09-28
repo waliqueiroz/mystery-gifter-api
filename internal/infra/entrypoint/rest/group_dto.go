@@ -177,9 +177,13 @@ type GroupFiltersDTO struct {
 	// example: 01234567-89ab-cdef-0123-456789abcdef
 	OwnerID string `query:"owner_id" json:"owner_id"`
 
+	// Filter by group user ID
+	// example: 01234567-89ab-cdef-0123-456789abcdef
+	UserID string `query:"user_id" json:"user_id"`
+
 	// Filter by group status
 	// example: OPEN
-	Status string `query:"status" json:"status"`
+	Status string `query:"status" json:"status" validate:"omitempty,oneof=OPEN MATCHED ARCHIVED"`
 
 	// Maximum number of results to return
 	// example: 10
@@ -189,35 +193,35 @@ type GroupFiltersDTO struct {
 	// example: 0
 	Offset int `query:"offset" json:"offset"`
 
-	// Sort direction (asc, desc)
+	// SortDirection direction (asc, desc)
 	// example: asc
-	Sort string `query:"sort" json:"sort"`
+	SortDirection string `query:"sort_direction" json:"sort_direction" validate:"omitempty,oneof=ASC DESC"`
 
 	// Field to sort by
 	// example: name
-	SortField string `query:"sort_field" json:"sort_field"`
+	SortBy string `query:"sort_by" json:"sort_by" validate:"omitempty,oneof=name status created_at updated_at"`
+}
+
+func (g *GroupFiltersDTO) Validate() error {
+	if errs := validator.Validate(g); len(errs) > 0 {
+		return domain.NewValidationError(errs)
+	}
+	return nil
 }
 
 func mapGroupFiltersDTOToDomain(filtersDTO GroupFiltersDTO) (*domain.GroupFilters, error) {
-	var status domain.GroupStatus
-	if filtersDTO.Status != "" {
-		status = domain.GroupStatus(filtersDTO.Status)
+	if err := filtersDTO.Validate(); err != nil {
+		return nil, err
 	}
 
-	var sortDirection domain.SortDirectionType
-	if filtersDTO.Sort != "" {
-		sortDirection = domain.SortDirectionType(filtersDTO.Sort)
-	}
-
-	filters := &domain.GroupFilters{
-		Name:          filtersDTO.Name,
-		Status:        status,
-		OwnerID:       filtersDTO.OwnerID,
-		Limit:         filtersDTO.Limit,
-		Offset:        filtersDTO.Offset,
-		SortDirection: sortDirection,
-		SortBy:        filtersDTO.SortField,
-	}
-
-	return filters, nil
+	return domain.NewGroupFilters(
+		filtersDTO.Name,
+		filtersDTO.OwnerID,
+		filtersDTO.UserID,
+		domain.GroupStatus(filtersDTO.Status),
+		filtersDTO.Limit,
+		filtersDTO.Offset,
+		domain.SortDirectionType(filtersDTO.SortDirection),
+		filtersDTO.SortBy,
+	)
 }

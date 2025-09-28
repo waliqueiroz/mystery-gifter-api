@@ -195,21 +195,26 @@ definitions:
                 example: 01234567-89ab-cdef-0123-456789abcdef
                 type: string
                 x-go-name: OwnerID
-            sort:
-                description: Sort direction (asc, desc)
-                example: asc
-                type: string
-                x-go-name: Sort
-            sort_field:
+            sort_by:
                 description: Field to sort by
                 example: name
                 type: string
-                x-go-name: SortField
+                x-go-name: SortBy
+            sort_direction:
+                description: SortDirection direction (asc, desc)
+                example: asc
+                type: string
+                x-go-name: SortDirection
             status:
                 description: Filter by group status
                 example: OPEN
                 type: string
                 x-go-name: Status
+            user_id:
+                description: Filter by group user ID
+                example: 01234567-89ab-cdef-0123-456789abcdef
+                type: string
+                x-go-name: UserID
         type: object
         x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
     GroupSearchResultDTO:
