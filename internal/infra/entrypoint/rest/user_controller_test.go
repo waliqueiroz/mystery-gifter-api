@@ -493,3 +493,347 @@ func Test_UserController_GetByID(t *testing.T) {
 		assert.Equal(t, assert.AnError.Error(), result.Message)
 	})
 }
+
+func Test_UserController_Search(t *testing.T) {
+	route := "/api/users/search"
+
+	t.Run("should return status 200 and search result when search is successful", func(t *testing.T) {
+		// given
+		users := []domain.User{
+			build_domain.NewUserBuilder().WithName("John").WithSurname("Doe").Build(),
+			build_domain.NewUserBuilder().WithName("Jane").WithSurname("Smith").Build(),
+		}
+
+		searchResult := build_domain.NewSearchResultBuilder[domain.User]().
+			WithResult(users).
+			WithTotal(2).
+			WithLimit(15).
+			WithOffset(0).
+			Build()
+
+		userFilters := build_domain.NewUserFiltersBuilder().WithName("John").Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedUserService := mock_application.NewMockUserService(mockCtrl)
+		mockedUserService.EXPECT().Search(gomock.Any(), userFilters).Return(&searchResult, nil)
+
+		userController := rest.NewUserController(mockedUserService, nil, nil)
+
+		req := httptest.NewRequest(fiber.MethodGet, route+"?name=John", nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, userController.Search)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, response.StatusCode)
+
+		expectedUserDTOs := []rest.UserDTO{
+			build_rest.NewUserDTOBuilder().
+				WithID(users[0].ID).
+				WithName(users[0].Name).
+				WithSurname(users[0].Surname).
+				WithEmail(users[0].Email).
+				WithCreatedAt(users[0].CreatedAt).
+				WithUpdatedAt(users[0].UpdatedAt).
+				Build(),
+			build_rest.NewUserDTOBuilder().
+				WithID(users[1].ID).
+				WithName(users[1].Name).
+				WithSurname(users[1].Surname).
+				WithEmail(users[1].Email).
+				WithCreatedAt(users[1].CreatedAt).
+				WithUpdatedAt(users[1].UpdatedAt).
+				Build(),
+		}
+
+		expectedSearchResultDTO := build_rest.NewSearchResultDTOBuilder[rest.UserDTO]().
+			WithResult(expectedUserDTOs).
+			WithTotal(searchResult.Paging.Total).
+			WithLimit(searchResult.Paging.Limit).
+			WithOffset(searchResult.Paging.Offset).
+			Build()
+
+		var result rest.SearchResultDTO[rest.UserDTO]
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, expectedSearchResultDTO, result)
+	})
+
+	t.Run("should return status 200 and empty result when no users found", func(t *testing.T) {
+		// given
+		searchResult := build_domain.NewSearchResultBuilder[domain.User]().
+			WithResult([]domain.User{}).
+			WithTotal(0).
+			WithLimit(15).
+			WithOffset(0).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedUserService := mock_application.NewMockUserService(mockCtrl)
+		mockedUserService.EXPECT().Search(gomock.Any(), gomock.Any()).Return(&searchResult, nil)
+
+		userController := rest.NewUserController(mockedUserService, nil, nil)
+
+		req := httptest.NewRequest(fiber.MethodGet, route+"?name=NonExistent", nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, userController.Search)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, response.StatusCode)
+
+		expectedSearchResultDTO := build_rest.NewSearchResultDTOBuilder[rest.UserDTO]().
+			WithResult([]rest.UserDTO{}).
+			WithTotal(0).
+			WithLimit(15).
+			WithOffset(0).
+			Build()
+
+		var result rest.SearchResultDTO[rest.UserDTO]
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, expectedSearchResultDTO, result)
+	})
+
+	t.Run("should return status 200 with custom filters when valid query parameters are provided", func(t *testing.T) {
+		// given
+		users := []domain.User{
+			build_domain.NewUserBuilder().WithName("Alice").WithSurname("Johnson").WithEmail("alice@example.com").Build(),
+		}
+
+		searchResult := build_domain.NewSearchResultBuilder[domain.User]().
+			WithResult(users).
+			WithTotal(1).
+			WithLimit(10).
+			WithOffset(5).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedUserService := mock_application.NewMockUserService(mockCtrl)
+		expectedFilters := build_domain.NewUserFiltersBuilder().
+			WithName("Alice").
+			WithSurname("Johnson").
+			WithEmail("alice@example.com").
+			WithLimit(10).
+			WithOffset(5).
+			WithSortDirection(domain.SortDirectionTypeDesc).
+			WithSortBy("name").
+			Build()
+
+		mockedUserService.EXPECT().Search(gomock.Any(), expectedFilters).Return(&searchResult, nil)
+
+		userController := rest.NewUserController(mockedUserService, nil, nil)
+
+		req := httptest.NewRequest(fiber.MethodGet, route+"?name=Alice&surname=Johnson&email=alice@example.com&limit=10&offset=5&sort_direction=DESC&sort_by=name", nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, userController.Search)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, response.StatusCode)
+
+		expectedUserDTO := build_rest.NewUserDTOBuilder().
+			WithID(users[0].ID).
+			WithName(users[0].Name).
+			WithSurname(users[0].Surname).
+			WithEmail(users[0].Email).
+			WithCreatedAt(users[0].CreatedAt).
+			WithUpdatedAt(users[0].UpdatedAt).
+			Build()
+
+		expectedSearchResultDTO := build_rest.NewSearchResultDTOBuilder[rest.UserDTO]().
+			WithResult([]rest.UserDTO{expectedUserDTO}).
+			WithTotal(1).
+			WithLimit(10).
+			WithOffset(5).
+			Build()
+
+		var result rest.SearchResultDTO[rest.UserDTO]
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, expectedSearchResultDTO, result)
+	})
+
+	t.Run("should return bad_request with an error message when sort_direction is invalid", func(t *testing.T) {
+		// given
+		userController := rest.NewUserController(nil, nil, nil)
+
+		req := httptest.NewRequest(fiber.MethodGet, route+"?sort_direction=INVALID", nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, userController.Search)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, "bad_request", result.Code)
+		assert.Equal(t, "validation failed", result.Message)
+		assert.Len(t, result.Details, 1)
+		assert.Contains(t, result.Details, map[string]any{
+			"field": "sort_direction",
+			"error": "sort_direction must be one of [ASC DESC]",
+		})
+	})
+
+	t.Run("should return bad_request with an error message when sort_by is invalid", func(t *testing.T) {
+		// given
+		userController := rest.NewUserController(nil, nil, nil)
+
+		req := httptest.NewRequest(fiber.MethodGet, route+"?sort_by=invalid_field", nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, userController.Search)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, "bad_request", result.Code)
+		assert.Equal(t, "validation failed", result.Message)
+		assert.Len(t, result.Details, 1)
+		assert.Contains(t, result.Details, map[string]any{
+			"field": "sort_by",
+			"error": "sort_by must be one of [name surname email created_at updated_at]",
+		})
+	})
+
+	t.Run("should return internal_server_error with an error message when user service fails", func(t *testing.T) {
+		// given
+		mockCtrl := gomock.NewController(t)
+
+		mockedUserService := mock_application.NewMockUserService(mockCtrl)
+		mockedUserService.EXPECT().Search(gomock.Any(), gomock.Any()).Return(nil, assert.AnError)
+
+		userController := rest.NewUserController(mockedUserService, nil, nil)
+
+		req := httptest.NewRequest(fiber.MethodGet, route+"?name=John", nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, userController.Search)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusInternalServerError, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, "internal_server_error", result.Code)
+		assert.Equal(t, assert.AnError.Error(), result.Message)
+	})
+
+	t.Run("should return bad_request with an error message when fails to map search result from domain", func(t *testing.T) {
+		// given
+		users := []domain.User{
+			build_domain.NewUserBuilder().WithName("").Build(), // Invalid user with empty name
+		}
+
+		searchResult := build_domain.NewSearchResultBuilder[domain.User]().
+			WithResult(users).
+			WithTotal(1).
+			WithLimit(15).
+			WithOffset(0).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedUserService := mock_application.NewMockUserService(mockCtrl)
+		mockedUserService.EXPECT().Search(gomock.Any(), gomock.Any()).Return(&searchResult, nil)
+
+		userController := rest.NewUserController(mockedUserService, nil, nil)
+
+		req := httptest.NewRequest(fiber.MethodGet, route+"?name=John", nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, userController.Search)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, "bad_request", result.Code)
+		assert.Equal(t, "validation failed", result.Message)
+		assert.Len(t, result.Details, 1)
+		assert.Contains(t, result.Details, map[string]any{
+			"field": "name",
+			"error": "name is a required field",
+		})
+	})
+
+	t.Run("should return unprocessable_entity with an error message when query parsing fails", func(t *testing.T) {
+		// given
+		userController := rest.NewUserController(nil, nil, nil)
+
+		// Creating a request with invalid query parameter that will cause parsing to fail
+		req := httptest.NewRequest(fiber.MethodGet, route+"?limit=invalid_number", nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, userController.Search)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusUnprocessableEntity, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, "unprocessable_entity", result.Code)
+		assert.Equal(t, "Unprocessable Entity", result.Message)
+	})
+}
