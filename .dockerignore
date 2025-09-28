@@ -1,0 +1,47 @@
+# Arquivos de ambiente
+.env
+.env.local
+.env.*.local
+
+# Arquivos de desenvolvimento
+*.log
+*.tmp
+*.temp
+
+# Diretórios de build e cache
+bin/
+dist/
+build/
+.cache/
+
+# Arquivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de teste
+coverage.out
+*.test
+
+# Documentação
+README.md
+docs/
+*.md
+
+# Arquivos Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Git
+.git/
+.gitignore
+
+# Arquivos de migração (já copiados explicitamente no Dockerfile)
+# internal/infra/outgoing/postgres/migrations/
