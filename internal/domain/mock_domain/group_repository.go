@@ -70,6 +70,21 @@ func (mr *MockGroupRepositoryMockRecorder) GetByID(ctx, groupID any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockGroupRepository)(nil).GetByID), ctx, groupID)
 }
 
+// Search mocks base method.
+func (m *MockGroupRepository) Search(ctx context.Context, filters domain.GroupFilters) (*domain.SearchResult[domain.GroupSummary], error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Search", ctx, filters)
+	ret0, _ := ret[0].(*domain.SearchResult[domain.GroupSummary])
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Search indicates an expected call of Search.
+func (mr *MockGroupRepositoryMockRecorder) Search(ctx, filters any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockGroupRepository)(nil).Search), ctx, filters)
+}
+
 // Update mocks base method.
 func (m *MockGroupRepository) Update(ctx context.Context, group domain.Group) error {
 	m.ctrl.T.Helper()

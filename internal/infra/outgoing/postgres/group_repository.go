@@ -276,3 +276,92 @@ func (r *groupRepository) GetByID(ctx context.Context, groupID string) (*domain.
 
 	return domainGroup, nil
 }
+
+func (r *groupRepository) Search(ctx context.Context, filters domain.GroupFilters) (*domain.SearchResult[domain.GroupSummary], error) {
+	// Subconsulta para contar usuários do grupo
+	userCountSubquery := squirrel.Select("COUNT(*)").
+		From("group_users").
+		Where("group_id = g.id").
+		PlaceholderFormat(squirrel.Dollar)
+
+	baseQuery := squirrel.Select("g.*").
+		Column(squirrel.Alias(userCountSubquery, "user_count")).
+		From("groups g").
+		PlaceholderFormat(squirrel.Dollar)
+
+	baseQuery = r.applyGroupFilters(baseQuery, filters)
+	baseQuery = r.applySorting(baseQuery, filters)
+	baseQuery = baseQuery.Limit(uint64(filters.Limit)).Offset(uint64(filters.Offset))
+
+	query, args, err := baseQuery.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("error building groups search query: %w", err)
+	}
+
+	var groupSummaries []GroupSummary
+	err = r.db.SelectContext(ctx, &groupSummaries, query, args...)
+	if err != nil {
+		log.Println("error searching groups:", err)
+		return nil, fmt.Errorf("error searching groups: %w", err)
+	}
+
+	total, err := r.countGroups(ctx, filters)
+	if err != nil {
+		return nil, fmt.Errorf("error counting groups: %w", err)
+	}
+
+	domainGroupSummaries, err := mapGroupSummariesToDomain(groupSummaries)
+	if err != nil {
+		return nil, fmt.Errorf("error mapping groups to domain: %w", err)
+	}
+
+	return domain.NewSearchResult(domainGroupSummaries, filters.Limit, filters.Offset, total)
+}
+
+func (r *groupRepository) applyGroupFilters(query squirrel.SelectBuilder, filters domain.GroupFilters) squirrel.SelectBuilder {
+	if filters.Name != "" {
+		query = query.Where(squirrel.ILike{"g.name": "%" + filters.Name + "%"})
+	}
+
+	if filters.Status != "" {
+		query = query.Where(squirrel.Eq{"g.status": filters.Status})
+	}
+
+	if filters.OwnerID != "" {
+		query = query.Where(squirrel.Eq{"g.owner_id": filters.OwnerID})
+	}
+
+	if filters.UserID != "" {
+		query = query.Join("group_users gu ON gu.group_id = g.id").
+			Where(squirrel.Eq{"gu.user_id": filters.UserID})
+	}
+
+	return query
+}
+
+func (r *groupRepository) applySorting(query squirrel.SelectBuilder, filters domain.GroupFilters) squirrel.SelectBuilder {
+	orderBy := fmt.Sprintf("g.%s %s", filters.SortBy, filters.SortDirection)
+	return query.OrderBy(orderBy)
+}
+
+func (r *groupRepository) countGroups(ctx context.Context, filters domain.GroupFilters) (int, error) {
+	countQuery := squirrel.Select("COUNT(*)").
+		From("groups g").
+		PlaceholderFormat(squirrel.Dollar)
+
+	countQuery = r.applyGroupFilters(countQuery, filters)
+
+	query, args, err := countQuery.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("error building groups count query: %w", err)
+	}
+
+	var total int
+	err = r.db.GetContext(ctx, &total, query, args...)
+	if err != nil {
+		log.Println("error counting groups:", err)
+		return 0, fmt.Errorf("error counting groups: %w", err)
+	}
+
+	return total, nil
+}

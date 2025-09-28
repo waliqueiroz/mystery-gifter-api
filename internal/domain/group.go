@@ -21,6 +21,7 @@ const (
 )
 
 type GroupRepository interface {
+	Search(ctx context.Context, filters GroupFilters) (*SearchResult[GroupSummary], error)
 	Create(ctx context.Context, group Group) error
 	Update(ctx context.Context, group Group) error
 	GetByID(ctx context.Context, groupID string) (*Group, error)
@@ -242,4 +243,79 @@ func (g *Group) GetUserMatch(requesterID string) (*User, error) {
 	}
 
 	return nil, NewConflictError("receiver user not found for the identified match")
+}
+
+const (
+	DefaultGroupLimit         = 15
+	DefaultGroupOffset        = 0
+	DefaultGroupSortDirection = SortDirectionTypeAsc
+	DefaultGroupSortBy        = "created_at"
+)
+
+type GroupSummary struct {
+	ID        string      `validate:"required,uuid"`
+	Name      string      `validate:"required"`
+	Status    GroupStatus `validate:"required,oneof=OPEN MATCHED ARCHIVED"`
+	OwnerID   string      `validate:"required,uuid"`
+	UserCount int
+	CreatedAt time.Time `validate:"required"`
+	UpdatedAt time.Time `validate:"required"`
+}
+
+func (g *GroupSummary) Validate() error {
+	if errs := validator.Validate(g); len(errs) > 0 {
+		return NewValidationError(errs)
+	}
+	return nil
+}
+
+type GroupFilters struct {
+	Name          string
+	Status        GroupStatus       `validate:"omitempty,oneof=OPEN MATCHED ARCHIVED"`
+	OwnerID       string            `validate:"omitempty,uuid"`
+	UserID        string            `validate:"omitempty,uuid"`
+	Limit         int               `validate:"required,min=1"`
+	Offset        int               `validate:"min=0"`
+	SortDirection SortDirectionType `validate:"required,oneof=ASC DESC"`
+	SortBy        string            `validate:"required,oneof=name status created_at updated_at"`
+}
+
+func NewGroupFilters(name, ownerID, userID string, status GroupStatus, limit, offset int, sortDirection SortDirectionType, sortBy string) (*GroupFilters, error) {
+	if limit <= 0 {
+		limit = DefaultGroupLimit
+	}
+
+	offset = max(offset, DefaultGroupOffset)
+
+	if sortDirection == "" {
+		sortDirection = DefaultGroupSortDirection
+	}
+
+	if sortBy == "" {
+		sortBy = DefaultGroupSortBy
+	}
+
+	groupFilters := GroupFilters{
+		Name:          name,
+		Status:        status,
+		OwnerID:       ownerID,
+		UserID:        userID,
+		Limit:         limit,
+		Offset:        offset,
+		SortDirection: sortDirection,
+		SortBy:        sortBy,
+	}
+
+	if err := groupFilters.Validate(); err != nil {
+		return nil, err
+	}
+
+	return &groupFilters, nil
+}
+
+func (g *GroupFilters) Validate() error {
+	if errs := validator.Validate(g); len(errs) > 0 {
+		return NewValidationError(errs)
+	}
+	return nil
 }
