@@ -282,7 +282,7 @@ func Test_GroupController_GetByID(t *testing.T) {
 
 		groupController := rest.NewGroupController(mockedGroupService, nil)
 
-		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/groups/%s", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/groups/%s", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -333,7 +333,7 @@ func Test_GroupController_GetByID(t *testing.T) {
 
 		groupController := rest.NewGroupController(mockedGroupService, nil)
 
-		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/groups/%s", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/groups/%s", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -370,7 +370,7 @@ func Test_GroupController_GetByID(t *testing.T) {
 
 		groupController := rest.NewGroupController(mockedGroupService, nil)
 
-		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/groups/%s", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/groups/%s", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -417,7 +417,7 @@ func Test_GroupController_AddUser(t *testing.T) {
 
 		payload := helper.EncodeJSON(t, addUserDTO)
 
-		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/users", groupID), payload)
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/v1/groups/%s/users", groupID), payload)
 		req.Header.Set("Content-Type", "application/json")
 
 		app := fiber.New(fiber.Config{
@@ -463,7 +463,7 @@ func Test_GroupController_AddUser(t *testing.T) {
 
 		payload := helper.EncodeJSON(t, "invalid_payload")
 
-		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/users", groupID), payload)
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/v1/groups/%s/users", groupID), payload)
 		req.Header.Set("Content-Type", "application/json")
 
 		app := fiber.New(fiber.Config{
@@ -494,7 +494,7 @@ func Test_GroupController_AddUser(t *testing.T) {
 
 		payload := helper.EncodeJSON(t, addUserDTO)
 
-		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/users", groupID), payload)
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/v1/groups/%s/users", groupID), payload)
 		req.Header.Set("Content-Type", "application/json")
 
 		app := fiber.New(fiber.Config{
@@ -536,7 +536,7 @@ func Test_GroupController_AddUser(t *testing.T) {
 
 		payload := helper.EncodeJSON(t, addUserDTO)
 
-		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/users", groupID), payload)
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/v1/groups/%s/users", groupID), payload)
 		req.Header.Set("Content-Type", "application/json")
 
 		app := fiber.New(fiber.Config{
@@ -577,7 +577,7 @@ func Test_GroupController_AddUser(t *testing.T) {
 
 		payload := helper.EncodeJSON(t, addUserDTO)
 
-		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/users", groupID), payload)
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/v1/groups/%s/users", groupID), payload)
 		req.Header.Set("Content-Type", "application/json")
 
 		app := fiber.New(fiber.Config{
@@ -621,7 +621,7 @@ func Test_GroupController_AddUser(t *testing.T) {
 
 		payload := helper.EncodeJSON(t, addUserDTO)
 
-		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/users", groupID), payload)
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/v1/groups/%s/users", groupID), payload)
 		req.Header.Set("Content-Type", "application/json")
 
 		app := fiber.New(fiber.Config{
@@ -670,7 +670,7 @@ func Test_GroupController_RemoveUser(t *testing.T) {
 
 		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/api/groups/%s/users/%s", groupID, targetUserID), nil)
+		req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/api/v1/groups/%s/users/%s", groupID, targetUserID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -720,7 +720,7 @@ func Test_GroupController_RemoveUser(t *testing.T) {
 
 		groupController := rest.NewGroupController(nil, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/api/groups/%s/users/%s", groupID, targetUserID), nil)
+		req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/api/v1/groups/%s/users/%s", groupID, targetUserID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -757,7 +757,7 @@ func Test_GroupController_RemoveUser(t *testing.T) {
 
 		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/api/groups/%s/users/%s", groupID, targetUserID), nil)
+		req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/api/v1/groups/%s/users/%s", groupID, targetUserID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -797,7 +797,7 @@ func Test_GroupController_RemoveUser(t *testing.T) {
 
 		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/api/groups/%s/users/%s", groupID, targetUserID), nil)
+		req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/api/v1/groups/%s/users/%s", groupID, targetUserID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -848,7 +848,7 @@ func Test_GroupController_GenerateMatches(t *testing.T) {
 
 		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/matches", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/v1/groups/%s/matches", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -911,7 +911,7 @@ func Test_GroupController_GenerateMatches(t *testing.T) {
 
 		groupController := rest.NewGroupController(nil, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/matches", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/v1/groups/%s/matches", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -947,7 +947,7 @@ func Test_GroupController_GenerateMatches(t *testing.T) {
 
 		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/matches", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/v1/groups/%s/matches", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -989,7 +989,7 @@ func Test_GroupController_GenerateMatches(t *testing.T) {
 
 		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/matches", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/v1/groups/%s/matches", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -1036,7 +1036,7 @@ func Test_GroupController_GetUserMatch(t *testing.T) {
 
 		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/groups/%s/matches/user", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/groups/%s/matches/user", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -1075,7 +1075,7 @@ func Test_GroupController_GetUserMatch(t *testing.T) {
 
 		groupController := rest.NewGroupController(nil, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/groups/%s/matches/user", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/groups/%s/matches/user", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -1111,7 +1111,7 @@ func Test_GroupController_GetUserMatch(t *testing.T) {
 
 		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/groups/%s/matches/user", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/groups/%s/matches/user", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -1149,7 +1149,7 @@ func Test_GroupController_GetUserMatch(t *testing.T) {
 
 		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/groups/%s/matches/user", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/groups/%s/matches/user", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -1197,7 +1197,7 @@ func Test_GroupController_Reopen(t *testing.T) {
 
 		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/reopen", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/v1/groups/%s/reopen", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -1246,7 +1246,7 @@ func Test_GroupController_Reopen(t *testing.T) {
 
 		groupController := rest.NewGroupController(nil, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/reopen", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/v1/groups/%s/reopen", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -1282,7 +1282,7 @@ func Test_GroupController_Reopen(t *testing.T) {
 
 		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/reopen", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/v1/groups/%s/reopen", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -1325,7 +1325,7 @@ func Test_GroupController_Archive(t *testing.T) {
 
 		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/archive", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/v1/groups/%s/archive", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -1374,7 +1374,7 @@ func Test_GroupController_Archive(t *testing.T) {
 
 		groupController := rest.NewGroupController(nil, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/archive", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/v1/groups/%s/archive", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -1410,7 +1410,7 @@ func Test_GroupController_Archive(t *testing.T) {
 
 		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/groups/%s/archive", groupID), nil)
+		req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/api/v1/groups/%s/archive", groupID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,

@@ -395,7 +395,7 @@ func Test_UserController_GetByID(t *testing.T) {
 
 		userController := rest.NewUserController(mockedUserService, nil, nil)
 
-		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/users/%s", userID), nil)
+		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/users/%s", userID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -435,7 +435,7 @@ func Test_UserController_GetByID(t *testing.T) {
 
 		userController := rest.NewUserController(mockedUserService, nil, nil)
 
-		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/users/%s", userID), nil)
+		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/users/%s", userID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -472,7 +472,7 @@ func Test_UserController_GetByID(t *testing.T) {
 
 		userController := rest.NewUserController(mockedUserService, nil, nil)
 
-		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/users/%s", userID), nil)
+		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/users/%s", userID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
