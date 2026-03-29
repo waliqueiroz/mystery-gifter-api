@@ -30,7 +30,7 @@ type GroupRepository interface {
 type Group struct {
 	ID          string      `validate:"required,uuid"`
 	Name        string      `validate:"required"`
-	Description string      `validate:"required"`
+	Description string      `validate:"required,max=255"`
 	Users       []User      `validate:"required,min=1"`
 	OwnerID     string      `validate:"required,uuid"`
 	Matches     []Match     `validate:"dive,omitempty"`

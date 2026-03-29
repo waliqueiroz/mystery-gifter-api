@@ -17,8 +17,9 @@ type CreateGroupDTO struct {
 
 	// Group description
 	// required: true
+	// max length: 255
 	// example: A group for our annual Secret Santa event
-	Description string `json:"description" validate:"required"`
+	Description string `json:"description" validate:"required,max=255"`
 }
 
 func (g *CreateGroupDTO) Validate() error {
