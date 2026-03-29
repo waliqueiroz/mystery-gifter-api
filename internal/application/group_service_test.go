@@ -172,9 +172,11 @@ func Test_groupService_Create(t *testing.T) {
 }
 
 func Test_groupService_GetByID(t *testing.T) {
-	t.Run("should get group successfully", func(t *testing.T) {
+	t.Run("should get group successfully when requester is a member", func(t *testing.T) {
 		// given
-		expectedGroup := build_domain.NewGroupBuilder().Build()
+		member := build_domain.NewUserBuilder().Build()
+		expectedGroup := build_domain.NewGroupBuilder().WithUsers([]domain.User{member}).Build()
+		requesterID := member.ID
 
 		mockCtrl := gomock.NewController(t)
 
@@ -184,16 +186,41 @@ func Test_groupService_GetByID(t *testing.T) {
 		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
 
 		// when
-		result, err := groupService.GetByID(context.Background(), expectedGroup.ID)
+		result, err := groupService.GetByID(context.Background(), expectedGroup.ID, requesterID)
 
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, &expectedGroup, result)
 	})
 
+	t.Run("should return forbidden error when requester is not a member", func(t *testing.T) {
+		// given
+		member := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().WithUsers([]domain.User{member}).Build()
+		nonMemberID := "non-member-id"
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), group.ID).Return(&group, nil)
+
+		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
+
+		// when
+		result, err := groupService.GetByID(context.Background(), group.ID, nonMemberID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		var forbiddenErr *domain.ForbiddenError
+		assert.ErrorAs(t, err, &forbiddenErr)
+		assert.EqualError(t, forbiddenErr, "user is not a member of this group")
+	})
+
 	t.Run("should return error when repository fails", func(t *testing.T) {
 		// given
 		groupID := "some-id"
+		requesterID := "any-user-id"
 
 		mockCtrl := gomock.NewController(t)
 
@@ -203,7 +230,7 @@ func Test_groupService_GetByID(t *testing.T) {
 		groupService := application.NewGroupService(mockedGroupRepository, nil, nil)
 
 		// when
-		result, err := groupService.GetByID(context.Background(), groupID)
+		result, err := groupService.GetByID(context.Background(), groupID, requesterID)
 
 		// then
 		assert.Nil(t, result)

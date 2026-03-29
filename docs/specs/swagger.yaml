@@ -594,7 +594,7 @@ paths:
         get:
             description: |-
                 This endpoint retrieves a specific group by its ID.
-                Requires authentication.
+                Requires authentication. The authenticated user must be a member of the group.
             operationId: GetGroupByID
             parameters:
                 - description: Unique group identifier
@@ -611,6 +611,8 @@ paths:
                         $ref: '#/definitions/GroupDTO'
                 "401":
                     description: Authentication required
+                "403":
+                    description: User is not a member of this group
                 "404":
                     description: Group not found
             security:
