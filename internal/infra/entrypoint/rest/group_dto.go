@@ -16,10 +16,9 @@ type CreateGroupDTO struct {
 	Name string `json:"name" validate:"required"`
 
 	// Group description
-	// required: true
 	// max length: 255
 	// example: A group for our annual Secret Santa event
-	Description string `json:"description" validate:"required,max=255"`
+	Description string `json:"description" validate:"omitempty,max=255"`
 }
 
 func (g *CreateGroupDTO) Validate() error {
@@ -43,9 +42,8 @@ type GroupDTO struct {
 	Name string `json:"name" validate:"required"`
 
 	// Group description
-	// required: true
 	// example: A group for our annual Secret Santa event
-	Description string `json:"description" validate:"required"`
+	Description string `json:"description" validate:"omitempty,max=255"`
 
 	// List of users in the group
 	// required: true

@@ -82,6 +82,31 @@ func Test_NewGroup(t *testing.T) {
 		assert.Len(t, errors, 1)
 		assert.Contains(t, errors, validator.FieldError{Field: "Name", Error: "Name is a required field"})
 	})
+
+	t.Run("should create a new group successfully when description is empty", func(t *testing.T) {
+		// given
+		name := "Test Group"
+		description := ""
+		generatedID := uuid.New().String()
+		owner := build_domain.NewUserBuilder().Build()
+		now := time.Now()
+
+		mockCtrl := gomock.NewController(t)
+		mockedIdentityGenerator := mock_domain.NewMockIdentityGenerator(mockCtrl)
+		mockedIdentityGenerator.EXPECT().Generate().Return(generatedID, nil)
+
+		// when
+		group, err := domain.NewGroup(mockedIdentityGenerator, name, description, owner)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, generatedID, group.ID)
+		assert.Equal(t, name, group.Name)
+		assert.Empty(t, group.Description)
+		assert.Equal(t, owner.ID, group.OwnerID)
+		assert.Equal(t, domain.GroupStatusOpen, group.Status)
+		assert.WithinDuration(t, now, group.CreatedAt, time.Second)
+	})
 }
 
 func Test_Group_CanCreateInvite(t *testing.T) {
