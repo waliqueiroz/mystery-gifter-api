@@ -84,6 +84,51 @@ func Test_NewGroup(t *testing.T) {
 	})
 }
 
+func Test_Group_CanCreateInvite(t *testing.T) {
+	t.Run("should return nil when requester is owner and group is open", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().WithOwnerID(owner.ID).WithStatus(domain.GroupStatusOpen).Build()
+
+		// when
+		err := group.CanCreateInvite(owner.ID)
+
+		// then
+		assert.NoError(t, err)
+	})
+
+	t.Run("should return forbidden error when requester is not the owner", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		requester := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().WithOwnerID(owner.ID).WithStatus(domain.GroupStatusOpen).Build()
+
+		// when
+		err := group.CanCreateInvite(requester.ID)
+
+		// then
+		assert.Error(t, err)
+		var forbiddenErr *domain.ForbiddenError
+		assert.ErrorAs(t, err, &forbiddenErr)
+		assert.EqualError(t, forbiddenErr, "only the group owner can create invites")
+	})
+
+	t.Run("should return conflict error when group is not open", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().WithOwnerID(owner.ID).WithStatus(domain.GroupStatusMatched).Build()
+
+		// when
+		err := group.CanCreateInvite(owner.ID)
+
+		// then
+		assert.Error(t, err)
+		var conflictErr *domain.ConflictError
+		assert.ErrorAs(t, err, &conflictErr)
+		assert.EqualError(t, conflictErr, "group is not open for invites")
+	})
+}
+
 func Test_Group_AddUser(t *testing.T) {
 	t.Run("should add user successfully when requester is owner", func(t *testing.T) {
 		// given
@@ -101,20 +146,21 @@ func Test_Group_AddUser(t *testing.T) {
 		assert.NotEqual(t, originalUpdateTime, group.UpdatedAt)
 	})
 
-	t.Run("should add user successfully when requester is the target user", func(t *testing.T) {
+	t.Run("should return forbidden error when requester is the target user but not the owner", func(t *testing.T) {
 		// given
 		owner := build_domain.NewUserBuilder().Build()
 		targetUser := build_domain.NewUserBuilder().Build()
 		group := build_domain.NewGroupBuilder().WithOwnerID(owner.ID).Build()
-		originalUpdateTime := group.UpdatedAt
 
 		// when
 		err := group.AddUser(targetUser.ID, targetUser)
 
 		// then
-		assert.NoError(t, err)
-		assert.Contains(t, group.Users, targetUser)
-		assert.NotEqual(t, originalUpdateTime, group.UpdatedAt)
+		assert.Error(t, err)
+		var forbiddenErr *domain.ForbiddenError
+		assert.ErrorAs(t, err, &forbiddenErr)
+		assert.EqualError(t, forbiddenErr, "only the group owner can add other users")
+		assert.NotContains(t, group.Users, targetUser)
 	})
 
 	t.Run("should not add duplicate user", func(t *testing.T) {

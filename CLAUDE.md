@@ -57,3 +57,10 @@ Each interface file has a `//go:generate` directive pointing to its mock destina
 ## Environment Variables
 
 Required: `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `AUTH_SECRET_KEY`, `AUTH_SESSION_DURATION`. Copy `.env.example` to `.env` to get started.
+
+## Active Technologies
+- Go (latest stable release) + Fiber v2, sqlx, squirrel, golang-migrate, caarlos0/env v11, (001-group-invite-links)
+- PostgreSQL — new table `group_invites`; migration 000004 (001-group-invite-links)
+
+## Recent Changes
+- 001-group-invite-links: Added Go (latest stable release) + Fiber v2, sqlx, squirrel, golang-migrate, caarlos0/env v11,

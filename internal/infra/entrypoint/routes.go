@@ -5,7 +5,7 @@ import (
 	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest"
 )
 
-func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userController *rest.UserController, authController *rest.AuthController, groupController *rest.GroupController) {
+func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userController *rest.UserController, authController *rest.AuthController, groupController *rest.GroupController, groupInviteController *rest.GroupInviteController) {
 	api := router.Group("/api/v1")
 
 	// swagger:operation POST /api/v1/login Login
@@ -310,7 +310,7 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	// Add user to group
 	//
 	// This endpoint adds a user to an existing group.
-	// Only the group owner can add users.
+	// Only the group owner can add users. Self-join is not supported via this endpoint — use the invite flow instead.
 	//
 	// ---
 	// tags:
@@ -343,11 +343,11 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//   '401':
 	//     description: Authentication required
 	//   '403':
-	//     description: Insufficient permissions
+	//     description: Only the group owner can add users
 	//   '404':
-	//     description: Group not found
+	//     description: Group or user not found
 	//   '409':
-	//     description: User already in group
+	//     description: Group is not open
 	//   '422':
 	//     description: Invalid request body
 	api.Post("/groups/:groupID/users", groupController.AddUser)
@@ -527,4 +527,73 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//   '404':
 	//     description: Group not found or no match available
 	api.Get("/groups/:groupID/matches/user", groupController.GetUserMatch)
+
+	// swagger:operation POST /api/v1/groups/{groupID}/invites CreateGroupInvite
+	//
+	// Create a group invite link
+	//
+	// This endpoint creates a time-limited invite link for the group.
+	// Only the group owner can create invites. The group must be in OPEN status.
+	//
+	// ---
+	// tags:
+	// - groups
+	// produces:
+	// - application/json
+	// security:
+	// - Bearer: []
+	// parameters:
+	// - name: groupID
+	//   in: path
+	//   description: Unique group identifier
+	//   required: true
+	//   type: string
+	// responses:
+	//   '201':
+	//     description: Invite created successfully
+	//     schema:
+	//       "$ref": '#/definitions/GroupInviteDTO'
+	//   '401':
+	//     description: Authentication required
+	//   '403':
+	//     description: Only the group owner can create invites
+	//   '404':
+	//     description: Group not found
+	//   '409':
+	//     description: Group is not in OPEN status
+	api.Post("/groups/:groupID/invites", groupInviteController.Create)
+
+	// swagger:operation POST /api/v1/invites/{inviteID}/join JoinGroupViaInvite
+	//
+	// Join a group via invite link
+	//
+	// This endpoint allows an authenticated user to join a group using a valid invite ID.
+	// The invite must not be expired. The group must be in OPEN status.
+	// If the user is already a member, the request succeeds with the current group data.
+	//
+	// ---
+	// tags:
+	// - invites
+	// produces:
+	// - application/json
+	// security:
+	// - Bearer: []
+	// parameters:
+	// - name: inviteID
+	//   in: path
+	//   description: Invite ID received from the group owner
+	//   required: true
+	//   type: string
+	// responses:
+	//   '200':
+	//     description: Joined group successfully
+	//     schema:
+	//       "$ref": '#/definitions/GroupDTO'
+	//   '401':
+	//     description: Authentication required
+	//   '404':
+	//     description: Invite not found
+	//   '409':
+	//     description: Invite has expired or group is not in OPEN status
+	api.Post("/invites/:inviteID/join", groupInviteController.Join)
 }

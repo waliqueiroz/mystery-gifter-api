@@ -56,12 +56,16 @@ func Run() error {
 	groupService := application.NewGroupService(groupRepository, userService, uuidIdentityGenerator)
 	groupController := rest.NewGroupController(groupService, jwtAuthTokenManager)
 
+	groupInviteRepository := postgres.NewGroupInviteRepository(db)
+	groupInviteService := application.NewGroupInviteService(groupInviteRepository, groupRepository, userService, uuidIdentityGenerator, cfg.Invite.LinkExpiration)
+	groupInviteController := rest.NewGroupInviteController(groupInviteService, jwtAuthTokenManager)
+
 	authService := application.NewAuthService(cfg.Auth.SessionDuration, userRepository, bcryptPasswordManager, jwtAuthTokenManager)
 	authController := rest.NewAuthController(authService)
 
 	authMiddleware := entrypoint.NewAuthMiddleware(cfg.Auth.SecretKey)
 
-	entrypoint.CreateRoutes(app, authMiddleware, userController, authController, groupController)
+	entrypoint.CreateRoutes(app, authMiddleware, userController, authController, groupController, groupInviteController)
 
 	return app.Listen(fmt.Sprintf(":%d", 8080))
 }

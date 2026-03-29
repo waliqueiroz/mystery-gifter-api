@@ -12,3 +12,4 @@ paths:
 - Todos os métodos: `context.Context` como primeiro parâmetro, `error` como último retorno
 - Chamar `entity.Validate()` antes de qualquer lógica de negócio
 - Mocks gerados em `mock_application/`
+- Regras de negócio que envolvem verificação de permissão ou estado de uma entidade devem ser encapsuladas em métodos da própria entidade (domínio rico) — o serviço apenas chama o método e propaga o erro
