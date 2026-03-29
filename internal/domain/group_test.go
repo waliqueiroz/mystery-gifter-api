@@ -109,6 +109,63 @@ func Test_NewGroup(t *testing.T) {
 	})
 }
 
+func Test_Group_IsMember(t *testing.T) {
+	t.Run("should return true when user is a member", func(t *testing.T) {
+		// given
+		member := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().WithUsers([]domain.User{member}).Build()
+
+		// when
+		result := group.IsMember(member.ID)
+
+		// then
+		assert.True(t, result)
+	})
+
+	t.Run("should return false when user is not a member", func(t *testing.T) {
+		// given
+		member := build_domain.NewUserBuilder().Build()
+		nonMember := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().WithUsers([]domain.User{member}).Build()
+
+		// when
+		result := group.IsMember(nonMember.ID)
+
+		// then
+		assert.False(t, result)
+	})
+}
+
+func Test_Group_CanView(t *testing.T) {
+	t.Run("should return nil when requester is a member", func(t *testing.T) {
+		// given
+		member := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().WithUsers([]domain.User{member}).Build()
+
+		// when
+		err := group.CanView(member.ID)
+
+		// then
+		assert.NoError(t, err)
+	})
+
+	t.Run("should return forbidden error when requester is not a member", func(t *testing.T) {
+		// given
+		member := build_domain.NewUserBuilder().Build()
+		nonMember := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().WithUsers([]domain.User{member}).Build()
+
+		// when
+		err := group.CanView(nonMember.ID)
+
+		// then
+		assert.Error(t, err)
+		var forbiddenErr *domain.ForbiddenError
+		assert.ErrorAs(t, err, &forbiddenErr)
+		assert.EqualError(t, forbiddenErr, "user is not a member of this group")
+	})
+}
+
 func Test_Group_CanCreateInvite(t *testing.T) {
 	t.Run("should return nil when requester is owner and group is open", func(t *testing.T) {
 		// given
