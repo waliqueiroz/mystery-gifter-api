@@ -22,7 +22,7 @@ same branch commit or in parallel branches stacked on T002.
 
 **Purpose**: Database schema — no application code, isolated migration PR.
 
-- [ ] T001 Add migration `000004_create_group_invites_table` in `internal/infra/outgoing/postgres/migrations/` (up: `CREATE TABLE group_invites` with `id UUID PK`, `group_id UUID FK groups`, `expires_at TIMESTAMPTZ`, `created_at TIMESTAMPTZ`; down: `DROP TABLE`)
+- [X] T001 Add migration `000004_create_group_invites_table` in `internal/infra/outgoing/postgres/migrations/` (up: `CREATE TABLE group_invites` with `id UUID PK`, `group_id UUID FK groups`, `expires_at TIMESTAMPTZ`, `created_at TIMESTAMPTZ`; down: `DROP TABLE`)
 
 **Checkpoint → PR1**: Migration only, reviewable standalone.
 
@@ -34,9 +34,9 @@ same branch commit or in parallel branches stacked on T002.
 
 **⚠️ CRITICAL**: No user story work can begin until T002, T003, T004 are merged.
 
-- [ ] T002 Restrict `Group.AddUser()` to owner only in `internal/domain/group.go` (remove `|| requesterID == targetUser.ID` from the condition); update affected test cases in `internal/domain/group_test.go` (self-join scenarios must now assert `ForbiddenError`)
-- [ ] T003 [P] Create `GroupInvite` entity + `GroupInviteRepository` interface + `NewGroupInvite` factory + `Validate()` + `IsExpired()` in `internal/domain/group_invite.go`; add `//go:generate` directive and run `go generate ./...` to produce `internal/domain/mock_domain/group_invite_repository.go`; add test builder in `internal/domain/build_domain/group_invite_builder.go`; add unit tests in `internal/domain/group_invite_test.go`
-- [ ] T004 [P] Add `InviteConfig` struct with `LinkExpiration time.Duration` (`env:"INVITE_LINK_EXPIRATION" envDefault:"24h"`) to `internal/infra/config/config.go` and embed it in `Config`; document `INVITE_LINK_EXPIRATION=24h` in `.env.example`
+- [X] T002 Restrict `Group.AddUser()` to owner only in `internal/domain/group.go` (remove `|| requesterID == targetUser.ID` from the condition); update affected test cases in `internal/domain/group_test.go` (self-join scenarios must now assert `ForbiddenError`)
+- [X] T003 [P] Create `GroupInvite` entity + `GroupInviteRepository` interface + `NewGroupInvite` factory + `Validate()` + `IsExpired()` in `internal/domain/group_invite.go`; add `//go:generate` directive and run `go generate ./...` to produce `internal/domain/mock_domain/group_invite_repository.go`; add test builder in `internal/domain/build_domain/group_invite_builder.go`; add unit tests in `internal/domain/group_invite_test.go`
+- [X] T004 [P] Add `InviteConfig` struct with `LinkExpiration time.Duration` (`env:"INVITE_LINK_EXPIRATION" envDefault:"24h"`) to `internal/infra/config/config.go` and embed it in `Config`; document `INVITE_LINK_EXPIRATION=24h` in `.env.example`
 
 **Checkpoint → PR2 (T002) + PR3 (T003 + T004)**: Breaking change and domain types reviewed separately.
 
@@ -50,17 +50,17 @@ same branch commit or in parallel branches stacked on T002.
 
 ### Infrastructure for User Story 1
 
-- [ ] T005 [US1] Create postgres model `GroupInvite` in `internal/infra/outgoing/postgres/group_invite.go`; implement `groupInviteRepository` (with `Create` + `GetByID`) in `internal/infra/outgoing/postgres/group_invite_repository.go` using `squirrel`; add builder in `internal/infra/outgoing/postgres/build_postgres/group_invite_builder.go`; add unit tests in `internal/infra/outgoing/postgres/group_invite_repository_test.go`
+- [X] T005 [US1] Create postgres model `GroupInvite` in `internal/infra/outgoing/postgres/group_invite.go`; implement `groupInviteRepository` (with `Create` + `GetByID`) in `internal/infra/outgoing/postgres/group_invite_repository.go` using `squirrel`; add builder in `internal/infra/outgoing/postgres/build_postgres/group_invite_builder.go`; add unit tests in `internal/infra/outgoing/postgres/group_invite_repository_test.go`
 
 ### Application for User Story 1
 
-- [ ] T006 [US1] Add `GroupInviteService` interface (with `Create` and `JoinGroup` signatures) + implement `groupInviteService.Create` in `internal/application/group_invite_service.go`; add `//go:generate` directive and run `go generate ./...` to produce `internal/application/mock_application/group_invite_service.go`; add unit tests for `Create` in `internal/application/group_invite_service_test.go`
+- [X] T006 [US1] Add `GroupInviteService` interface (with `Create` and `JoinGroup` signatures) + implement `groupInviteService.Create` in `internal/application/group_invite_service.go`; add `//go:generate` directive and run `go generate ./...` to produce `internal/application/mock_application/group_invite_service.go`; add unit tests for `Create` in `internal/application/group_invite_service_test.go`
 
 ### HTTP Layer for User Story 1
 
-- [ ] T007 [US1] Create `GroupInviteDTO` + `mapGroupInviteFromDomain` mapper in `internal/infra/entrypoint/rest/group_invite_dto.go`; add builder in `internal/infra/entrypoint/rest/build_rest/group_invite_dto_builder.go`
-- [ ] T008 [US1] Implement `GroupInviteController` struct + `NewGroupInviteController` + `Create` handler in `internal/infra/entrypoint/rest/group_invite_controller.go`; add unit tests in `internal/infra/entrypoint/rest/group_invite_controller_test.go`
-- [ ] T009 [US1] Register `POST /api/v1/groups/:groupID/invites` in `internal/infra/entrypoint/routes.go` (add `groupInviteController` param); instantiate `groupInviteRepository`, `groupInviteService`, `groupInviteController` and wire them in `internal/infra/runner.go`
+- [X] T007 [US1] Create `GroupInviteDTO` + `mapGroupInviteFromDomain` mapper in `internal/infra/entrypoint/rest/group_invite_dto.go`; add builder in `internal/infra/entrypoint/rest/build_rest/group_invite_dto_builder.go`
+- [X] T008 [US1] Implement `GroupInviteController` struct + `NewGroupInviteController` + `Create` handler in `internal/infra/entrypoint/rest/group_invite_controller.go`; add unit tests in `internal/infra/entrypoint/rest/group_invite_controller_test.go`
+- [X] T009 [US1] Register `POST /api/v1/groups/:groupID/invites` in `internal/infra/entrypoint/routes.go` (add `groupInviteController` param); instantiate `groupInviteRepository`, `groupInviteService`, `groupInviteController` and wire them in `internal/infra/runner.go`
 
 **Checkpoint → PR4 (T005) + PR5 (T006) + PR6 (T007–T009)**: US1 fully functional and independently testable.
 
@@ -74,12 +74,12 @@ same branch commit or in parallel branches stacked on T002.
 
 ### Application for User Story 2
 
-- [ ] T010 [US2] Implement `groupInviteService.JoinGroup` in `internal/application/group_invite_service.go`; add unit tests for `JoinGroup` in `internal/application/group_invite_service_test.go`
+- [X] T010 [US2] Implement `groupInviteService.JoinGroup` in `internal/application/group_invite_service.go`; add unit tests for `JoinGroup` in `internal/application/group_invite_service_test.go`
 
 ### HTTP Layer for User Story 2
 
-- [ ] T011 [US2] Implement `GroupInviteController.Join` handler in `internal/infra/entrypoint/rest/group_invite_controller.go`; add unit tests for `Join` in `internal/infra/entrypoint/rest/group_invite_controller_test.go`
-- [ ] T012 [US2] Register `POST /api/v1/invites/:inviteID/join` in `internal/infra/entrypoint/routes.go`
+- [X] T011 [US2] Implement `GroupInviteController.Join` handler in `internal/infra/entrypoint/rest/group_invite_controller.go`; add unit tests for `Join` in `internal/infra/entrypoint/rest/group_invite_controller_test.go`
+- [X] T012 [US2] Register `POST /api/v1/invites/:inviteID/join` in `internal/infra/entrypoint/routes.go`
 
 **Checkpoint → PR7 (T010) + PR8 (T011–T012)**: US2 fully functional. Full invite flow now works end-to-end.
 
@@ -87,7 +87,7 @@ same branch commit or in parallel branches stacked on T002.
 
 ## Phase 5: Polish & Cross-Cutting Concerns
 
-- [ ] T013 Add Swagger annotations for `POST /groups/:groupID/invites` and `POST /invites/:inviteID/join` in `internal/infra/entrypoint/routes.go`; update `AddUserToGroup` Swagger description to reflect owner-only restriction; run `make generate-docs` and confirm `docs/specs/swagger.yaml` is up to date
+- [X] T013 Add Swagger annotations for `POST /groups/:groupID/invites` and `POST /invites/:inviteID/join` in `internal/infra/entrypoint/routes.go`; update `AddUserToGroup` Swagger description to reflect owner-only restriction; run `make generate-docs` and confirm `docs/specs/swagger.yaml` is up to date
 
 **Checkpoint → PR9 (T013)**: Swagger complete, `make generate-docs` passes.
 

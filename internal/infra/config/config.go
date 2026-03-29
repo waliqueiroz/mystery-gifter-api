@@ -6,9 +6,14 @@ import (
 	"github.com/caarlos0/env/v11"
 )
 
+type InviteConfig struct {
+	LinkExpiration time.Duration `env:"INVITE_LINK_EXPIRATION" envDefault:"24h"`
+}
+
 type Config struct {
 	Database DatabaseConfig
 	Auth     AuthConfig
+	Invite   InviteConfig
 }
 
 type DatabaseConfig struct {

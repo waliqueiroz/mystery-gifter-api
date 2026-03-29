@@ -103,7 +103,7 @@ func (g *Group) AddUser(requesterID string, targetUser User) error {
 		return NewConflictError("group is not open for registration, contact the group owner to reopen the group")
 	}
 
-	if requesterID != g.OwnerID && requesterID != targetUser.ID {
+	if requesterID != g.OwnerID {
 		return NewForbiddenError("only the group owner can add other users")
 	}
 
