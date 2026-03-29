@@ -427,9 +427,9 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 
 	// swagger:operation POST /api/v1/groups/{groupID}/reopen ReopenGroup
 	//
-	// Reopen an archived group
+	// Reopen a group with MATCHED status
 	//
-	// This endpoint reopens an archived group.
+	// This endpoint reopens a group with MATCHED status, clearing all draw results and returning the group to OPEN status.
 	// Only the group owner can reopen groups.
 	//
 	// ---

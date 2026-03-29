@@ -755,7 +755,7 @@ paths:
     /api/v1/groups/{groupID}/reopen:
         post:
             description: |-
-                This endpoint reopens an archived group.
+                This endpoint reopens a group with MATCHED status, clearing all draw results and returning the group to OPEN status.
                 Only the group owner can reopen groups.
             operationId: ReopenGroup
             parameters:
@@ -781,7 +781,7 @@ paths:
                     description: Group cannot be reopened
             security:
                 - Bearer: []
-            summary: Reopen an archived group
+            summary: Reopen a group with MATCHED status
             tags:
                 - groups
     /api/v1/groups/{groupID}/users:
@@ -818,9 +818,9 @@ paths:
                 "403":
                     description: Only the group owner can add users
                 "404":
-                    description: Group not found
+                    description: Group or user not found
                 "409":
-                    description: User already in group or group is not open
+                    description: Group is not open
                 "422":
                     description: Invalid request body
             security:
