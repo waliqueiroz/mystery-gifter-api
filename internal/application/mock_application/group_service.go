@@ -102,18 +102,18 @@ func (mr *MockGroupServiceMockRecorder) GenerateMatches(ctx, groupID, requesterI
 }
 
 // GetByID mocks base method.
-func (m *MockGroupService) GetByID(ctx context.Context, groupID string) (*domain.Group, error) {
+func (m *MockGroupService) GetByID(ctx context.Context, groupID, requesterID string) (*domain.Group, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByID", ctx, groupID)
+	ret := m.ctrl.Call(m, "GetByID", ctx, groupID, requesterID)
 	ret0, _ := ret[0].(*domain.Group)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByID indicates an expected call of GetByID.
-func (mr *MockGroupServiceMockRecorder) GetByID(ctx, groupID any) *gomock.Call {
+func (mr *MockGroupServiceMockRecorder) GetByID(ctx, groupID, requesterID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockGroupService)(nil).GetByID), ctx, groupID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockGroupService)(nil).GetByID), ctx, groupID, requesterID)
 }
 
 // GetUserMatch mocks base method.

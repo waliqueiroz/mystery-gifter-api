@@ -279,7 +279,7 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	// Get group by ID
 	//
 	// This endpoint retrieves a specific group by its ID.
-	// Requires authentication.
+	// Requires authentication. The authenticated user must be a member of the group.
 	//
 	// ---
 	// tags:
@@ -301,6 +301,8 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//       "$ref": '#/definitions/GroupDTO'
 	//   '401':
 	//     description: Authentication required
+	//   '403':
+	//     description: User is not a member of this group
 	//   '404':
 	//     description: Group not found
 	api.Get("/groups/:groupID", groupController.GetByID)

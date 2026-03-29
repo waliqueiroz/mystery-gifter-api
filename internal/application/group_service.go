@@ -10,7 +10,7 @@ import (
 
 type GroupService interface {
 	Create(ctx context.Context, name, description, ownerID string) (*domain.Group, error)
-	GetByID(ctx context.Context, groupID string) (*domain.Group, error)
+	GetByID(ctx context.Context, groupID, requesterID string) (*domain.Group, error)
 	Search(ctx context.Context, filters domain.GroupFilters) (*domain.SearchResult[domain.GroupSummary], error)
 	AddUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error)
 	RemoveUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error)
@@ -57,9 +57,13 @@ func (s *groupService) Create(ctx context.Context, name, description, ownerID st
 	return group, nil
 }
 
-func (s *groupService) GetByID(ctx context.Context, groupID string) (*domain.Group, error) {
+func (s *groupService) GetByID(ctx context.Context, groupID, requesterID string) (*domain.Group, error) {
 	group, err := s.groupRepository.GetByID(ctx, groupID)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := group.CanView(requesterID); err != nil {
 		return nil, err
 	}
 

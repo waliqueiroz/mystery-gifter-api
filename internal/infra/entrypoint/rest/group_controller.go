@@ -53,7 +53,12 @@ func (c *GroupController) Create(ctx *fiber.Ctx) error {
 func (c *GroupController) GetByID(ctx *fiber.Ctx) error {
 	groupID := ctx.Params("groupID")
 
-	group, err := c.groupService.GetByID(ctx.Context(), groupID)
+	authUserID, err := c.AuthTokenManager.GetAuthUserID(ctx.Locals("user"))
+	if err != nil {
+		return err
+	}
+
+	group, err := c.groupService.GetByID(ctx.Context(), groupID, authUserID)
 	if err != nil {
 		return err
 	}
