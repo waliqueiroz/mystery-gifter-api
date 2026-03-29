@@ -49,6 +49,7 @@ func Test_groupInviteRepository_Create(t *testing.T) {
 
 		// then
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "error inserting group invite")
 	})
 }
 
@@ -60,12 +61,7 @@ func Test_groupInviteRepository_GetByID(t *testing.T) {
 
 		mockCtrl := gomock.NewController(t)
 		mockedDB := mock_postgres.NewMockDB(mockCtrl)
-		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), selectQuery, pgGroupInvite.ID).
-			DoAndReturn(func(ctx context.Context, dest any, query string, args ...any) error {
-				ptr := dest.(*postgres.GroupInvite)
-				*ptr = pgGroupInvite
-				return nil
-			})
+		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), selectQuery, pgGroupInvite.ID).SetArg(1, pgGroupInvite).Return(nil)
 
 		groupInviteRepository := postgres.NewGroupInviteRepository(mockedDB)
 
@@ -99,6 +95,7 @@ func Test_groupInviteRepository_GetByID(t *testing.T) {
 		assert.Error(t, err)
 		var notFoundErr *domain.ResourceNotFoundError
 		assert.ErrorAs(t, err, &notFoundErr)
+		assert.EqualError(t, notFoundErr, "group invite not found")
 	})
 
 	t.Run("should return error when get fails", func(t *testing.T) {
@@ -118,5 +115,6 @@ func Test_groupInviteRepository_GetByID(t *testing.T) {
 		// then
 		assert.Nil(t, result)
 		assert.Error(t, err)
+		assert.ErrorContains(t, err, "error getting group invite")
 	})
 }

@@ -84,6 +84,51 @@ func Test_NewGroup(t *testing.T) {
 	})
 }
 
+func Test_Group_CanCreateInvite(t *testing.T) {
+	t.Run("should return nil when requester is owner and group is open", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().WithOwnerID(owner.ID).WithStatus(domain.GroupStatusOpen).Build()
+
+		// when
+		err := group.CanCreateInvite(owner.ID)
+
+		// then
+		assert.NoError(t, err)
+	})
+
+	t.Run("should return forbidden error when requester is not the owner", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		requester := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().WithOwnerID(owner.ID).WithStatus(domain.GroupStatusOpen).Build()
+
+		// when
+		err := group.CanCreateInvite(requester.ID)
+
+		// then
+		assert.Error(t, err)
+		var forbiddenErr *domain.ForbiddenError
+		assert.ErrorAs(t, err, &forbiddenErr)
+		assert.EqualError(t, forbiddenErr, "only the group owner can create invites")
+	})
+
+	t.Run("should return conflict error when group is not open", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().WithOwnerID(owner.ID).WithStatus(domain.GroupStatusMatched).Build()
+
+		// when
+		err := group.CanCreateInvite(owner.ID)
+
+		// then
+		assert.Error(t, err)
+		var conflictErr *domain.ConflictError
+		assert.ErrorAs(t, err, &conflictErr)
+		assert.EqualError(t, conflictErr, "group is not open for invites")
+	})
+}
+
 func Test_Group_AddUser(t *testing.T) {
 	t.Run("should add user successfully when requester is owner", func(t *testing.T) {
 		// given

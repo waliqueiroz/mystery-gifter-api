@@ -345,9 +345,9 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//   '403':
 	//     description: Only the group owner can add users
 	//   '404':
-	//     description: Group not found
+	//     description: Group or user not found
 	//   '409':
-	//     description: User already in group or group is not open
+	//     description: Group is not open
 	//   '422':
 	//     description: Invalid request body
 	api.Post("/groups/:groupID/users", groupController.AddUser)

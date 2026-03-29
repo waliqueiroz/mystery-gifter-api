@@ -87,6 +87,11 @@ func Test_GroupInviteController_Create(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, fiber.StatusForbidden, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+		assert.Equal(t, "forbidden", result.Code)
+		assert.Equal(t, "only the group owner can create invites", result.Message)
 	})
 
 	t.Run("should return status 404 when group is not found", func(t *testing.T) {
@@ -118,6 +123,11 @@ func Test_GroupInviteController_Create(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, fiber.StatusNotFound, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+		assert.Equal(t, "not_found", result.Code)
+		assert.Equal(t, "group not found", result.Message)
 	})
 
 	t.Run("should return status 409 when group is not open", func(t *testing.T) {
@@ -149,6 +159,11 @@ func Test_GroupInviteController_Create(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, fiber.StatusConflict, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+		assert.Equal(t, "conflict", result.Code)
+		assert.Equal(t, "group is not open for invites", result.Message)
 	})
 }
 
@@ -221,6 +236,11 @@ func Test_GroupInviteController_Join(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, fiber.StatusNotFound, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+		assert.Equal(t, "not_found", result.Code)
+		assert.Equal(t, "group invite not found", result.Message)
 	})
 
 	t.Run("should return status 409 when invite is expired", func(t *testing.T) {
@@ -252,5 +272,10 @@ func Test_GroupInviteController_Join(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, fiber.StatusConflict, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+		assert.Equal(t, "conflict", result.Code)
+		assert.Equal(t, "invite has expired", result.Message)
 	})
 }

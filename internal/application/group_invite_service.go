@@ -44,12 +44,8 @@ func (s *groupInviteService) Create(ctx context.Context, groupID, requesterID st
 		return nil, err
 	}
 
-	if requesterID != group.OwnerID {
-		return nil, domain.NewForbiddenError("only the group owner can create invites")
-	}
-
-	if !group.IsOpen() {
-		return nil, domain.NewConflictError("group is not open for invites")
+	if err := group.CanCreateInvite(requesterID); err != nil {
+		return nil, err
 	}
 
 	groupInvite, err := domain.NewGroupInvite(s.identityGenerator, groupID, s.linkExpiration)

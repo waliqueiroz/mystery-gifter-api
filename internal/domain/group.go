@@ -98,6 +98,18 @@ func (g *Group) IsArchived() bool {
 	return g.Status == GroupStatusArchived
 }
 
+func (g *Group) CanCreateInvite(requesterID string) error {
+	if requesterID != g.OwnerID {
+		return NewForbiddenError("only the group owner can create invites")
+	}
+
+	if !g.IsOpen() {
+		return NewConflictError("group is not open for invites")
+	}
+
+	return nil
+}
+
 func (g *Group) AddUser(requesterID string, targetUser User) error {
 	if !g.IsOpen() {
 		return NewConflictError("group is not open for registration, contact the group owner to reopen the group")

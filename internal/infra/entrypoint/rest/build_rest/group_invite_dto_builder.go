@@ -8,14 +8,14 @@ import (
 )
 
 type GroupInviteDTOBuilder struct {
-	dto rest.GroupInviteDTO
+	groupInviteDTO rest.GroupInviteDTO
 }
 
 func NewGroupInviteDTOBuilder() *GroupInviteDTOBuilder {
 	now := time.Now().UTC()
 
 	return &GroupInviteDTOBuilder{
-		dto: rest.GroupInviteDTO{
+		groupInviteDTO: rest.GroupInviteDTO{
 			ID:        uuid.New().String(),
 			GroupID:   uuid.New().String(),
 			ExpiresAt: now.Add(24 * time.Hour),
@@ -25,25 +25,25 @@ func NewGroupInviteDTOBuilder() *GroupInviteDTOBuilder {
 }
 
 func (b *GroupInviteDTOBuilder) WithID(id string) *GroupInviteDTOBuilder {
-	b.dto.ID = id
+	b.groupInviteDTO.ID = id
 	return b
 }
 
 func (b *GroupInviteDTOBuilder) WithGroupID(groupID string) *GroupInviteDTOBuilder {
-	b.dto.GroupID = groupID
+	b.groupInviteDTO.GroupID = groupID
 	return b
 }
 
 func (b *GroupInviteDTOBuilder) WithExpiresAt(expiresAt time.Time) *GroupInviteDTOBuilder {
-	b.dto.ExpiresAt = expiresAt
+	b.groupInviteDTO.ExpiresAt = expiresAt
 	return b
 }
 
 func (b *GroupInviteDTOBuilder) WithCreatedAt(createdAt time.Time) *GroupInviteDTOBuilder {
-	b.dto.CreatedAt = createdAt
+	b.groupInviteDTO.CreatedAt = createdAt
 	return b
 }
 
 func (b *GroupInviteDTOBuilder) Build() rest.GroupInviteDTO {
-	return b.dto
+	return b.groupInviteDTO
 }
