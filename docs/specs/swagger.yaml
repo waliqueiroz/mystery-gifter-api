@@ -58,7 +58,6 @@ definitions:
                 x-go-name: Name
         required:
             - name
-            - description
         type: object
         x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
     CreateUserDTO:
@@ -175,7 +174,6 @@ definitions:
         required:
             - id
             - name
-            - description
             - users
             - owner_id
             - status
