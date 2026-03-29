@@ -12,6 +12,7 @@ import (
 type GroupInviteRepository interface {
 	Create(ctx context.Context, groupInvite GroupInvite) error
 	GetByID(ctx context.Context, id string) (*GroupInvite, error)
+	GetActiveByGroupID(ctx context.Context, groupID string) (*GroupInvite, error)
 }
 
 type GroupInvite struct {

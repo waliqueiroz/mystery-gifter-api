@@ -40,6 +40,33 @@ func (r *groupInviteRepository) Create(ctx context.Context, groupInvite domain.G
 	return nil
 }
 
+func (r *groupInviteRepository) GetActiveByGroupID(ctx context.Context, groupID string) (*domain.GroupInvite, error) {
+	query, args, err := squirrel.Select("*").
+		From("group_invites").
+		Where(squirrel.And{
+			squirrel.Eq{"group_id": groupID},
+			squirrel.Expr("expires_at > NOW()"),
+		}).
+		OrderBy("created_at DESC").
+		Limit(1).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("error building group invite active select query: %w", err)
+	}
+
+	var groupInvite GroupInvite
+	err = r.db.GetContext(ctx, &groupInvite, query, args...)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, domain.NewResourceNotFoundError("no active invite found for this group")
+		}
+		return nil, fmt.Errorf("error getting active group invite: %w", err)
+	}
+
+	return mapGroupInviteToDomain(groupInvite)
+}
+
 func (r *groupInviteRepository) GetByID(ctx context.Context, id string) (*domain.GroupInvite, error) {
 	query, args, err := squirrel.Select("*").
 		From("group_invites").
