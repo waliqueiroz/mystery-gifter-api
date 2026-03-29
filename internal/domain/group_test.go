@@ -17,6 +17,7 @@ func Test_NewGroup(t *testing.T) {
 	t.Run("should create a new group successfully", func(t *testing.T) {
 		// given
 		name := "Test Group"
+		description := "Test Group Description"
 		generatedID := uuid.New().String()
 		owner := build_domain.NewUserBuilder().Build()
 		now := time.Now()
@@ -26,12 +27,13 @@ func Test_NewGroup(t *testing.T) {
 		mockedIdentityGenerator.EXPECT().Generate().Return(generatedID, nil)
 
 		// when
-		group, err := domain.NewGroup(mockedIdentityGenerator, name, owner)
+		group, err := domain.NewGroup(mockedIdentityGenerator, name, description, owner)
 
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, generatedID, group.ID)
 		assert.Equal(t, name, group.Name)
+		assert.Equal(t, description, group.Description)
 		assert.Equal(t, owner.ID, group.OwnerID)
 		assert.Equal(t, []domain.User{owner}, group.Users)
 		assert.Equal(t, domain.GroupStatusOpen, group.Status)
@@ -42,6 +44,7 @@ func Test_NewGroup(t *testing.T) {
 	t.Run("should return error when identity generator fails", func(t *testing.T) {
 		// given
 		name := "Test Group"
+		description := "Test Group Description"
 		owner := build_domain.NewUserBuilder().Build()
 
 		mockCtrl := gomock.NewController(t)
@@ -49,7 +52,7 @@ func Test_NewGroup(t *testing.T) {
 		mockedIdentityGenerator.EXPECT().Generate().Return("", assert.AnError)
 
 		// when
-		group, err := domain.NewGroup(mockedIdentityGenerator, name, owner)
+		group, err := domain.NewGroup(mockedIdentityGenerator, name, description, owner)
 
 		// then
 		assert.Error(t, err)
@@ -60,6 +63,7 @@ func Test_NewGroup(t *testing.T) {
 	t.Run("should return validation error when name is empty", func(t *testing.T) {
 		// given
 		name := ""
+		description := "Test Group Description"
 		owner := build_domain.NewUserBuilder().Build()
 
 		mockCtrl := gomock.NewController(t)
@@ -67,7 +71,7 @@ func Test_NewGroup(t *testing.T) {
 		mockedIdentityGenerator.EXPECT().Generate().Return(uuid.New().String(), nil)
 
 		// when
-		group, err := domain.NewGroup(mockedIdentityGenerator, name, owner)
+		group, err := domain.NewGroup(mockedIdentityGenerator, name, description, owner)
 
 		// then
 		assert.Nil(t, group)

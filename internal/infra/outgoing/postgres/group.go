@@ -7,12 +7,13 @@ import (
 )
 
 type Group struct {
-	ID        string    `db:"id"`
-	Name      string    `db:"name"`
-	OwnerID   string    `db:"owner_id"`
-	Status    string    `db:"status"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	ID          string    `db:"id"`
+	Name        string    `db:"name"`
+	Description string    `db:"description"`
+	OwnerID     string    `db:"owner_id"`
+	Status      string    `db:"status"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
 }
 
 type GroupSummary struct {
@@ -37,14 +38,15 @@ func mapGroupToDomain(group Group, groupUsers []User, matches []Match) (*domain.
 	}
 
 	domainGroup := domain.Group{
-		ID:        group.ID,
-		Name:      group.Name,
-		OwnerID:   group.OwnerID,
-		Users:     domainUsers,
-		Status:    domain.GroupStatus(group.Status),
-		Matches:   domainMatches,
-		CreatedAt: group.CreatedAt,
-		UpdatedAt: group.UpdatedAt,
+		ID:          group.ID,
+		Name:        group.Name,
+		Description: group.Description,
+		OwnerID:     group.OwnerID,
+		Users:       domainUsers,
+		Status:      domain.GroupStatus(group.Status),
+		Matches:     domainMatches,
+		CreatedAt:   group.CreatedAt,
+		UpdatedAt:   group.UpdatedAt,
 	}
 
 	if err := domainGroup.Validate(); err != nil {

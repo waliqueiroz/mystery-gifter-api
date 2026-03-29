@@ -28,14 +28,15 @@ type GroupRepository interface {
 }
 
 type Group struct {
-	ID        string      `validate:"required,uuid"`
-	Name      string      `validate:"required"`
-	Users     []User      `validate:"required,min=1"`
-	OwnerID   string      `validate:"required,uuid"`
-	Matches   []Match     `validate:"dive,omitempty"`
-	Status    GroupStatus `validate:"required,oneof=OPEN MATCHED ARCHIVED"`
-	CreatedAt time.Time   `validate:"required"`
-	UpdatedAt time.Time   `validate:"required"`
+	ID          string      `validate:"required,uuid"`
+	Name        string      `validate:"required"`
+	Description string      `validate:"required"`
+	Users       []User      `validate:"required,min=1"`
+	OwnerID     string      `validate:"required,uuid"`
+	Matches     []Match     `validate:"dive,omitempty"`
+	Status      GroupStatus `validate:"required,oneof=OPEN MATCHED ARCHIVED"`
+	CreatedAt   time.Time   `validate:"required"`
+	UpdatedAt   time.Time   `validate:"required"`
 }
 
 type Match struct {
@@ -51,7 +52,7 @@ func (m *Match) Validate() error {
 	return nil
 }
 
-func NewGroup(identityGenerator IdentityGenerator, name string, owner User) (*Group, error) {
+func NewGroup(identityGenerator IdentityGenerator, name, description string, owner User) (*Group, error) {
 	id, err := identityGenerator.Generate()
 	if err != nil {
 		return nil, err
@@ -60,13 +61,14 @@ func NewGroup(identityGenerator IdentityGenerator, name string, owner User) (*Gr
 	now := time.Now()
 
 	group := &Group{
-		ID:        id,
-		Name:      name,
-		OwnerID:   owner.ID,
-		Users:     []User{owner},
-		Status:    GroupStatusOpen,
-		CreatedAt: now,
-		UpdatedAt: now,
+		ID:          id,
+		Name:        name,
+		Description: description,
+		OwnerID:     owner.ID,
+		Users:       []User{owner},
+		Status:      GroupStatusOpen,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}
 
 	if err := group.Validate(); err != nil {

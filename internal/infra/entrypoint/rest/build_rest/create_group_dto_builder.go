@@ -9,13 +9,19 @@ type CreateGroupDTOBuilder struct {
 func NewCreateGroupDTOBuilder() *CreateGroupDTOBuilder {
 	return &CreateGroupDTOBuilder{
 		createGroupDTO: rest.CreateGroupDTO{
-			Name: "Test Group",
+			Name:        "Test Group",
+			Description: "Test Group Description",
 		},
 	}
 }
 
 func (b *CreateGroupDTOBuilder) WithName(name string) *CreateGroupDTOBuilder {
 	b.createGroupDTO.Name = name
+	return b
+}
+
+func (b *CreateGroupDTOBuilder) WithDescription(description string) *CreateGroupDTOBuilder {
+	b.createGroupDTO.Description = description
 	return b
 }
 

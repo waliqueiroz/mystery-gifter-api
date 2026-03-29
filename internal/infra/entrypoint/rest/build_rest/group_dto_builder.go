@@ -18,14 +18,15 @@ func NewGroupDTOBuilder() *GroupDTOBuilder {
 
 	return &GroupDTOBuilder{
 		groupDTO: rest.GroupDTO{
-			ID:        uuid.NewString(),
-			Name:      "Default Group",
-			Users:     []rest.UserDTO{user},
-			OwnerID:   user.ID,
-			Matches:   []rest.MatchDTO{},
-			Status:    string(domain.GroupStatusOpen),
-			CreatedAt: now,
-			UpdatedAt: now,
+			ID:          uuid.NewString(),
+			Name:        "Default Group",
+			Description: "Test Group Description",
+			Users:       []rest.UserDTO{user},
+			OwnerID:     user.ID,
+			Matches:     []rest.MatchDTO{},
+			Status:      string(domain.GroupStatusOpen),
+			CreatedAt:   now,
+			UpdatedAt:   now,
 		},
 	}
 }
@@ -37,6 +38,11 @@ func (b *GroupDTOBuilder) WithID(id string) *GroupDTOBuilder {
 
 func (b *GroupDTOBuilder) WithName(name string) *GroupDTOBuilder {
 	b.groupDTO.Name = name
+	return b
+}
+
+func (b *GroupDTOBuilder) WithDescription(description string) *GroupDTOBuilder {
+	b.groupDTO.Description = description
 	return b
 }
 

@@ -21,14 +21,14 @@ func Test_groupRepository_Create(t *testing.T) {
 	t.Run("should create group with one user successfully", func(t *testing.T) {
 		// given
 		group := build_domain.NewGroupBuilder().Build()
-		groupInsertQuery := "INSERT INTO groups (id,name,status,owner_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6)"
+		groupInsertQuery := "INSERT INTO groups (id,name,description,status,owner_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7)"
 		groupUsersInsertQuery := "INSERT INTO group_users (group_id,user_id,created_at) VALUES ($1,$2,$3)"
 
 		mockCtrl := gomock.NewController(t)
 		mockedDB := mock_postgres.NewMockDB(mockCtrl)
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), groupInsertQuery, group.ID, group.Name, group.Status, group.OwnerID, group.CreatedAt, group.UpdatedAt).Return(nil, nil)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), groupInsertQuery, group.ID, group.Name, group.Description, group.Status, group.OwnerID, group.CreatedAt, group.UpdatedAt).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), groupUsersInsertQuery, group.ID, group.Users[0].ID, group.CreatedAt).Return(nil, nil)
 		mockedTx.EXPECT().Commit().Return(nil)
 		mockedTx.EXPECT().Rollback().Return(nil)
@@ -48,14 +48,14 @@ func Test_groupRepository_Create(t *testing.T) {
 		user2 := build_domain.NewUserBuilder().Build()
 		group := build_domain.NewGroupBuilder().WithUsers([]domain.User{user1, user2}).Build()
 
-		groupInsertQuery := "INSERT INTO groups (id,name,status,owner_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6)"
+		groupInsertQuery := "INSERT INTO groups (id,name,description,status,owner_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7)"
 		groupUsersInsertQuery := "INSERT INTO group_users (group_id,user_id,created_at) VALUES ($1,$2,$3),($4,$5,$6)"
 
 		mockCtrl := gomock.NewController(t)
 		mockedDB := mock_postgres.NewMockDB(mockCtrl)
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), groupInsertQuery, group.ID, group.Name, group.Status, group.OwnerID, group.CreatedAt, group.UpdatedAt).Return(nil, nil)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), groupInsertQuery, group.ID, group.Name, group.Description, group.Status, group.OwnerID, group.CreatedAt, group.UpdatedAt).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(
 			gomock.Any(),
 			groupUsersInsertQuery,
@@ -80,7 +80,7 @@ func Test_groupRepository_Create(t *testing.T) {
 		match2 := build_domain.NewMatchBuilder().Build()
 		group := build_domain.NewGroupBuilder().WithMatches([]domain.Match{match1, match2}).Build()
 
-		groupInsertQuery := "INSERT INTO groups (id,name,status,owner_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6)"
+		groupInsertQuery := "INSERT INTO groups (id,name,description,status,owner_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7)"
 		groupUsersInsertQuery := "INSERT INTO group_users (group_id,user_id,created_at) VALUES ($1,$2,$3)"
 		groupMatchesInsertQuery := "INSERT INTO group_matches (group_id,giver_id,receiver_id,created_at) VALUES ($1,$2,$3,$4),($5,$6,$7,$8)"
 
@@ -88,7 +88,7 @@ func Test_groupRepository_Create(t *testing.T) {
 		mockedDB := mock_postgres.NewMockDB(mockCtrl)
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), groupInsertQuery, group.ID, group.Name, group.Status, group.OwnerID, group.CreatedAt, group.UpdatedAt).Return(nil, nil)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), groupInsertQuery, group.ID, group.Name, group.Description, group.Status, group.OwnerID, group.CreatedAt, group.UpdatedAt).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), groupUsersInsertQuery, group.ID, group.Users[0].ID, group.CreatedAt).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(
 			gomock.Any(),
@@ -113,7 +113,7 @@ func Test_groupRepository_Create(t *testing.T) {
 		match1 := build_domain.NewMatchBuilder().Build()
 		group := build_domain.NewGroupBuilder().WithMatches([]domain.Match{match1}).Build()
 
-		groupInsertQuery := "INSERT INTO groups (id,name,status,owner_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6)"
+		groupInsertQuery := "INSERT INTO groups (id,name,description,status,owner_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7)"
 		groupUsersInsertQuery := "INSERT INTO group_users (group_id,user_id,created_at) VALUES ($1,$2,$3)"
 		groupMatchesInsertQuery := "INSERT INTO group_matches (group_id,giver_id,receiver_id,created_at) VALUES ($1,$2,$3,$4)"
 
@@ -122,7 +122,7 @@ func Test_groupRepository_Create(t *testing.T) {
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), groupInsertQuery, group.ID, group.Name, group.Status, group.OwnerID, group.CreatedAt, group.UpdatedAt).Return(nil, nil)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), groupInsertQuery, group.ID, group.Name, group.Description, group.Status, group.OwnerID, group.CreatedAt, group.UpdatedAt).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), groupUsersInsertQuery, group.ID, group.Users[0].ID, group.CreatedAt).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(
 			gomock.Any(),
@@ -165,14 +165,14 @@ func Test_groupRepository_Create(t *testing.T) {
 		postgresUniqueViolationError := &pq.Error{Code: pq.ErrorCode("23505")}
 
 		group := build_domain.NewGroupBuilder().Build()
-		groupInsertQuery := "INSERT INTO groups (id,name,status,owner_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6)"
+		groupInsertQuery := "INSERT INTO groups (id,name,description,status,owner_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7)"
 
 		mockCtrl := gomock.NewController(t)
 		mockedDB := mock_postgres.NewMockDB(mockCtrl)
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), groupInsertQuery, group.ID, group.Name, group.Status, group.OwnerID, group.CreatedAt, group.UpdatedAt).Return(nil, postgresUniqueViolationError)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), groupInsertQuery, group.ID, group.Name, group.Description, group.Status, group.OwnerID, group.CreatedAt, group.UpdatedAt).Return(nil, postgresUniqueViolationError)
 		mockedTx.EXPECT().Rollback().Return(nil)
 
 		groupRepository := postgres.NewGroupRepository(mockedDB)
@@ -190,7 +190,7 @@ func Test_groupRepository_Create(t *testing.T) {
 	t.Run("should return error when fail to insert group users", func(t *testing.T) {
 		// given
 		group := build_domain.NewGroupBuilder().Build()
-		groupInsertQuery := "INSERT INTO groups (id,name,status,owner_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6)"
+		groupInsertQuery := "INSERT INTO groups (id,name,description,status,owner_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7)"
 		groupUsersInsertQuery := "INSERT INTO group_users (group_id,user_id,created_at) VALUES ($1,$2,$3)"
 
 		mockCtrl := gomock.NewController(t)
@@ -198,7 +198,7 @@ func Test_groupRepository_Create(t *testing.T) {
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), groupInsertQuery, group.ID, group.Name, group.Status, group.OwnerID, group.CreatedAt, group.UpdatedAt).Return(nil, nil)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), groupInsertQuery, group.ID, group.Name, group.Description, group.Status, group.OwnerID, group.CreatedAt, group.UpdatedAt).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), groupUsersInsertQuery, group.ID, group.Users[0].ID, group.CreatedAt).Return(nil, assert.AnError)
 		mockedTx.EXPECT().Rollback().Return(nil)
 
@@ -215,7 +215,7 @@ func Test_groupRepository_Create(t *testing.T) {
 	t.Run("should return error when fail to commit transaction", func(t *testing.T) {
 		// given
 		group := build_domain.NewGroupBuilder().Build()
-		groupInsertQuery := "INSERT INTO groups (id,name,status,owner_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6)"
+		groupInsertQuery := "INSERT INTO groups (id,name,description,status,owner_id,created_at,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7)"
 		groupUsersInsertQuery := "INSERT INTO group_users (group_id,user_id,created_at) VALUES ($1,$2,$3)"
 
 		mockCtrl := gomock.NewController(t)
@@ -223,7 +223,7 @@ func Test_groupRepository_Create(t *testing.T) {
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), groupInsertQuery, group.ID, group.Name, group.Status, group.OwnerID, group.CreatedAt, group.UpdatedAt).Return(nil, nil)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), groupInsertQuery, group.ID, group.Name, group.Description, group.Status, group.OwnerID, group.CreatedAt, group.UpdatedAt).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), groupUsersInsertQuery, group.ID, group.Users[0].ID, group.CreatedAt).Return(nil, nil)
 		mockedTx.EXPECT().Commit().Return(assert.AnError)
 		mockedTx.EXPECT().Rollback().Return(nil)
@@ -243,7 +243,7 @@ func Test_groupRepository_Update(t *testing.T) {
 	t.Run("should update group with one user successfully", func(t *testing.T) {
 		// given
 		group := build_domain.NewGroupBuilder().Build()
-		updateGroupQuery := "UPDATE groups SET name = $1, status = $2, updated_at = $3 WHERE id = $4"
+		updateGroupQuery := "UPDATE groups SET name = $1, description = $2, status = $3, updated_at = $4 WHERE id = $5"
 		deleteUsersQuery := "DELETE FROM group_users WHERE group_id = $1"
 		insertUsersQuery := "INSERT INTO group_users (group_id,user_id,created_at) VALUES ($1,$2,$3)"
 		deleteMatchesQuery := "DELETE FROM group_matches WHERE group_id = $1"
@@ -254,7 +254,7 @@ func Test_groupRepository_Update(t *testing.T) {
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Description, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), deleteUsersQuery, group.ID).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), insertUsersQuery, group.ID, group.Users[0].ID, group.UpdatedAt).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), deleteMatchesQuery, group.ID).Return(nil, nil)
@@ -276,7 +276,7 @@ func Test_groupRepository_Update(t *testing.T) {
 		user2 := build_domain.NewUserBuilder().Build()
 		group := build_domain.NewGroupBuilder().WithUsers([]domain.User{user1, user2}).Build()
 
-		updateGroupQuery := "UPDATE groups SET name = $1, status = $2, updated_at = $3 WHERE id = $4"
+		updateGroupQuery := "UPDATE groups SET name = $1, description = $2, status = $3, updated_at = $4 WHERE id = $5"
 		deleteUsersQuery := "DELETE FROM group_users WHERE group_id = $1"
 		insertUsersQuery := "INSERT INTO group_users (group_id,user_id,created_at) VALUES ($1,$2,$3),($4,$5,$6)"
 		deleteMatchesQuery := "DELETE FROM group_matches WHERE group_id = $1"
@@ -287,7 +287,7 @@ func Test_groupRepository_Update(t *testing.T) {
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Description, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), deleteUsersQuery, group.ID).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(
 			gomock.Any(),
@@ -314,7 +314,7 @@ func Test_groupRepository_Update(t *testing.T) {
 		match2 := build_domain.NewMatchBuilder().Build()
 		group := build_domain.NewGroupBuilder().WithMatches([]domain.Match{match1, match2}).Build()
 
-		updateGroupQuery := "UPDATE groups SET name = $1, status = $2, updated_at = $3 WHERE id = $4"
+		updateGroupQuery := "UPDATE groups SET name = $1, description = $2, status = $3, updated_at = $4 WHERE id = $5"
 		deleteUsersQuery := "DELETE FROM group_users WHERE group_id = $1"
 		insertUsersQuery := "INSERT INTO group_users (group_id,user_id,created_at) VALUES ($1,$2,$3)"
 		deleteMatchesQuery := "DELETE FROM group_matches WHERE group_id = $1"
@@ -326,7 +326,7 @@ func Test_groupRepository_Update(t *testing.T) {
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Description, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), deleteUsersQuery, group.ID).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), insertUsersQuery, group.ID, group.Users[0].ID, group.UpdatedAt).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), deleteMatchesQuery, group.ID).Return(nil, nil)
@@ -370,7 +370,7 @@ func Test_groupRepository_Update(t *testing.T) {
 	t.Run("should return not found error when group does not exist", func(t *testing.T) {
 		// given
 		group := build_domain.NewGroupBuilder().Build()
-		updateGroupQuery := "UPDATE groups SET name = $1, status = $2, updated_at = $3 WHERE id = $4"
+		updateGroupQuery := "UPDATE groups SET name = $1, description = $2, status = $3, updated_at = $4 WHERE id = $5"
 		result := driver.RowsAffected(0)
 
 		mockCtrl := gomock.NewController(t)
@@ -378,7 +378,7 @@ func Test_groupRepository_Update(t *testing.T) {
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Description, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
 		mockedTx.EXPECT().Rollback().Return(nil)
 
 		groupRepository := postgres.NewGroupRepository(mockedDB)
@@ -396,7 +396,7 @@ func Test_groupRepository_Update(t *testing.T) {
 	t.Run("should return conflict error when group name already exists", func(t *testing.T) {
 		// given
 		group := build_domain.NewGroupBuilder().Build()
-		updateGroupQuery := "UPDATE groups SET name = $1, status = $2, updated_at = $3 WHERE id = $4"
+		updateGroupQuery := "UPDATE groups SET name = $1, description = $2, status = $3, updated_at = $4 WHERE id = $5"
 		postgresUniqueViolationError := &pq.Error{Code: pq.ErrorCode("23505")}
 
 		mockCtrl := gomock.NewController(t)
@@ -404,7 +404,7 @@ func Test_groupRepository_Update(t *testing.T) {
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Status, group.UpdatedAt, group.ID).Return(nil, postgresUniqueViolationError)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Description, group.Status, group.UpdatedAt, group.ID).Return(nil, postgresUniqueViolationError)
 		mockedTx.EXPECT().Rollback().Return(nil)
 
 		groupRepository := postgres.NewGroupRepository(mockedDB)
@@ -422,14 +422,14 @@ func Test_groupRepository_Update(t *testing.T) {
 	t.Run("should return error when fail to update group", func(t *testing.T) {
 		// given
 		group := build_domain.NewGroupBuilder().Build()
-		updateGroupQuery := "UPDATE groups SET name = $1, status = $2, updated_at = $3 WHERE id = $4"
+		updateGroupQuery := "UPDATE groups SET name = $1, description = $2, status = $3, updated_at = $4 WHERE id = $5"
 
 		mockCtrl := gomock.NewController(t)
 		mockedDB := mock_postgres.NewMockDB(mockCtrl)
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Status, group.UpdatedAt, group.ID).Return(nil, assert.AnError)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Description, group.Status, group.UpdatedAt, group.ID).Return(nil, assert.AnError)
 		mockedTx.EXPECT().Rollback().Return(nil)
 
 		groupRepository := postgres.NewGroupRepository(mockedDB)
@@ -445,7 +445,7 @@ func Test_groupRepository_Update(t *testing.T) {
 	t.Run("should return error when fail to delete group users", func(t *testing.T) {
 		// given
 		group := build_domain.NewGroupBuilder().Build()
-		updateGroupQuery := "UPDATE groups SET name = $1, status = $2, updated_at = $3 WHERE id = $4"
+		updateGroupQuery := "UPDATE groups SET name = $1, description = $2, status = $3, updated_at = $4 WHERE id = $5"
 		deleteUsersQuery := "DELETE FROM group_users WHERE group_id = $1"
 		result := driver.RowsAffected(1)
 
@@ -454,7 +454,7 @@ func Test_groupRepository_Update(t *testing.T) {
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Description, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), deleteUsersQuery, group.ID).Return(nil, assert.AnError)
 		mockedTx.EXPECT().Rollback().Return(nil)
 
@@ -471,7 +471,7 @@ func Test_groupRepository_Update(t *testing.T) {
 	t.Run("should return error when fail to insert group users", func(t *testing.T) {
 		// given
 		group := build_domain.NewGroupBuilder().Build()
-		updateGroupQuery := "UPDATE groups SET name = $1, status = $2, updated_at = $3 WHERE id = $4"
+		updateGroupQuery := "UPDATE groups SET name = $1, description = $2, status = $3, updated_at = $4 WHERE id = $5"
 		deleteUsersQuery := "DELETE FROM group_users WHERE group_id = $1"
 		insertUsersQuery := "INSERT INTO group_users (group_id,user_id,created_at) VALUES ($1,$2,$3)"
 		result := driver.RowsAffected(1)
@@ -481,7 +481,7 @@ func Test_groupRepository_Update(t *testing.T) {
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Description, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), deleteUsersQuery, group.ID).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), insertUsersQuery, group.ID, group.Users[0].ID, group.UpdatedAt).Return(nil, assert.AnError)
 		mockedTx.EXPECT().Rollback().Return(nil)
@@ -499,7 +499,7 @@ func Test_groupRepository_Update(t *testing.T) {
 	t.Run("should return error when fail to commit transaction", func(t *testing.T) {
 		// given
 		group := build_domain.NewGroupBuilder().Build()
-		updateGroupQuery := "UPDATE groups SET name = $1, status = $2, updated_at = $3 WHERE id = $4"
+		updateGroupQuery := "UPDATE groups SET name = $1, description = $2, status = $3, updated_at = $4 WHERE id = $5"
 		deleteUsersQuery := "DELETE FROM group_users WHERE group_id = $1"
 		insertUsersQuery := "INSERT INTO group_users (group_id,user_id,created_at) VALUES ($1,$2,$3)"
 		deleteMatchesQuery := "DELETE FROM group_matches WHERE group_id = $1"
@@ -510,7 +510,7 @@ func Test_groupRepository_Update(t *testing.T) {
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Description, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), deleteUsersQuery, group.ID).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), insertUsersQuery, group.ID, group.Users[0].ID, group.UpdatedAt).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), deleteMatchesQuery, group.ID).Return(nil, nil)
@@ -530,7 +530,7 @@ func Test_groupRepository_Update(t *testing.T) {
 	t.Run("should return error when fail to delete group matches", func(t *testing.T) {
 		// given
 		group := build_domain.NewGroupBuilder().Build()
-		updateGroupQuery := "UPDATE groups SET name = $1, status = $2, updated_at = $3 WHERE id = $4"
+		updateGroupQuery := "UPDATE groups SET name = $1, description = $2, status = $3, updated_at = $4 WHERE id = $5"
 		deleteUsersQuery := "DELETE FROM group_users WHERE group_id = $1"
 		insertUsersQuery := "INSERT INTO group_users (group_id,user_id,created_at) VALUES ($1,$2,$3)"
 		deleteMatchesQuery := "DELETE FROM group_matches WHERE group_id = $1"
@@ -541,7 +541,7 @@ func Test_groupRepository_Update(t *testing.T) {
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Description, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), deleteUsersQuery, group.ID).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), insertUsersQuery, group.ID, group.Users[0].ID, group.UpdatedAt).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), deleteMatchesQuery, group.ID).Return(nil, assert.AnError)
@@ -562,7 +562,7 @@ func Test_groupRepository_Update(t *testing.T) {
 		match1 := build_domain.NewMatchBuilder().Build()
 		group := build_domain.NewGroupBuilder().WithMatches([]domain.Match{match1}).Build()
 
-		updateGroupQuery := "UPDATE groups SET name = $1, status = $2, updated_at = $3 WHERE id = $4"
+		updateGroupQuery := "UPDATE groups SET name = $1, description = $2, status = $3, updated_at = $4 WHERE id = $5"
 		deleteUsersQuery := "DELETE FROM group_users WHERE group_id = $1"
 		insertUsersQuery := "INSERT INTO group_users (group_id,user_id,created_at) VALUES ($1,$2,$3)"
 		deleteMatchesQuery := "DELETE FROM group_matches WHERE group_id = $1"
@@ -574,7 +574,7 @@ func Test_groupRepository_Update(t *testing.T) {
 		mockedTx := mock_postgres.NewMockTX(mockCtrl)
 
 		mockedDB.EXPECT().BeginTxx(gomock.Any(), nil).Return(mockedTx, nil)
-		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
+		mockedTx.EXPECT().ExecContext(gomock.Any(), updateGroupQuery, group.Name, group.Description, group.Status, group.UpdatedAt, group.ID).Return(result, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), deleteUsersQuery, group.ID).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), insertUsersQuery, group.ID, group.Users[0].ID, group.UpdatedAt).Return(nil, nil)
 		mockedTx.EXPECT().ExecContext(gomock.Any(), deleteMatchesQuery, group.ID).Return(nil, nil)

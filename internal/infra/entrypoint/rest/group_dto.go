@@ -14,6 +14,11 @@ type CreateGroupDTO struct {
 	// required: true
 	// example: Secret Santa 2024
 	Name string `json:"name" validate:"required"`
+
+	// Group description
+	// required: true
+	// example: A group for our annual Secret Santa event
+	Description string `json:"description" validate:"required"`
 }
 
 func (g *CreateGroupDTO) Validate() error {
@@ -35,6 +40,11 @@ type GroupDTO struct {
 	// required: true
 	// example: Secret Santa 2024
 	Name string `json:"name" validate:"required"`
+
+	// Group description
+	// required: true
+	// example: A group for our annual Secret Santa event
+	Description string `json:"description" validate:"required"`
 
 	// List of users in the group
 	// required: true
@@ -131,14 +141,15 @@ func mapGroupFromDomain(group domain.Group) (*GroupDTO, error) {
 	}
 
 	groupDTO := GroupDTO{
-		ID:        group.ID,
-		Name:      group.Name,
-		Users:     users,
-		OwnerID:   group.OwnerID,
-		Matches:   matches,
-		Status:    string(group.Status),
-		CreatedAt: group.CreatedAt,
-		UpdatedAt: group.UpdatedAt,
+		ID:          group.ID,
+		Name:        group.Name,
+		Description: group.Description,
+		Users:       users,
+		OwnerID:     group.OwnerID,
+		Matches:     matches,
+		Status:      string(group.Status),
+		CreatedAt:   group.CreatedAt,
+		UpdatedAt:   group.UpdatedAt,
 	}
 
 	if err := groupDTO.Validate(); err != nil {

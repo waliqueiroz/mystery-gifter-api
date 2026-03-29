@@ -37,7 +37,7 @@ func (c *GroupController) Create(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	group, err := c.groupService.Create(ctx.Context(), createGroupDTO.Name, authUserID)
+	group, err := c.groupService.Create(ctx.Context(), createGroupDTO.Name, createGroupDTO.Description, authUserID)
 	if err != nil {
 		return err
 	}

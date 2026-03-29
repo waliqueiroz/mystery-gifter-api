@@ -72,18 +72,18 @@ func (mr *MockGroupServiceMockRecorder) Archive(ctx, groupID, requesterID any) *
 }
 
 // Create mocks base method.
-func (m *MockGroupService) Create(ctx context.Context, name, ownerID string) (*domain.Group, error) {
+func (m *MockGroupService) Create(ctx context.Context, name, description, ownerID string) (*domain.Group, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, name, ownerID)
+	ret := m.ctrl.Call(m, "Create", ctx, name, description, ownerID)
 	ret0, _ := ret[0].(*domain.Group)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockGroupServiceMockRecorder) Create(ctx, name, ownerID any) *gomock.Call {
+func (mr *MockGroupServiceMockRecorder) Create(ctx, name, description, ownerID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockGroupService)(nil).Create), ctx, name, ownerID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockGroupService)(nil).Create), ctx, name, description, ownerID)
 }
 
 // GenerateMatches mocks base method.

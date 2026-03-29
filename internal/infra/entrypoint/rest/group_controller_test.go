@@ -28,7 +28,7 @@ func Test_GroupController_Create(t *testing.T) {
 		createGroupDTO := build_rest.NewCreateGroupDTOBuilder().Build()
 
 		user := build_domain.NewUserBuilder().WithID(authUserID).Build()
-		group := build_domain.NewGroupBuilder().WithName(createGroupDTO.Name).WithOwnerID(user.ID).WithUsers([]domain.User{user}).Build()
+		group := build_domain.NewGroupBuilder().WithName(createGroupDTO.Name).WithDescription(createGroupDTO.Description).WithOwnerID(user.ID).WithUsers([]domain.User{user}).Build()
 
 		mockCtrl := gomock.NewController(t)
 
@@ -36,7 +36,7 @@ func Test_GroupController_Create(t *testing.T) {
 		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
 
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
-		mockedGroupService.EXPECT().Create(gomock.Any(), createGroupDTO.Name, authUserID).Return(&group, nil)
+		mockedGroupService.EXPECT().Create(gomock.Any(), createGroupDTO.Name, createGroupDTO.Description, authUserID).Return(&group, nil)
 
 		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
@@ -71,6 +71,7 @@ func Test_GroupController_Create(t *testing.T) {
 		expectedGroupDTO := build_rest.NewGroupDTOBuilder().
 			WithID(group.ID).
 			WithName(group.Name).
+			WithDescription(group.Description).
 			WithUsers([]rest.UserDTO{expectedUserDTO}).
 			WithOwnerID(group.OwnerID).
 			WithStatus(string(group.Status)).
@@ -190,7 +191,7 @@ func Test_GroupController_Create(t *testing.T) {
 		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
 
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
-		mockedGroupService.EXPECT().Create(gomock.Any(), createGroupDTO.Name, authUserID).Return(nil, assert.AnError)
+		mockedGroupService.EXPECT().Create(gomock.Any(), createGroupDTO.Name, createGroupDTO.Description, authUserID).Return(nil, assert.AnError)
 
 		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
@@ -232,7 +233,7 @@ func Test_GroupController_Create(t *testing.T) {
 		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
 
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
-		mockedGroupService.EXPECT().Create(gomock.Any(), createGroupDTO.Name, authUserID).Return(&group, nil)
+		mockedGroupService.EXPECT().Create(gomock.Any(), createGroupDTO.Name, createGroupDTO.Description, authUserID).Return(&group, nil)
 
 		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
@@ -310,6 +311,7 @@ func Test_GroupController_GetByID(t *testing.T) {
 		expectedGroupDTO := build_rest.NewGroupDTOBuilder().
 			WithID(group.ID).
 			WithName(group.Name).
+			WithDescription(group.Description).
 			WithUsers([]rest.UserDTO{expectedUserDTO}).
 			WithOwnerID(group.OwnerID).
 			WithStatus(string(group.Status)).
@@ -446,6 +448,7 @@ func Test_GroupController_AddUser(t *testing.T) {
 		expectedGroupDTO := build_rest.NewGroupDTOBuilder().
 			WithID(group.ID).
 			WithName(group.Name).
+			WithDescription(group.Description).
 			WithUsers([]rest.UserDTO{expectedUserDTO}).
 			WithOwnerID(group.OwnerID).
 			WithStatus(string(group.Status)).
@@ -698,6 +701,7 @@ func Test_GroupController_RemoveUser(t *testing.T) {
 		expectedGroupDTO := build_rest.NewGroupDTOBuilder().
 			WithID(group.ID).
 			WithName(group.Name).
+			WithDescription(group.Description).
 			WithUsers([]rest.UserDTO{expectedUserDTO}).
 			WithOwnerID(group.OwnerID).
 			WithStatus(string(group.Status)).
@@ -889,6 +893,7 @@ func Test_GroupController_GenerateMatches(t *testing.T) {
 		expectedGroupDTO := build_rest.NewGroupDTOBuilder().
 			WithID(group.ID).
 			WithName(group.Name).
+			WithDescription(group.Description).
 			WithUsers([]rest.UserDTO{expectedGiverDTO, expectedReceiverDTO}).
 			WithOwnerID(group.OwnerID).
 			WithMatches([]rest.MatchDTO{expectedMatchDTO}).
@@ -1225,6 +1230,7 @@ func Test_GroupController_Reopen(t *testing.T) {
 		expectedGroupDTO := build_rest.NewGroupDTOBuilder().
 			WithID(reopenedGroup.ID).
 			WithName(reopenedGroup.Name).
+			WithDescription(reopenedGroup.Description).
 			WithUsers([]rest.UserDTO{expectedUserDTO}).
 			WithOwnerID(reopenedGroup.OwnerID).
 			WithStatus(string(reopenedGroup.Status)).
@@ -1353,6 +1359,7 @@ func Test_GroupController_Archive(t *testing.T) {
 		expectedGroupDTO := build_rest.NewGroupDTOBuilder().
 			WithID(archivedGroup.ID).
 			WithName(archivedGroup.Name).
+			WithDescription(archivedGroup.Description).
 			WithUsers([]rest.UserDTO{expectedUserDTO}).
 			WithOwnerID(archivedGroup.OwnerID).
 			WithStatus(string(archivedGroup.Status)).

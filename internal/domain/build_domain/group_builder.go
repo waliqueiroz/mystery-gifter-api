@@ -17,13 +17,14 @@ func NewGroupBuilder() *GroupBuilder {
 
 	return &GroupBuilder{
 		group: domain.Group{
-			ID:        uuid.New().String(),
-			Name:      "Test Group",
-			Users:     []domain.User{user},
-			Status:    domain.GroupStatusOpen,
-			OwnerID:   user.ID,
-			CreatedAt: now,
-			UpdatedAt: now,
+			ID:          uuid.New().String(),
+			Name:        "Test Group",
+			Description: "Test Group Description",
+			Users:       []domain.User{user},
+			Status:      domain.GroupStatusOpen,
+			OwnerID:     user.ID,
+			CreatedAt:   now,
+			UpdatedAt:   now,
 		},
 	}
 }
@@ -35,6 +36,11 @@ func (b *GroupBuilder) WithID(id string) *GroupBuilder {
 
 func (b *GroupBuilder) WithName(name string) *GroupBuilder {
 	b.group.Name = name
+	return b
+}
+
+func (b *GroupBuilder) WithDescription(description string) *GroupBuilder {
+	b.group.Description = description
 	return b
 }
 

@@ -20,9 +20,10 @@ func Test_groupService_Create(t *testing.T) {
 	t.Run("should create group successfully", func(t *testing.T) {
 		// given
 		name := "Test Group"
+		description := "Test Group Description"
 		owner := build_domain.NewUserBuilder().Build()
 		ownerID := owner.ID
-		expectedGroup := build_domain.NewGroupBuilder().WithName(name).WithOwnerID(ownerID).WithUsers([]domain.User{owner}).Build()
+		expectedGroup := build_domain.NewGroupBuilder().WithName(name).WithDescription(description).WithOwnerID(ownerID).WithUsers([]domain.User{owner}).Build()
 
 		mockCtrl := gomock.NewController(t)
 
@@ -38,6 +39,7 @@ func Test_groupService_Create(t *testing.T) {
 			group.UpdatedAt = expectedGroup.UpdatedAt
 			assert.Equal(t, expectedGroup.ID, group.ID)
 			assert.Equal(t, expectedGroup.Name, group.Name)
+			assert.Equal(t, expectedGroup.Description, group.Description)
 			assert.Equal(t, expectedGroup.OwnerID, group.OwnerID)
 			assert.ElementsMatch(t, expectedGroup.Users, group.Users)
 			assert.Equal(t, expectedGroup.Status, group.Status)
@@ -48,12 +50,13 @@ func Test_groupService_Create(t *testing.T) {
 		groupService := application.NewGroupService(mockedGroupRepository, mockedUserService, mockedIdentityGenerator)
 
 		// when
-		result, err := groupService.Create(context.Background(), name, ownerID)
+		result, err := groupService.Create(context.Background(), name, description, ownerID)
 
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, expectedGroup.ID, result.ID)
 		assert.Equal(t, expectedGroup.Name, result.Name)
+		assert.Equal(t, expectedGroup.Description, result.Description)
 		assert.Equal(t, expectedGroup.OwnerID, result.OwnerID)
 		assert.Equal(t, expectedGroup.Users, result.Users)
 	})
@@ -61,6 +64,7 @@ func Test_groupService_Create(t *testing.T) {
 	t.Run("should return validation error when name is empty", func(t *testing.T) {
 		// given
 		name := ""
+		description := "Test Group Description"
 		owner := build_domain.NewUserBuilder().Build()
 		ownerID := owner.ID
 		expectedGroup := build_domain.NewGroupBuilder().WithName(name).WithOwnerID(ownerID).WithUsers([]domain.User{owner}).Build()
@@ -76,7 +80,7 @@ func Test_groupService_Create(t *testing.T) {
 		groupService := application.NewGroupService(nil, mockedUserService, mockedIdentityGenerator)
 
 		// when
-		result, err := groupService.Create(context.Background(), name, ownerID)
+		result, err := groupService.Create(context.Background(), name, description, ownerID)
 
 		// then
 		assert.Nil(t, result)
@@ -91,6 +95,7 @@ func Test_groupService_Create(t *testing.T) {
 	t.Run("should return error when fails to get owner", func(t *testing.T) {
 		// given
 		name := "Test Group"
+		description := "Test Group Description"
 		ownerID := "invalid-id"
 
 		mockCtrl := gomock.NewController(t)
@@ -101,7 +106,7 @@ func Test_groupService_Create(t *testing.T) {
 		groupService := application.NewGroupService(nil, mockedUserService, nil)
 
 		// when
-		result, err := groupService.Create(context.Background(), name, ownerID)
+		result, err := groupService.Create(context.Background(), name, description, ownerID)
 
 		// then
 		assert.Nil(t, result)
@@ -112,6 +117,7 @@ func Test_groupService_Create(t *testing.T) {
 	t.Run("should return error when fails to generate ID", func(t *testing.T) {
 		// given
 		name := "Test Group"
+		description := "Test Group Description"
 		owner := build_domain.NewUserBuilder().Build()
 		ownerID := owner.ID
 
@@ -126,7 +132,7 @@ func Test_groupService_Create(t *testing.T) {
 		groupService := application.NewGroupService(nil, mockedUserService, mockedIdentityGenerator)
 
 		// when
-		result, err := groupService.Create(context.Background(), name, ownerID)
+		result, err := groupService.Create(context.Background(), name, description, ownerID)
 
 		// then
 		assert.Nil(t, result)
@@ -137,9 +143,10 @@ func Test_groupService_Create(t *testing.T) {
 	t.Run("should return error when fails to create group", func(t *testing.T) {
 		// given
 		name := "Test Group"
+		description := "Test Group Description"
 		owner := build_domain.NewUserBuilder().Build()
 		ownerID := owner.ID
-		expectedGroup := build_domain.NewGroupBuilder().WithName(name).WithOwnerID(ownerID).WithUsers([]domain.User{owner}).Build()
+		expectedGroup := build_domain.NewGroupBuilder().WithName(name).WithDescription(description).WithOwnerID(ownerID).WithUsers([]domain.User{owner}).Build()
 
 		mockCtrl := gomock.NewController(t)
 
@@ -155,7 +162,7 @@ func Test_groupService_Create(t *testing.T) {
 		groupService := application.NewGroupService(mockedGroupRepository, mockedUserService, mockedIdentityGenerator)
 
 		// when
-		result, err := groupService.Create(context.Background(), name, ownerID)
+		result, err := groupService.Create(context.Background(), name, description, ownerID)
 
 		// then
 		assert.Nil(t, result)

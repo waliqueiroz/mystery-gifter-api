@@ -45,6 +45,11 @@ definitions:
     CreateGroupDTO:
         description: CreateGroupDTO represents the data needed to create a new group
         properties:
+            description:
+                description: Group description
+                example: A group for our annual Secret Santa event
+                type: string
+                x-go-name: Description
             name:
                 description: Group name
                 example: Secret Santa 2024
@@ -52,6 +57,7 @@ definitions:
                 x-go-name: Name
         required:
             - name
+            - description
         type: object
         x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
     CreateUserDTO:
@@ -118,6 +124,11 @@ definitions:
                 format: date-time
                 type: string
                 x-go-name: CreatedAt
+            description:
+                description: Group description
+                example: A group for our annual Secret Santa event
+                type: string
+                x-go-name: Description
             id:
                 description: Unique group identifier
                 example: 01234567-89ab-cdef-0123-456789abcdef
@@ -163,6 +174,7 @@ definitions:
         required:
             - id
             - name
+            - description
             - users
             - owner_id
             - status

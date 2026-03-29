@@ -9,7 +9,7 @@ import (
 )
 
 type GroupService interface {
-	Create(ctx context.Context, name, ownerID string) (*domain.Group, error)
+	Create(ctx context.Context, name, description, ownerID string) (*domain.Group, error)
 	GetByID(ctx context.Context, groupID string) (*domain.Group, error)
 	Search(ctx context.Context, filters domain.GroupFilters) (*domain.SearchResult[domain.GroupSummary], error)
 	AddUser(ctx context.Context, groupID, requesterID, targetUserID string) (*domain.Group, error)
@@ -38,13 +38,13 @@ func NewGroupService(
 	}
 }
 
-func (s *groupService) Create(ctx context.Context, name, ownerID string) (*domain.Group, error) {
+func (s *groupService) Create(ctx context.Context, name, description, ownerID string) (*domain.Group, error) {
 	owner, err := s.userService.GetByID(ctx, ownerID)
 	if err != nil {
 		return nil, err
 	}
 
-	group, err := domain.NewGroup(s.identityGenerator, name, *owner)
+	group, err := domain.NewGroup(s.identityGenerator, name, description, *owner)
 	if err != nil {
 		return nil, err
 	}
