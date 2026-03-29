@@ -98,6 +98,22 @@ func (g *Group) IsArchived() bool {
 	return g.Status == GroupStatusArchived
 }
 
+func (g *Group) IsMember(userID string) bool {
+	for _, user := range g.Users {
+		if user.ID == userID {
+			return true
+		}
+	}
+	return false
+}
+
+func (g *Group) CanView(requesterID string) error {
+	if !g.IsMember(requesterID) {
+		return NewForbiddenError("user is not a member of this group")
+	}
+	return nil
+}
+
 func (g *Group) CanCreateInvite(requesterID string) error {
 	if requesterID != g.OwnerID {
 		return NewForbiddenError("only the group owner can create invites")
