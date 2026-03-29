@@ -40,42 +40,9 @@ Clean Architecture with three main layers:
 
 **Key stack:** Fiber v2, PostgreSQL, sqlx, squirrel (query builder), golang-migrate, golang-jwt, go-playground/validator, gomock (uber), go-swagger.
 
-## Coding Conventions
-
-### Services (`internal/application/`)
-- Define a public interface `XService` with a `//go:generate mockgen` directive
-- Implement with unexported struct `xService`
-- Constructor: `NewXService(...) XService`
-- All methods take `context.Context` as the first parameter
-- Call `entity.Validate()` before any business logic
-- Mocks go in `mock_application/`
-
-### Controllers (`internal/infra/entrypoint/rest/`)
-- Named `XController` with constructor `NewXController`
-- Handler signature: `func (c *XController) Method(ctx *fiber.Ctx) error`
-- Parse body → validate DTO → map to domain → call service → map to response DTO → return JSON
-- Return `fiber.NewError(fiber.StatusUnprocessableEntity)` on parse failure, propagate other errors directly
-- No business logic in controllers
-
-### Repositories (`internal/infra/outgoing/postgres/`)
-- Unexported struct `xRepository`, constructor `NewXRepository(db DB) domain.XRepository`
-- Use `squirrel` with `PlaceholderFormat(squirrel.Dollar)` for all queries
-- `ExecContext` for writes, `GetContext` for single row, `SelectContext` for multiple rows
-- Map `sql.ErrNoRows` → `domain.NewResourceNotFoundError`
-- Map `pq.Error` unique violation → `domain.NewConflictError`
-- Use transactions (`BeginTxx`/`defer tx.Rollback()`/`Commit`) for multi-step operations
-- Mocks go in `mock_postgres/`
-
-### Mapper functions
-- `mapXTo<Dest>` or `mapXFrom<Origin>` naming
-- Keep them private and in the same file as the type they serve
-
-### Tests
-- Pattern: `Test_<Type>_<Method>` with `t.Run("should ... when ...", ...)`
-- Three phases annotated with comments: `// given`, `// when`, `// then`
-- One `gomock.Controller` per subtest for isolation
-- Use builders from `build_domain/`, `build_postgres/`, `build_rest/` subdirectories
-- `testify/assert` for all assertions; always check both the error and the result
+## Working Protocol
+- For files >100 lines or complex changes: outline the plan before editing
+- Challenge decisions and bring alternative perspectives when there's opportunity to improve quality
 
 ## Mock Generation
 
