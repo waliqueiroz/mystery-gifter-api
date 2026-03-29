@@ -885,18 +885,12 @@ func Test_GroupController_GenerateMatches(t *testing.T) {
 			WithUpdatedAt(receiver.UpdatedAt).
 			Build()
 
-		expectedMatchDTO := build_rest.NewMatchDTOBuilder().
-			WithGiverID(match.GiverID).
-			WithReceiverID(match.ReceiverID).
-			Build()
-
 		expectedGroupDTO := build_rest.NewGroupDTOBuilder().
 			WithID(group.ID).
 			WithName(group.Name).
 			WithDescription(group.Description).
 			WithUsers([]rest.UserDTO{expectedGiverDTO, expectedReceiverDTO}).
 			WithOwnerID(group.OwnerID).
-			WithMatches([]rest.MatchDTO{expectedMatchDTO}).
 			WithStatus(string(group.Status)).
 			WithCreatedAt(group.CreatedAt).
 			WithUpdatedAt(group.UpdatedAt).

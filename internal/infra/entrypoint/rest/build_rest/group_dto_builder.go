@@ -23,7 +23,6 @@ func NewGroupDTOBuilder() *GroupDTOBuilder {
 			Description: "Test Group Description",
 			Users:       []rest.UserDTO{user},
 			OwnerID:     user.ID,
-			Matches:     []rest.MatchDTO{},
 			Status:      string(domain.GroupStatusOpen),
 			CreatedAt:   now,
 			UpdatedAt:   now,
@@ -63,11 +62,6 @@ func (b *GroupDTOBuilder) WithCreatedAt(createdAt time.Time) *GroupDTOBuilder {
 
 func (b *GroupDTOBuilder) WithUpdatedAt(updatedAt time.Time) *GroupDTOBuilder {
 	b.groupDTO.UpdatedAt = updatedAt
-	return b
-}
-
-func (b *GroupDTOBuilder) WithMatches(matches []rest.MatchDTO) *GroupDTOBuilder {
-	b.groupDTO.Matches = matches
 	return b
 }
 
