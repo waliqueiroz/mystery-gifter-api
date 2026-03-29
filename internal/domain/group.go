@@ -30,7 +30,7 @@ type GroupRepository interface {
 type Group struct {
 	ID          string      `validate:"required,uuid"`
 	Name        string      `validate:"required"`
-	Description string      `validate:"required,max=255"`
+	Description string      `validate:"omitempty,max=255"`
 	Users       []User      `validate:"required,min=1"`
 	OwnerID     string      `validate:"required,uuid"`
 	Matches     []Match     `validate:"dive,omitempty"`
@@ -96,6 +96,22 @@ func (g *Group) IsMatched() bool {
 
 func (g *Group) IsArchived() bool {
 	return g.Status == GroupStatusArchived
+}
+
+func (g *Group) IsMember(userID string) bool {
+	for _, user := range g.Users {
+		if user.ID == userID {
+			return true
+		}
+	}
+	return false
+}
+
+func (g *Group) CanView(requesterID string) error {
+	if !g.IsMember(requesterID) {
+		return NewForbiddenError("user is not a member of this group")
+	}
+	return nil
 }
 
 func (g *Group) CanCreateInvite(requesterID string) error {

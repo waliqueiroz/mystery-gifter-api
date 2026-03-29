@@ -53,6 +53,72 @@ func Test_groupInviteRepository_Create(t *testing.T) {
 	})
 }
 
+func Test_groupInviteRepository_GetActiveByGroupID(t *testing.T) {
+	t.Run("should get active group invite by group id successfully", func(t *testing.T) {
+		// given
+		pgGroupInvite := build_postgres.NewGroupInviteBuilder().Build()
+		selectQuery := "SELECT * FROM group_invites WHERE (group_id = $1 AND expires_at > NOW()) ORDER BY created_at DESC LIMIT 1"
+
+		mockCtrl := gomock.NewController(t)
+		mockedDB := mock_postgres.NewMockDB(mockCtrl)
+		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), selectQuery, pgGroupInvite.GroupID).SetArg(1, pgGroupInvite).Return(nil)
+
+		groupInviteRepository := postgres.NewGroupInviteRepository(mockedDB)
+
+		// when
+		result, err := groupInviteRepository.GetActiveByGroupID(context.Background(), pgGroupInvite.GroupID)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, pgGroupInvite.ID, result.ID)
+		assert.Equal(t, pgGroupInvite.GroupID, result.GroupID)
+		assert.Equal(t, pgGroupInvite.ExpiresAt, result.ExpiresAt)
+		assert.Equal(t, pgGroupInvite.CreatedAt, result.CreatedAt)
+	})
+
+	t.Run("should return not found error when no active invite exists", func(t *testing.T) {
+		// given
+		groupID := "some-group-id"
+		selectQuery := "SELECT * FROM group_invites WHERE (group_id = $1 AND expires_at > NOW()) ORDER BY created_at DESC LIMIT 1"
+
+		mockCtrl := gomock.NewController(t)
+		mockedDB := mock_postgres.NewMockDB(mockCtrl)
+		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), selectQuery, groupID).Return(sql.ErrNoRows)
+
+		groupInviteRepository := postgres.NewGroupInviteRepository(mockedDB)
+
+		// when
+		result, err := groupInviteRepository.GetActiveByGroupID(context.Background(), groupID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		var notFoundErr *domain.ResourceNotFoundError
+		assert.ErrorAs(t, err, &notFoundErr)
+		assert.EqualError(t, notFoundErr, "no active invite found for this group")
+	})
+
+	t.Run("should return error when get fails", func(t *testing.T) {
+		// given
+		groupID := "some-group-id"
+		selectQuery := "SELECT * FROM group_invites WHERE (group_id = $1 AND expires_at > NOW()) ORDER BY created_at DESC LIMIT 1"
+
+		mockCtrl := gomock.NewController(t)
+		mockedDB := mock_postgres.NewMockDB(mockCtrl)
+		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), selectQuery, groupID).Return(assert.AnError)
+
+		groupInviteRepository := postgres.NewGroupInviteRepository(mockedDB)
+
+		// when
+		result, err := groupInviteRepository.GetActiveByGroupID(context.Background(), groupID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "error getting active group invite")
+	})
+}
+
 func Test_groupInviteRepository_GetByID(t *testing.T) {
 	t.Run("should get group invite by id successfully", func(t *testing.T) {
 		// given

@@ -16,10 +16,9 @@ type CreateGroupDTO struct {
 	Name string `json:"name" validate:"required"`
 
 	// Group description
-	// required: true
 	// max length: 255
 	// example: A group for our annual Secret Santa event
-	Description string `json:"description" validate:"required,max=255"`
+	Description string `json:"description" validate:"omitempty,max=255"`
 }
 
 func (g *CreateGroupDTO) Validate() error {
@@ -43,9 +42,8 @@ type GroupDTO struct {
 	Name string `json:"name" validate:"required"`
 
 	// Group description
-	// required: true
 	// example: A group for our annual Secret Santa event
-	Description string `json:"description" validate:"required"`
+	Description string `json:"description" validate:"omitempty,max=255"`
 
 	// List of users in the group
 	// required: true
@@ -55,9 +53,6 @@ type GroupDTO struct {
 	// required: true
 	// example: 01234567-89ab-cdef-0123-456789abcdef
 	OwnerID string `json:"owner_id" validate:"required,uuid"`
-
-	// List of matches in the group
-	Matches []MatchDTO `json:"matches" validate:"dive,omitempty"`
 
 	// Group status
 	// required: true
@@ -136,18 +131,12 @@ func mapGroupFromDomain(group domain.Group) (*GroupDTO, error) {
 		return nil, err
 	}
 
-	matches, err := mapMatchesFromDomain(group.Matches)
-	if err != nil {
-		return nil, err
-	}
-
 	groupDTO := GroupDTO{
 		ID:          group.ID,
 		Name:        group.Name,
 		Description: group.Description,
 		Users:       users,
 		OwnerID:     group.OwnerID,
-		Matches:     matches,
 		Status:      string(group.Status),
 		CreatedAt:   group.CreatedAt,
 		UpdatedAt:   group.UpdatedAt,

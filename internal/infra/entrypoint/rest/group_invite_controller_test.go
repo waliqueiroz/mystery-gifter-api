@@ -167,6 +167,155 @@ func Test_GroupInviteController_Create(t *testing.T) {
 	})
 }
 
+func Test_GroupInviteController_GetActive(t *testing.T) {
+	route := "/api/v1/groups/:groupID/invites/active"
+
+	t.Run("should return status 200 and the active invite when found successfully", func(t *testing.T) {
+		// given
+		authUserID := uuid.New().String()
+		groupID := uuid.New().String()
+		groupInvite := build_domain.NewGroupInviteBuilder().WithGroupID(groupID).Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
+		mockedGroupInviteService := mock_application.NewMockGroupInviteService(mockCtrl)
+		mockedGroupInviteService.EXPECT().GetActive(gomock.Any(), groupID, authUserID).Return(&groupInvite, nil)
+
+		groupInviteController := rest.NewGroupInviteController(mockedGroupInviteService, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/groups/%s/invites/active", groupID), nil)
+		req.Header.Set("Content-Type", "application/json")
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, groupInviteController.GetActive)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, response.StatusCode)
+
+		var result rest.GroupInviteDTO
+		helper.DecodeJSON(t, response.Body, &result)
+		assert.Equal(t, groupInvite.ID, result.ID)
+		assert.Equal(t, groupInvite.GroupID, result.GroupID)
+	})
+
+	t.Run("should return status 403 when user is not a member", func(t *testing.T) {
+		// given
+		authUserID := uuid.New().String()
+		groupID := uuid.New().String()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
+		mockedGroupInviteService := mock_application.NewMockGroupInviteService(mockCtrl)
+		mockedGroupInviteService.EXPECT().GetActive(gomock.Any(), groupID, authUserID).Return(nil, domain.NewForbiddenError("user is not a member of this group"))
+
+		groupInviteController := rest.NewGroupInviteController(mockedGroupInviteService, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/groups/%s/invites/active", groupID), nil)
+		req.Header.Set("Content-Type", "application/json")
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, groupInviteController.GetActive)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusForbidden, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+		assert.Equal(t, "forbidden", result.Code)
+		assert.Equal(t, "user is not a member of this group", result.Message)
+	})
+
+	t.Run("should return status 404 when group is not found", func(t *testing.T) {
+		// given
+		authUserID := uuid.New().String()
+		groupID := uuid.New().String()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
+		mockedGroupInviteService := mock_application.NewMockGroupInviteService(mockCtrl)
+		mockedGroupInviteService.EXPECT().GetActive(gomock.Any(), groupID, authUserID).Return(nil, domain.NewResourceNotFoundError("group not found"))
+
+		groupInviteController := rest.NewGroupInviteController(mockedGroupInviteService, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/groups/%s/invites/active", groupID), nil)
+		req.Header.Set("Content-Type", "application/json")
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, groupInviteController.GetActive)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusNotFound, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+		assert.Equal(t, "not_found", result.Code)
+		assert.Equal(t, "group not found", result.Message)
+	})
+
+	t.Run("should return status 404 when no active invite exists", func(t *testing.T) {
+		// given
+		authUserID := uuid.New().String()
+		groupID := uuid.New().String()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
+		mockedGroupInviteService := mock_application.NewMockGroupInviteService(mockCtrl)
+		mockedGroupInviteService.EXPECT().GetActive(gomock.Any(), groupID, authUserID).Return(nil, domain.NewResourceNotFoundError("no active invite found for this group"))
+
+		groupInviteController := rest.NewGroupInviteController(mockedGroupInviteService, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/groups/%s/invites/active", groupID), nil)
+		req.Header.Set("Content-Type", "application/json")
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, groupInviteController.GetActive)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusNotFound, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+		assert.Equal(t, "not_found", result.Code)
+		assert.Equal(t, "no active invite found for this group", result.Message)
+	})
+}
+
 func Test_GroupInviteController_Join(t *testing.T) {
 	route := "/api/v1/invites/:inviteID/join"
 

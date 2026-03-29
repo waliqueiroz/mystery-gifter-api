@@ -61,6 +61,8 @@ Required: `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `AU
 ## Active Technologies
 - Go (latest stable release) + Fiber v2, sqlx, squirrel, golang-migrate, caarlos0/env v11, (001-group-invite-links)
 - PostgreSQL — new table `group_invites`; migration 000004 (001-group-invite-links)
+- Go (latest stable release) + Fiber v2, sqlx, squirrel, go-playground/validator, go.uber.org/mock/mockgen, go-swagger (002-backend-gaps-fix)
+- PostgreSQL — no schema changes; `group_invites` table already has all required columns (002-backend-gaps-fix)
 
 ## Recent Changes
 - 001-group-invite-links: Added Go (latest stable release) + Fiber v2, sqlx, squirrel, golang-migrate, caarlos0/env v11,

@@ -12,6 +12,7 @@ import (
 type GroupInviteService interface {
 	Create(ctx context.Context, groupID, requesterID string) (*domain.GroupInvite, error)
 	JoinGroup(ctx context.Context, inviteID, userID string) (*domain.Group, error)
+	GetActive(ctx context.Context, groupID, requesterID string) (*domain.GroupInvite, error)
 }
 
 type groupInviteService struct {
@@ -58,6 +59,19 @@ func (s *groupInviteService) Create(ctx context.Context, groupID, requesterID st
 	}
 
 	return groupInvite, nil
+}
+
+func (s *groupInviteService) GetActive(ctx context.Context, groupID, requesterID string) (*domain.GroupInvite, error) {
+	group, err := s.groupRepository.GetByID(ctx, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := group.CanView(requesterID); err != nil {
+		return nil, err
+	}
+
+	return s.groupInviteRepository.GetActiveByGroupID(ctx, groupID)
 }
 
 func (s *groupInviteService) JoinGroup(ctx context.Context, inviteID, userID string) (*domain.Group, error) {

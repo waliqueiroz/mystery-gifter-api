@@ -272,16 +272,20 @@ func Test_GroupController_GetByID(t *testing.T) {
 
 	t.Run("should return status 200 and the group when found successfully", func(t *testing.T) {
 		// given
+		authUserID := uuid.New().String()
 		groupID := uuid.New().String()
-		user := build_domain.NewUserBuilder().Build()
+		user := build_domain.NewUserBuilder().WithID(authUserID).Build()
 		group := build_domain.NewGroupBuilder().WithID(groupID).WithOwnerID(user.ID).WithUsers([]domain.User{user}).Build()
 
 		mockCtrl := gomock.NewController(t)
 
-		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
-		mockedGroupService.EXPECT().GetByID(gomock.Any(), groupID).Return(&group, nil)
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
 
-		groupController := rest.NewGroupController(mockedGroupService, nil)
+		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
+		mockedGroupService.EXPECT().GetByID(gomock.Any(), groupID, authUserID).Return(&group, nil)
+
+		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
 		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/groups/%s", groupID), nil)
 
@@ -322,18 +326,58 @@ func Test_GroupController_GetByID(t *testing.T) {
 		assert.Equal(t, expectedGroupDTO, result)
 	})
 
+	t.Run("should return status 403 when user is not a member", func(t *testing.T) {
+		// given
+		authUserID := uuid.New().String()
+		groupID := uuid.New().String()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
+		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
+		mockedGroupService.EXPECT().GetByID(gomock.Any(), groupID, authUserID).Return(nil, domain.NewForbiddenError("user is not a member of this group"))
+
+		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/groups/%s", groupID), nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, groupController.GetByID)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusForbidden, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, "forbidden", result.Code)
+		assert.Equal(t, "user is not a member of this group", result.Message)
+	})
+
 	t.Run("should return bad_request with an error message when fails to map group from domain", func(t *testing.T) {
 		// given
+		authUserID := uuid.New().String()
 		groupID := uuid.New().String()
 		user := build_domain.NewUserBuilder().Build()
 		group := build_domain.NewGroupBuilder().WithName("").WithID(groupID).WithOwnerID(user.ID).WithUsers([]domain.User{user}).Build()
 
 		mockCtrl := gomock.NewController(t)
 
-		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
-		mockedGroupService.EXPECT().GetByID(gomock.Any(), groupID).Return(&group, nil)
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
 
-		groupController := rest.NewGroupController(mockedGroupService, nil)
+		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
+		mockedGroupService.EXPECT().GetByID(gomock.Any(), groupID, authUserID).Return(&group, nil)
+
+		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
 		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/groups/%s", groupID), nil)
 
@@ -363,14 +407,18 @@ func Test_GroupController_GetByID(t *testing.T) {
 
 	t.Run("should return internal_server_error when group service fails", func(t *testing.T) {
 		// given
+		authUserID := uuid.New().String()
 		groupID := uuid.New().String()
 
 		mockCtrl := gomock.NewController(t)
 
-		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
-		mockedGroupService.EXPECT().GetByID(gomock.Any(), groupID).Return(nil, assert.AnError)
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
 
-		groupController := rest.NewGroupController(mockedGroupService, nil)
+		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
+		mockedGroupService.EXPECT().GetByID(gomock.Any(), groupID, authUserID).Return(nil, assert.AnError)
+
+		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
 		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/groups/%s", groupID), nil)
 
@@ -885,18 +933,12 @@ func Test_GroupController_GenerateMatches(t *testing.T) {
 			WithUpdatedAt(receiver.UpdatedAt).
 			Build()
 
-		expectedMatchDTO := build_rest.NewMatchDTOBuilder().
-			WithGiverID(match.GiverID).
-			WithReceiverID(match.ReceiverID).
-			Build()
-
 		expectedGroupDTO := build_rest.NewGroupDTOBuilder().
 			WithID(group.ID).
 			WithName(group.Name).
 			WithDescription(group.Description).
 			WithUsers([]rest.UserDTO{expectedGiverDTO, expectedReceiverDTO}).
 			WithOwnerID(group.OwnerID).
-			WithMatches([]rest.MatchDTO{expectedMatchDTO}).
 			WithStatus(string(group.Status)).
 			WithCreatedAt(group.CreatedAt).
 			WithUpdatedAt(group.UpdatedAt).

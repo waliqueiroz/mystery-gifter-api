@@ -58,7 +58,6 @@ definitions:
                 x-go-name: Name
         required:
             - name
-            - description
         type: object
         x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
     CreateUserDTO:
@@ -135,12 +134,6 @@ definitions:
                 example: 01234567-89ab-cdef-0123-456789abcdef
                 type: string
                 x-go-name: ID
-            matches:
-                description: List of matches in the group
-                items:
-                    $ref: '#/definitions/MatchDTO'
-                type: array
-                x-go-name: Matches
             name:
                 description: Group name
                 example: Secret Santa 2024
@@ -175,7 +168,6 @@ definitions:
         required:
             - id
             - name
-            - description
             - users
             - owner_id
             - status
@@ -602,7 +594,7 @@ paths:
         get:
             description: |-
                 This endpoint retrieves a specific group by its ID.
-                Requires authentication.
+                Requires authentication. The authenticated user must be a member of the group.
             operationId: GetGroupByID
             parameters:
                 - description: Unique group identifier
@@ -619,6 +611,8 @@ paths:
                         $ref: '#/definitions/GroupDTO'
                 "401":
                     description: Authentication required
+                "403":
+                    description: User is not a member of this group
                 "404":
                     description: Group not found
             security:
@@ -690,6 +684,36 @@ paths:
             summary: Create a group invite link
             tags:
                 - groups
+    /api/v1/groups/{groupID}/invites/active:
+        get:
+            description: |-
+                This endpoint retrieves the current active (non-expired) invite link for the group.
+                Requires authentication. The authenticated user must be a member of the group.
+            operationId: GetActiveGroupInvite
+            parameters:
+                - description: Unique group identifier
+                  in: path
+                  name: groupID
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Active invite found successfully
+                    schema:
+                        $ref: '#/definitions/GroupInviteDTO'
+                "401":
+                    description: Authentication required
+                "403":
+                    description: User is not a member of this group
+                "404":
+                    description: Group not found or no active invite exists
+            security:
+                - Bearer: []
+            summary: Get the active invite link for a group
+            tags:
+                - groups
     /api/v1/groups/{groupID}/matches:
         post:
             description: |-
@@ -755,7 +779,7 @@ paths:
     /api/v1/groups/{groupID}/reopen:
         post:
             description: |-
-                This endpoint reopens an archived group.
+                This endpoint reopens a group with MATCHED status, clearing all draw results and returning the group to OPEN status.
                 Only the group owner can reopen groups.
             operationId: ReopenGroup
             parameters:
@@ -781,7 +805,7 @@ paths:
                     description: Group cannot be reopened
             security:
                 - Bearer: []
-            summary: Reopen an archived group
+            summary: Reopen a group with MATCHED status
             tags:
                 - groups
     /api/v1/groups/{groupID}/users:
@@ -818,9 +842,9 @@ paths:
                 "403":
                     description: Only the group owner can add users
                 "404":
-                    description: Group not found
+                    description: Group or user not found
                 "409":
-                    description: User already in group or group is not open
+                    description: Group is not open
                 "422":
                     description: Invalid request body
             security:

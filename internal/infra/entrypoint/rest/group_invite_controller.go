@@ -42,6 +42,27 @@ func (c *GroupInviteController) Create(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusCreated).JSON(groupInviteDTO)
 }
 
+func (c *GroupInviteController) GetActive(ctx *fiber.Ctx) error {
+	groupID := ctx.Params("groupID")
+
+	authUserID, err := c.authTokenManager.GetAuthUserID(ctx.Locals("user"))
+	if err != nil {
+		return err
+	}
+
+	groupInvite, err := c.groupInviteService.GetActive(ctx.Context(), groupID, authUserID)
+	if err != nil {
+		return err
+	}
+
+	groupInviteDTO, err := mapGroupInviteFromDomain(*groupInvite)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(groupInviteDTO)
+}
+
 func (c *GroupInviteController) Join(ctx *fiber.Ctx) error {
 	inviteID := ctx.Params("inviteID")
 

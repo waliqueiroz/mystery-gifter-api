@@ -279,7 +279,7 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	// Get group by ID
 	//
 	// This endpoint retrieves a specific group by its ID.
-	// Requires authentication.
+	// Requires authentication. The authenticated user must be a member of the group.
 	//
 	// ---
 	// tags:
@@ -301,6 +301,8 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//       "$ref": '#/definitions/GroupDTO'
 	//   '401':
 	//     description: Authentication required
+	//   '403':
+	//     description: User is not a member of this group
 	//   '404':
 	//     description: Group not found
 	api.Get("/groups/:groupID", groupController.GetByID)
@@ -427,9 +429,9 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 
 	// swagger:operation POST /api/v1/groups/{groupID}/reopen ReopenGroup
 	//
-	// Reopen an archived group
+	// Reopen a group with MATCHED status
 	//
-	// This endpoint reopens an archived group.
+	// This endpoint reopens a group with MATCHED status, clearing all draw results and returning the group to OPEN status.
 	// Only the group owner can reopen groups.
 	//
 	// ---
@@ -527,6 +529,39 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//   '404':
 	//     description: Group not found or no match available
 	api.Get("/groups/:groupID/matches/user", groupController.GetUserMatch)
+
+	// swagger:operation GET /api/v1/groups/{groupID}/invites/active GetActiveGroupInvite
+	//
+	// Get the active invite link for a group
+	//
+	// This endpoint retrieves the current active (non-expired) invite link for the group.
+	// Requires authentication. The authenticated user must be a member of the group.
+	//
+	// ---
+	// tags:
+	// - groups
+	// produces:
+	// - application/json
+	// security:
+	// - Bearer: []
+	// parameters:
+	// - name: groupID
+	//   in: path
+	//   description: Unique group identifier
+	//   required: true
+	//   type: string
+	// responses:
+	//   '200':
+	//     description: Active invite found successfully
+	//     schema:
+	//       "$ref": '#/definitions/GroupInviteDTO'
+	//   '401':
+	//     description: Authentication required
+	//   '403':
+	//     description: User is not a member of this group
+	//   '404':
+	//     description: Group not found or no active invite exists
+	api.Get("/groups/:groupID/invites/active", groupInviteController.GetActive)
 
 	// swagger:operation POST /api/v1/groups/{groupID}/invites CreateGroupInvite
 	//
