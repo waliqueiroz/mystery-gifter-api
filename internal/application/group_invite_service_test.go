@@ -149,6 +149,106 @@ func Test_groupInviteService_Create(t *testing.T) {
 	})
 }
 
+func Test_groupInviteService_GetActive(t *testing.T) {
+	t.Run("should return active invite successfully", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().WithOwnerID(owner.ID).WithUsers([]domain.User{owner}).Build()
+		groupInvite := build_domain.NewGroupInviteBuilder().WithGroupID(group.ID).Build()
+		expiration := 24 * time.Hour
+
+		mockCtrl := gomock.NewController(t)
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), group.ID).Return(&group, nil)
+
+		mockedGroupInviteRepository := mock_domain.NewMockGroupInviteRepository(mockCtrl)
+		mockedGroupInviteRepository.EXPECT().GetActiveByGroupID(gomock.Any(), group.ID).Return(&groupInvite, nil)
+
+		groupInviteService := application.NewGroupInviteService(mockedGroupInviteRepository, mockedGroupRepository, nil, nil, expiration)
+
+		// when
+		result, err := groupInviteService.GetActive(context.Background(), group.ID, owner.ID)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, groupInvite.ID, result.ID)
+		assert.Equal(t, groupInvite.GroupID, result.GroupID)
+	})
+
+	t.Run("should return not found error when group does not exist", func(t *testing.T) {
+		// given
+		groupID := uuid.New().String()
+		requesterID := uuid.New().String()
+		expiration := 24 * time.Hour
+
+		mockCtrl := gomock.NewController(t)
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), groupID).Return(nil, domain.NewResourceNotFoundError("group not found"))
+
+		groupInviteService := application.NewGroupInviteService(nil, mockedGroupRepository, nil, nil, expiration)
+
+		// when
+		result, err := groupInviteService.GetActive(context.Background(), groupID, requesterID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		var notFoundErr *domain.ResourceNotFoundError
+		assert.ErrorAs(t, err, &notFoundErr)
+		assert.EqualError(t, notFoundErr, "group not found")
+	})
+
+	t.Run("should return forbidden error when requester is not a member", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		requester := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().WithOwnerID(owner.ID).WithUsers([]domain.User{owner}).Build()
+		expiration := 24 * time.Hour
+
+		mockCtrl := gomock.NewController(t)
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), group.ID).Return(&group, nil)
+
+		groupInviteService := application.NewGroupInviteService(nil, mockedGroupRepository, nil, nil, expiration)
+
+		// when
+		result, err := groupInviteService.GetActive(context.Background(), group.ID, requester.ID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		var forbiddenErr *domain.ForbiddenError
+		assert.ErrorAs(t, err, &forbiddenErr)
+		assert.EqualError(t, forbiddenErr, "user is not a member of this group")
+	})
+
+	t.Run("should return not found error when no active invite exists", func(t *testing.T) {
+		// given
+		owner := build_domain.NewUserBuilder().Build()
+		group := build_domain.NewGroupBuilder().WithOwnerID(owner.ID).WithUsers([]domain.User{owner}).Build()
+		expiration := 24 * time.Hour
+
+		mockCtrl := gomock.NewController(t)
+		mockedGroupRepository := mock_domain.NewMockGroupRepository(mockCtrl)
+		mockedGroupRepository.EXPECT().GetByID(gomock.Any(), group.ID).Return(&group, nil)
+
+		mockedGroupInviteRepository := mock_domain.NewMockGroupInviteRepository(mockCtrl)
+		mockedGroupInviteRepository.EXPECT().GetActiveByGroupID(gomock.Any(), group.ID).Return(nil, domain.NewResourceNotFoundError("no active invite found for this group"))
+
+		groupInviteService := application.NewGroupInviteService(mockedGroupInviteRepository, mockedGroupRepository, nil, nil, expiration)
+
+		// when
+		result, err := groupInviteService.GetActive(context.Background(), group.ID, owner.ID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		var notFoundErr *domain.ResourceNotFoundError
+		assert.ErrorAs(t, err, &notFoundErr)
+		assert.EqualError(t, notFoundErr, "no active invite found for this group")
+	})
+}
+
 func Test_groupInviteService_JoinGroup(t *testing.T) {
 	t.Run("should join group successfully", func(t *testing.T) {
 		// given

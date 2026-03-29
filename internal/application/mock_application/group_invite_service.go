@@ -56,6 +56,21 @@ func (mr *MockGroupInviteServiceMockRecorder) Create(ctx, groupID, requesterID a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockGroupInviteService)(nil).Create), ctx, groupID, requesterID)
 }
 
+// GetActive mocks base method.
+func (m *MockGroupInviteService) GetActive(ctx context.Context, groupID, requesterID string) (*domain.GroupInvite, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetActive", ctx, groupID, requesterID)
+	ret0, _ := ret[0].(*domain.GroupInvite)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetActive indicates an expected call of GetActive.
+func (mr *MockGroupInviteServiceMockRecorder) GetActive(ctx, groupID, requesterID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActive", reflect.TypeOf((*MockGroupInviteService)(nil).GetActive), ctx, groupID, requesterID)
+}
+
 // JoinGroup mocks base method.
 func (m *MockGroupInviteService) JoinGroup(ctx context.Context, inviteID, userID string) (*domain.Group, error) {
 	m.ctrl.T.Helper()
