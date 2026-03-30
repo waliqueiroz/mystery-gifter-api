@@ -1616,7 +1616,7 @@ func Test_GroupController_Search(t *testing.T) {
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
 		expectedFilters := build_domain.NewGroupFiltersBuilder().
 			WithName("Birthday").
-			WithStatus(domain.GroupStatusOpen).
+			WithStatuses(domain.GroupStatusOpen).
 			WithOwnerID("550e8400-e29b-41d4-a716-446655440000").
 			WithUserID("550e8400-e29b-41d4-a716-446655440001").
 			WithLimit(10).
@@ -1664,6 +1664,103 @@ func Test_GroupController_Search(t *testing.T) {
 		helper.DecodeJSON(t, response.Body, &result)
 
 		assert.Equal(t, expectedSearchResultDTO, result)
+	})
+
+	t.Run("should return status 200 with multiple status filters when valid query parameters are provided", func(t *testing.T) {
+		// given
+		groupSummaries := []domain.GroupSummary{
+			build_domain.NewGroupSummaryBuilder().WithName("Birthday Party").WithStatus(domain.GroupStatusOpen).WithUserCount(3).Build(),
+			build_domain.NewGroupSummaryBuilder().WithName("Christmas Exchange").WithStatus(domain.GroupStatusMatched).WithUserCount(6).Build(),
+		}
+
+		searchResult := build_domain.NewSearchResultBuilder[domain.GroupSummary]().
+			WithResult(groupSummaries).
+			WithTotal(2).
+			WithLimit(15).
+			WithOffset(0).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
+		expectedFilters := build_domain.NewGroupFiltersBuilder().
+			WithStatuses(domain.GroupStatusOpen, domain.GroupStatusMatched).
+			Build()
+
+		mockedGroupService.EXPECT().Search(gomock.Any(), expectedFilters).Return(&searchResult, nil)
+
+		groupController := rest.NewGroupController(mockedGroupService, nil)
+
+		req := httptest.NewRequest(fiber.MethodGet, route+"?status=OPEN&status=MATCHED", nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, groupController.Search)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, response.StatusCode)
+
+		expectedGroupSummaryDTOs := []rest.GroupSummaryDTO{
+			build_rest.NewGroupSummaryDTOBuilder().
+				WithID(groupSummaries[0].ID).
+				WithName(groupSummaries[0].Name).
+				WithStatus(string(groupSummaries[0].Status)).
+				WithOwnerID(groupSummaries[0].OwnerID).
+				WithUserCount(groupSummaries[0].UserCount).
+				WithCreatedAt(groupSummaries[0].CreatedAt).
+				WithUpdatedAt(groupSummaries[0].UpdatedAt).
+				Build(),
+			build_rest.NewGroupSummaryDTOBuilder().
+				WithID(groupSummaries[1].ID).
+				WithName(groupSummaries[1].Name).
+				WithStatus(string(groupSummaries[1].Status)).
+				WithOwnerID(groupSummaries[1].OwnerID).
+				WithUserCount(groupSummaries[1].UserCount).
+				WithCreatedAt(groupSummaries[1].CreatedAt).
+				WithUpdatedAt(groupSummaries[1].UpdatedAt).
+				Build(),
+		}
+
+		expectedSearchResultDTO := build_rest.NewSearchResultDTOBuilder[rest.GroupSummaryDTO]().
+			WithResult(expectedGroupSummaryDTOs).
+			WithTotal(2).
+			WithLimit(15).
+			WithOffset(0).
+			Build()
+
+		var result rest.SearchResultDTO[rest.GroupSummaryDTO]
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, expectedSearchResultDTO, result)
+	})
+
+	t.Run("should return bad_request with an error message when status filter value is invalid", func(t *testing.T) {
+		// given
+		groupController := rest.NewGroupController(nil, nil)
+
+		req := httptest.NewRequest(fiber.MethodGet, route+"?status=INVALID", nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, groupController.Search)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, "bad_request", result.Code)
 	})
 
 	t.Run("should return bad_request with an error message when sort_direction is invalid", func(t *testing.T) {

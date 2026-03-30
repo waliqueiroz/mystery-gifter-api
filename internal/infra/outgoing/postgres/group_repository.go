@@ -324,8 +324,8 @@ func (r *groupRepository) applyGroupFilters(query squirrel.SelectBuilder, filter
 		query = query.Where(squirrel.ILike{"g.name": "%" + filters.Name + "%"})
 	}
 
-	if filters.Status != "" {
-		query = query.Where(squirrel.Eq{"g.status": filters.Status})
+	if len(filters.Statuses) > 0 {
+		query = query.Where(squirrel.Eq{"g.status": filters.Statuses})
 	}
 
 	if filters.OwnerID != "" {

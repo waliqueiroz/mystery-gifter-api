@@ -1095,7 +1095,7 @@ func Test_groupService_Search(t *testing.T) {
 
 		filters := build_domain.NewGroupFiltersBuilder().
 			WithName(name).
-			WithStatus(status).
+			WithStatuses(status).
 			WithOwnerID(ownerID).
 			WithUserID(userID).
 			WithLimit(limit).
@@ -1145,7 +1145,6 @@ func Test_groupService_Search(t *testing.T) {
 		// given
 		invalidFilters := domain.GroupFilters{
 			Name:          "",
-			Status:        "",
 			OwnerID:       "",
 			UserID:        "",
 			Limit:         0, // Invalid limit

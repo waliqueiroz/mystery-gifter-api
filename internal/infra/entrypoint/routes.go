@@ -202,9 +202,16 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//   type: string
 	// - name: status
 	//   in: query
-	//   description: Filter by group status
+	//   description: Filter by group status (can be specified multiple times)
 	//   required: false
-	//   type: string
+	//   type: array
+	//   items:
+	//     type: string
+	//     enum:
+	//     - OPEN
+	//     - MATCHED
+	//     - ARCHIVED
+	//   collectionFormat: multi
 	// - name: limit
 	//   in: query
 	//   description: Number of results per page
