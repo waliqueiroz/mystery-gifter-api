@@ -89,10 +89,6 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*domain.
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.NewResourceNotFoundError("user not found")
 		}
-		var pqErr *pq.Error
-		if errors.As(err, &pqErr) && pqErr.Code.Name() == POSTGRES_INVALID_TEXT_REPRESENTATION {
-			return nil, domain.NewResourceNotFoundError("user not found")
-		}
 		return nil, fmt.Errorf("error getting user by email: %w", err)
 	}
 
