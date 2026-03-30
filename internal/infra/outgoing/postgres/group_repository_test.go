@@ -734,6 +734,29 @@ func Test_groupRepository_GetByID(t *testing.T) {
 		assert.EqualError(t, err, "group not found")
 	})
 
+	t.Run("should return not found error when group ID has invalid UUID syntax", func(t *testing.T) {
+		// given
+		groupID := "invalid-uuid"
+		selectGroupQuery := "SELECT g.* FROM groups g WHERE g.id = $1"
+		invalidUUIDError := &pq.Error{Code: pq.ErrorCode("22P02")}
+
+		mockCtrl := gomock.NewController(t)
+		mockedDB := mock_postgres.NewMockDB(mockCtrl)
+		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), selectGroupQuery, groupID).Return(invalidUUIDError)
+
+		groupRepository := postgres.NewGroupRepository(mockedDB)
+
+		// when
+		result, err := groupRepository.GetByID(context.Background(), groupID)
+
+		// then
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		var expectedError *domain.ResourceNotFoundError
+		assert.ErrorAs(t, err, &expectedError)
+		assert.EqualError(t, err, "group not found")
+	})
+
 	t.Run("should return error when fail to get group users", func(t *testing.T) {
 		// given
 		expectedGroup := build_domain.NewGroupBuilder().Build()

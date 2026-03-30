@@ -234,6 +234,10 @@ func (r *groupRepository) GetByID(ctx context.Context, groupID string) (*domain.
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.NewResourceNotFoundError("group not found")
 		}
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code.Name() == POSTGRES_INVALID_TEXT_REPRESENTATION {
+			return nil, domain.NewResourceNotFoundError("group not found")
+		}
 		return nil, fmt.Errorf("error getting group: %w", err)
 	}
 

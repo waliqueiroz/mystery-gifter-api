@@ -124,6 +124,29 @@ func Test_userRepository_GetByID(t *testing.T) {
 		assert.EqualError(t, expectedError, "user not found")
 	})
 
+	t.Run("should return not found error when user ID has invalid UUID syntax", func(t *testing.T) {
+		// given
+		userID := "invalid-uuid"
+		query := `SELECT * FROM users WHERE id = $1`
+		invalidUUIDError := &pq.Error{Code: pq.ErrorCode("22P02")}
+
+		mockCtrl := gomock.NewController(t)
+		mockedDB := mock_postgres.NewMockDB(mockCtrl)
+		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), query, userID).Return(invalidUUIDError)
+
+		userRepository := postgres.NewUserRepository(mockedDB)
+
+		// when
+		result, err := userRepository.GetByID(context.Background(), userID)
+
+		// then
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		var expectedError *domain.ResourceNotFoundError
+		assert.ErrorAs(t, err, &expectedError)
+		assert.EqualError(t, expectedError, "user not found")
+	})
+
 	t.Run("should fail when db return any other error", func(t *testing.T) {
 		// given
 		userID := uuid.New().String()

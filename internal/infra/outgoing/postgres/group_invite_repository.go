@@ -8,6 +8,7 @@ import (
 	"log"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 )
 
@@ -61,6 +62,10 @@ func (r *groupInviteRepository) GetActiveByGroupID(ctx context.Context, groupID 
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.NewResourceNotFoundError("no active invite found for this group")
 		}
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code.Name() == POSTGRES_INVALID_TEXT_REPRESENTATION {
+			return nil, domain.NewResourceNotFoundError("no active invite found for this group")
+		}
 		return nil, fmt.Errorf("error getting active group invite: %w", err)
 	}
 
@@ -81,6 +86,10 @@ func (r *groupInviteRepository) GetByID(ctx context.Context, id string) (*domain
 	err = r.db.GetContext(ctx, &groupInvite, query, args...)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			return nil, domain.NewResourceNotFoundError("group invite not found")
+		}
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code.Name() == POSTGRES_INVALID_TEXT_REPRESENTATION {
 			return nil, domain.NewResourceNotFoundError("group invite not found")
 		}
 		return nil, fmt.Errorf("error getting group invite: %w", err)
