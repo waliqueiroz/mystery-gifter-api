@@ -734,6 +734,29 @@ func Test_groupRepository_GetByID(t *testing.T) {
 		assert.EqualError(t, err, "group not found")
 	})
 
+	t.Run("should return not found error when group ID has invalid UUID syntax", func(t *testing.T) {
+		// given
+		groupID := "invalid-uuid"
+		selectGroupQuery := "SELECT g.* FROM groups g WHERE g.id = $1"
+		invalidUUIDError := &pq.Error{Code: pq.ErrorCode("22P02")}
+
+		mockCtrl := gomock.NewController(t)
+		mockedDB := mock_postgres.NewMockDB(mockCtrl)
+		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), selectGroupQuery, groupID).Return(invalidUUIDError)
+
+		groupRepository := postgres.NewGroupRepository(mockedDB)
+
+		// when
+		result, err := groupRepository.GetByID(context.Background(), groupID)
+
+		// then
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		var expectedError *domain.ResourceNotFoundError
+		assert.ErrorAs(t, err, &expectedError)
+		assert.EqualError(t, err, "group not found")
+	})
+
 	t.Run("should return error when fail to get group users", func(t *testing.T) {
 		// given
 		expectedGroup := build_domain.NewGroupBuilder().Build()
@@ -832,7 +855,7 @@ func Test_groupRepository_Search(t *testing.T) {
 
 		filters := build_domain.NewGroupFiltersBuilder().
 			WithName(name).
-			WithStatus(status).
+			WithStatuses(status).
 			WithOwnerID(ownerID).
 			WithUserID(userID).
 			WithLimit(limit).
@@ -1010,6 +1033,70 @@ func Test_groupRepository_Search(t *testing.T) {
 		mockedDB := mock_postgres.NewMockDB(mockCtrl)
 		mockedDB.EXPECT().SelectContext(gomock.Any(), gomock.Any(), searchQuery, userID).SetArg(1, dbGroupSummaries).Return(nil)
 		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), countQuery, userID).SetArg(1, 1).Return(nil)
+
+		groupRepository := postgres.NewGroupRepository(mockedDB)
+
+		// when
+		result, err := groupRepository.Search(context.Background(), filters)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, &expectedSearchResult, result)
+	})
+
+	t.Run("should search groups successfully with multiple status filters", func(t *testing.T) {
+		// given
+		limit := 15
+		offset := 0
+		sortBy := "created_at"
+		sortDirection := domain.SortDirectionTypeAsc
+
+		filters := build_domain.NewGroupFiltersBuilder().
+			WithStatuses(domain.GroupStatusOpen, domain.GroupStatusMatched).
+			WithLimit(limit).
+			WithOffset(offset).
+			WithSortBy(sortBy).
+			WithSortDirection(sortDirection).
+			Build()
+
+		groupID := "550e8400-e29b-41d4-a716-446655440010"
+		ownerID := "550e8400-e29b-41d4-a716-446655440011"
+		userCount := 4
+		now := time.Now().UTC()
+
+		dbGroupSummaries := []postgres.GroupSummary{
+			build_postgres.NewGroupSummaryBuilder().
+				WithID(groupID).
+				WithOwnerID(ownerID).
+				WithStatus(string(domain.GroupStatusOpen)).
+				WithUserCount(userCount).
+				WithCreatedAt(now).
+				WithUpdatedAt(now).
+				Build(),
+		}
+
+		domainGroupSummaries := []domain.GroupSummary{
+			build_domain.NewGroupSummaryBuilder().
+				WithID(groupID).
+				WithOwnerID(ownerID).
+				WithStatus(domain.GroupStatusOpen).
+				WithUserCount(userCount).
+				WithCreatedAt(now).
+				WithUpdatedAt(now).
+				Build(),
+		}
+
+		expectedSearchResult := build_domain.NewSearchResultBuilder[domain.GroupSummary]().
+			WithResult(domainGroupSummaries).
+			WithLimit(limit).
+			WithOffset(offset).
+			WithTotal(1).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+		mockedDB := mock_postgres.NewMockDB(mockCtrl)
+		mockedDB.EXPECT().SelectContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).SetArg(1, dbGroupSummaries).Return(nil)
+		mockedDB.EXPECT().GetContext(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).SetArg(1, 1).Return(nil)
 
 		groupRepository := postgres.NewGroupRepository(mockedDB)
 

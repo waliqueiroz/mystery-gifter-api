@@ -211,10 +211,12 @@ definitions:
                 type: string
                 x-go-name: SortDirection
             status:
-                description: Filter by group status
+                description: Filter by group status (multiple values allowed)
                 example: OPEN
-                type: string
-                x-go-name: Status
+                items:
+                    type: string
+                type: array
+                x-go-name: Statuses
             user_id:
                 description: Filter by group user ID
                 example: 01234567-89ab-cdef-0123-456789abcdef
@@ -277,6 +279,11 @@ definitions:
                 format: date-time
                 type: string
                 x-go-name: CreatedAt
+            description:
+                description: Group description
+                example: A fun gift exchange for the office
+                type: string
+                x-go-name: Description
             id:
                 description: Unique group identifier
                 example: 01234567-89ab-cdef-0123-456789abcdef
@@ -520,10 +527,17 @@ paths:
                   in: query
                   name: user_id
                   type: string
-                - description: Filter by group status
+                - collectionFormat: multi
+                  description: Filter by group status (can be specified multiple times)
                   in: query
+                  items:
+                    enum:
+                        - OPEN
+                        - MATCHED
+                        - ARCHIVED
+                    type: string
                   name: status
-                  type: string
+                  type: array
                 - description: Number of results per page
                   in: query
                   name: limit

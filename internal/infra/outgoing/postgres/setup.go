@@ -20,6 +20,7 @@ import (
 )
 
 const POSTGRES_UNIQUE_VIOLATION = "unique_violation"
+const POSTGRES_INVALID_TEXT_REPRESENTATION = "invalid_text_representation"
 
 type QueryExecutor interface {
 	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)

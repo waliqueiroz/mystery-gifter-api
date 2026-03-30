@@ -283,13 +283,14 @@ const (
 )
 
 type GroupSummary struct {
-	ID        string      `validate:"required,uuid"`
-	Name      string      `validate:"required"`
-	Status    GroupStatus `validate:"required,oneof=OPEN MATCHED ARCHIVED"`
-	OwnerID   string      `validate:"required,uuid"`
-	UserCount int
-	CreatedAt time.Time `validate:"required"`
-	UpdatedAt time.Time `validate:"required"`
+	ID          string      `validate:"required,uuid"`
+	Name        string      `validate:"required"`
+	Description string      `validate:"omitempty,max=255"`
+	Status      GroupStatus `validate:"required,oneof=OPEN MATCHED ARCHIVED"`
+	OwnerID     string      `validate:"required,uuid"`
+	UserCount   int
+	CreatedAt   time.Time `validate:"required"`
+	UpdatedAt   time.Time `validate:"required"`
 }
 
 func (g *GroupSummary) Validate() error {
@@ -301,7 +302,7 @@ func (g *GroupSummary) Validate() error {
 
 type GroupFilters struct {
 	Name          string
-	Status        GroupStatus       `validate:"omitempty,oneof=OPEN MATCHED ARCHIVED"`
+	Statuses      []GroupStatus     `validate:"omitempty,dive,oneof=OPEN MATCHED ARCHIVED"`
 	OwnerID       string            `validate:"omitempty,uuid"`
 	UserID        string            `validate:"omitempty,uuid"`
 	Limit         int               `validate:"required,min=1"`
@@ -310,7 +311,7 @@ type GroupFilters struct {
 	SortBy        string            `validate:"required,oneof=name status created_at updated_at"`
 }
 
-func NewGroupFilters(name, ownerID, userID string, status GroupStatus, limit, offset int, sortDirection SortDirectionType, sortBy string) (*GroupFilters, error) {
+func NewGroupFilters(name, ownerID, userID string, statuses []GroupStatus, limit, offset int, sortDirection SortDirectionType, sortBy string) (*GroupFilters, error) {
 	if limit <= 0 {
 		limit = DefaultGroupLimit
 	}
@@ -327,7 +328,7 @@ func NewGroupFilters(name, ownerID, userID string, status GroupStatus, limit, of
 
 	groupFilters := GroupFilters{
 		Name:          name,
-		Status:        status,
+		Statuses:      statuses,
 		OwnerID:       ownerID,
 		UserID:        userID,
 		Limit:         limit,

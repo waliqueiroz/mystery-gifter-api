@@ -91,6 +91,10 @@ type GroupSummaryDTO struct {
 	// example: Secret Santa 2024
 	Name string `json:"name" validate:"required"`
 
+	// Group description
+	// example: A fun gift exchange for the office
+	Description string `json:"description"`
+
 	// Group status
 	// required: true
 	// example: OPEN
@@ -151,13 +155,14 @@ func mapGroupFromDomain(group domain.Group) (*GroupDTO, error) {
 
 func mapGroupSummaryFromDomain(groupSummary domain.GroupSummary) (*GroupSummaryDTO, error) {
 	groupSummaryDTO := GroupSummaryDTO{
-		ID:        groupSummary.ID,
-		Name:      groupSummary.Name,
-		Status:    string(groupSummary.Status),
-		OwnerID:   groupSummary.OwnerID,
-		UserCount: groupSummary.UserCount,
-		CreatedAt: groupSummary.CreatedAt,
-		UpdatedAt: groupSummary.UpdatedAt,
+		ID:          groupSummary.ID,
+		Name:        groupSummary.Name,
+		Description: groupSummary.Description,
+		Status:      string(groupSummary.Status),
+		OwnerID:     groupSummary.OwnerID,
+		UserCount:   groupSummary.UserCount,
+		CreatedAt:   groupSummary.CreatedAt,
+		UpdatedAt:   groupSummary.UpdatedAt,
 	}
 
 	if err := groupSummaryDTO.Validate(); err != nil {
@@ -182,9 +187,9 @@ type GroupFiltersDTO struct {
 	// example: 01234567-89ab-cdef-0123-456789abcdef
 	UserID string `query:"user_id" json:"user_id"`
 
-	// Filter by group status
+	// Filter by group status (multiple values allowed)
 	// example: OPEN
-	Status string `query:"status" json:"status" validate:"omitempty,oneof=OPEN MATCHED ARCHIVED"`
+	Statuses []string `query:"status" json:"status" validate:"omitempty,dive,oneof=OPEN MATCHED ARCHIVED"`
 
 	// Maximum number of results to return
 	// example: 10
@@ -215,11 +220,16 @@ func mapGroupFiltersDTOToDomain(filtersDTO GroupFiltersDTO) (*domain.GroupFilter
 		return nil, err
 	}
 
+	var statuses []domain.GroupStatus
+	for _, s := range filtersDTO.Statuses {
+		statuses = append(statuses, domain.GroupStatus(s))
+	}
+
 	return domain.NewGroupFilters(
 		filtersDTO.Name,
 		filtersDTO.OwnerID,
 		filtersDTO.UserID,
-		domain.GroupStatus(filtersDTO.Status),
+		statuses,
 		filtersDTO.Limit,
 		filtersDTO.Offset,
 		domain.SortDirectionType(filtersDTO.SortDirection),

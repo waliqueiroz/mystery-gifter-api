@@ -63,6 +63,10 @@ func (r *userRepository) GetByID(ctx context.Context, userID string) (*domain.Us
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.NewResourceNotFoundError("user not found")
 		}
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code.Name() == POSTGRES_INVALID_TEXT_REPRESENTATION {
+			return nil, domain.NewResourceNotFoundError("user not found")
+		}
 		return nil, fmt.Errorf("error getting user: %w", err)
 	}
 

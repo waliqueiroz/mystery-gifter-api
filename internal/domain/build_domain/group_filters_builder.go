@@ -10,7 +10,6 @@ func NewGroupFiltersBuilder() *GroupFiltersBuilder {
 	return &GroupFiltersBuilder{
 		groupFilters: domain.GroupFilters{
 			Name:          "",
-			Status:        "",
 			OwnerID:       "",
 			UserID:        "",
 			Limit:         domain.DefaultGroupLimit,
@@ -26,8 +25,8 @@ func (b *GroupFiltersBuilder) WithName(name string) *GroupFiltersBuilder {
 	return b
 }
 
-func (b *GroupFiltersBuilder) WithStatus(status domain.GroupStatus) *GroupFiltersBuilder {
-	b.groupFilters.Status = status
+func (b *GroupFiltersBuilder) WithStatuses(statuses ...domain.GroupStatus) *GroupFiltersBuilder {
+	b.groupFilters.Statuses = statuses
 	return b
 }
 
