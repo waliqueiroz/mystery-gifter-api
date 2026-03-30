@@ -17,13 +17,14 @@ type Group struct {
 }
 
 type GroupSummary struct {
-	ID        string    `db:"id"`
-	Name      string    `db:"name"`
-	OwnerID   string    `db:"owner_id"`
-	Status    string    `db:"status"`
-	UserCount int       `db:"user_count"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	ID          string    `db:"id"`
+	Name        string    `db:"name"`
+	Description string    `db:"description"`
+	OwnerID     string    `db:"owner_id"`
+	Status      string    `db:"status"`
+	UserCount   int       `db:"user_count"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
 }
 
 func mapGroupToDomain(group Group, groupUsers []User, matches []Match) (*domain.Group, error) {
@@ -72,13 +73,14 @@ func mapGroupSummariesToDomain(groupSummaries []GroupSummary) ([]domain.GroupSum
 
 func mapGroupSummaryToDomain(groupSummary GroupSummary) (*domain.GroupSummary, error) {
 	domainGroupSummary := domain.GroupSummary{
-		ID:        groupSummary.ID,
-		Name:      groupSummary.Name,
-		OwnerID:   groupSummary.OwnerID,
-		Status:    domain.GroupStatus(groupSummary.Status),
-		UserCount: groupSummary.UserCount,
-		CreatedAt: groupSummary.CreatedAt,
-		UpdatedAt: groupSummary.UpdatedAt,
+		ID:          groupSummary.ID,
+		Name:        groupSummary.Name,
+		Description: groupSummary.Description,
+		OwnerID:     groupSummary.OwnerID,
+		Status:      domain.GroupStatus(groupSummary.Status),
+		UserCount:   groupSummary.UserCount,
+		CreatedAt:   groupSummary.CreatedAt,
+		UpdatedAt:   groupSummary.UpdatedAt,
 	}
 
 	if err := domainGroupSummary.Validate(); err != nil {

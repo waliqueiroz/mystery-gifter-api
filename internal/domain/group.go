@@ -283,13 +283,14 @@ const (
 )
 
 type GroupSummary struct {
-	ID        string      `validate:"required,uuid"`
-	Name      string      `validate:"required"`
-	Status    GroupStatus `validate:"required,oneof=OPEN MATCHED ARCHIVED"`
-	OwnerID   string      `validate:"required,uuid"`
-	UserCount int
-	CreatedAt time.Time `validate:"required"`
-	UpdatedAt time.Time `validate:"required"`
+	ID          string      `validate:"required,uuid"`
+	Name        string      `validate:"required"`
+	Description string      `validate:"omitempty,max=255"`
+	Status      GroupStatus `validate:"required,oneof=OPEN MATCHED ARCHIVED"`
+	OwnerID     string      `validate:"required,uuid"`
+	UserCount   int
+	CreatedAt   time.Time `validate:"required"`
+	UpdatedAt   time.Time `validate:"required"`
 }
 
 func (g *GroupSummary) Validate() error {

@@ -279,6 +279,11 @@ definitions:
                 format: date-time
                 type: string
                 x-go-name: CreatedAt
+            description:
+                description: Group description
+                example: A fun gift exchange for the office
+                type: string
+                x-go-name: Description
             id:
                 description: Unique group identifier
                 example: 01234567-89ab-cdef-0123-456789abcdef

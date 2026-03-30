@@ -91,6 +91,10 @@ type GroupSummaryDTO struct {
 	// example: Secret Santa 2024
 	Name string `json:"name" validate:"required"`
 
+	// Group description
+	// example: A fun gift exchange for the office
+	Description string `json:"description"`
+
 	// Group status
 	// required: true
 	// example: OPEN
@@ -151,13 +155,14 @@ func mapGroupFromDomain(group domain.Group) (*GroupDTO, error) {
 
 func mapGroupSummaryFromDomain(groupSummary domain.GroupSummary) (*GroupSummaryDTO, error) {
 	groupSummaryDTO := GroupSummaryDTO{
-		ID:        groupSummary.ID,
-		Name:      groupSummary.Name,
-		Status:    string(groupSummary.Status),
-		OwnerID:   groupSummary.OwnerID,
-		UserCount: groupSummary.UserCount,
-		CreatedAt: groupSummary.CreatedAt,
-		UpdatedAt: groupSummary.UpdatedAt,
+		ID:          groupSummary.ID,
+		Name:        groupSummary.Name,
+		Description: groupSummary.Description,
+		Status:      string(groupSummary.Status),
+		OwnerID:     groupSummary.OwnerID,
+		UserCount:   groupSummary.UserCount,
+		CreatedAt:   groupSummary.CreatedAt,
+		UpdatedAt:   groupSummary.UpdatedAt,
 	}
 
 	if err := groupSummaryDTO.Validate(); err != nil {

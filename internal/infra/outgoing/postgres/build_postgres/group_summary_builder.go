@@ -36,6 +36,11 @@ func (b *GroupSummaryBuilder) WithName(name string) *GroupSummaryBuilder {
 	return b
 }
 
+func (b *GroupSummaryBuilder) WithDescription(description string) *GroupSummaryBuilder {
+	b.groupSummary.Description = description
+	return b
+}
+
 func (b *GroupSummaryBuilder) WithStatus(status string) *GroupSummaryBuilder {
 	b.groupSummary.Status = status
 	return b

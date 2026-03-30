@@ -34,6 +34,11 @@ func (b *GroupSummaryDTOBuilder) WithName(name string) *GroupSummaryDTOBuilder {
 	return b
 }
 
+func (b *GroupSummaryDTOBuilder) WithDescription(description string) *GroupSummaryDTOBuilder {
+	b.groupSummaryDTO.Description = description
+	return b
+}
+
 func (b *GroupSummaryDTOBuilder) WithStatus(status string) *GroupSummaryDTOBuilder {
 	b.groupSummaryDTO.Status = status
 	return b
