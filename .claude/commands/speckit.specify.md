@@ -246,6 +246,7 @@ Given that feature description, do this:
 
 ## Quick Guidelines
 
+- **Language**: Write ALL spec content in **Brazilian Portuguese (pt-BR)** — section bodies, descriptions, acceptance scenarios, requirements, success criteria, assumptions, edge cases. Exception: branch names, file paths, technical identifiers (FR-001, SC-001, P1), template placeholders (e.g., `[DATE]`, `[FEATURE NAME]`), and code snippets stay in English. This rule overrides any language implied by the templates.
 - Focus on **WHAT** users need and **WHY**.
 - Avoid HOW to implement (no tech stack, APIs, code structure).
 - Written for business stakeholders, not developers.

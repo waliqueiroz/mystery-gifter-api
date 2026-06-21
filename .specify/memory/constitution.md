@@ -1,216 +1,234 @@
 <!--
-## Sync Impact Report
+## Relatório de Impacto de Sincronização
 
-**Version Change**: [PROJECT_NAME] Constitution (template) → 1.0.0
+**Mudança de Versão**: Constituição do Mystery Gifter API 1.0.0 → 1.1.0
 
-**Modified Principles**: N/A (initial constitution from template)
+**Princípios Modificados**: N/A
 
-**Added Sections**:
-- Core Principles (7 principles: Clean Architecture, Test-First Discipline,
-  Domain-Driven Validation, Consistent API Contract, Infrastructure Abstraction,
-  Simplicity & YAGNI, Performance & Observability)
-- Technology Standards
-- Development Workflow
-- Governance
+**Seções Adicionadas**:
+- Princípio VIII: Idioma dos Artefatos (INEGOCIÁVEL) — todos os artefatos do speckit em pt-BR
 
-**Removed Sections**: All placeholder template tokens replaced.
+**Seções Removidas**: N/A
 
-**Templates Requiring Updates**:
-- ✅ `.specify/templates/plan-template.md` — Constitution Check gates align with principles
-- ✅ `.specify/templates/spec-template.md` — Acceptance Scenarios align with given/when/then
-- ✅ `.specify/templates/tasks-template.md` — Task categories reflect Clean Architecture layers
-- ✅ `.specify/templates/constitution-template.md` — Source template unchanged (correct)
+**Templates que Requerem Atualização**:
+- ✅ `.specify/templates/spec-template.md` — Nota de idioma adicionada no cabeçalho
+- ✅ `.claude/commands/speckit.specify.md` — Instrução explícita de idioma adicionada
 
-**Follow-up TODOs**: None — all fields resolved.
+**TODOs de Acompanhamento**: Nenhum — todos os campos resolvidos.
 -->
 
-# Mystery Gifter API Constitution
+# Constituição da Mystery Gifter API
 
-## Core Principles
+## Princípios Fundamentais
 
-### I. Clean Architecture (NON-NEGOTIABLE)
+### I. Clean Architecture (INEGOCIÁVEL)
 
-The codebase MUST maintain strict three-layer separation: **domain**, **application**,
-and **infrastructure**. Dependency direction flows inward only — infrastructure depends
-on application, application depends on domain, domain depends on nothing external.
+O código DEVE manter estrita separação em três camadas: **domain**, **application** e
+**infrastructure**. A direção de dependência flui apenas para dentro — infrastructure depende
+de application, application depende de domain, domain não depende de nada externo.
 
-- `internal/domain/` MUST contain only entities, interfaces, domain errors, and validation.
-  No infrastructure imports permitted.
-- `internal/application/` MUST orchestrate domain logic via injected interfaces only.
-  No direct database, HTTP, or framework calls.
-- `internal/infra/` MUST implement domain/application interfaces.
-  Business logic MUST NOT appear in controllers or repositories.
-- Every public service MUST follow: public interface (`XService`), private struct (`xService`),
-  constructor returning the interface (`NewXService(...) XService`).
-- Every repository MUST follow: private struct (`xRepository`), constructor returning
+- `internal/domain/` DEVE conter apenas entidades, interfaces, erros de domínio e validação.
+  Nenhuma importação de infraestrutura é permitida.
+- `internal/application/` DEVE orquestrar a lógica de domínio apenas via interfaces injetadas.
+  Sem chamadas diretas a banco de dados, HTTP ou frameworks.
+- `internal/infra/` DEVE implementar as interfaces de domain/application.
+  Lógica de negócio NÃO DEVE aparecer em controllers ou repositórios.
+- Todo serviço público DEVE seguir: interface pública (`XService`), struct privada (`xService`),
+  construtor retornando a interface (`NewXService(...) XService`).
+- Todo repositório DEVE seguir: struct privada (`xRepository`), construtor retornando
   `domain.XRepository` (`NewXRepository(db DB) domain.XRepository`).
 
-**Rationale**: Violation of layer boundaries creates untestable code and hard coupling to
-infrastructure choices. This rule was established from project inception and is never negotiable.
+**Justificativa**: A violação de limites de camada cria código não testável e acoplamento forte com
+escolhas de infraestrutura. Esta regra foi estabelecida desde o início do projeto e nunca é negociável.
 
-### II. Test-First Discipline
+### II. Disciplina de Testes
 
-All business logic MUST have unit tests written in the same implementation cycle.
-Tests MUST be run and pass before a feature is considered complete.
+Toda lógica de negócio DEVE ter testes unitários escritos no mesmo ciclo de implementação.
+Os testes DEVEM ser executados e passar antes que uma feature seja considerada completa.
 
-- Test function naming: `Test_<Type>_<Method>`
-- Subtests MUST use `t.Run("should ... when ...", ...)` with descriptions in English
-- Every test MUST have three explicit phases annotated with comments: `// given`, `// when`, `// then`
-- Each subtest MUST create its own `gomock.Controller`: `mockCtrl := gomock.NewController(t)`
-- Test data MUST be constructed via builders in `build_domain/`, `build_postgres/`,
-  or `build_rest/` — never inline struct literals for complex objects
-- All assertions MUST use `testify/assert`; both error AND result MUST always be verified
-- `context.Background()` MUST be used for contexts in tests
-- **Mandatory**: run tests after every implementation; identify and fix failures before proceeding
+- Nomenclatura de funções de teste: `Test_<Tipo>_<Método>`
+- Subtestes DEVEM usar `t.Run("should ... when ...", ...)` com descrições em inglês
+- Todo teste DEVE ter três fases explícitas anotadas com comentários: `// given`, `// when`, `// then`
+- Cada subteste DEVE criar seu próprio `gomock.Controller`: `mockCtrl := gomock.NewController(t)`
+- Dados de teste DEVEM ser construídos via builders em `build_domain/`, `build_postgres/`,
+  ou `build_rest/` — nunca structs literais inline para objetos complexos
+- Todas as asserções DEVEM usar `testify/assert`; tanto erro QUANTO resultado DEVEM ser sempre verificados
+- `context.Background()` DEVE ser usado para contextos em testes
+- **Obrigatório**: executar testes após cada implementação; identificar e corrigir falhas antes de prosseguir
 
-**Rationale**: Tests written after the fact are incomplete and miss edge cases. The
-given/when/then pattern ensures traceability between test scenarios and acceptance criteria.
+**Justificativa**: Testes escritos depois são incompletos e perdem casos extremos. O padrão
+given/when/then garante rastreabilidade entre cenários de teste e critérios de aceite.
 
-### III. Domain-Driven Validation
+### III. Validação Orientada ao Domínio
 
-Entities and value objects MUST validate themselves. Validation logic belongs in the domain
-layer, not in controllers or services.
+Entidades e value objects DEVEM se auto-validar. A lógica de validação pertence à camada de
+domain, não a controllers ou services.
 
-- Every entity MUST implement a `Validate() error` method using `go-playground/validator` tags
-- Factory functions (`NewX(...)`) MUST call `Validate()` before returning
-- Mutating methods (`AddUser`, `Archive`, etc.) MUST call `Validate()` after mutation
-- Domain errors MUST use the custom error types defined in `internal/domain/errors.go`:
+- Toda entidade DEVE implementar um método `Validate() error` usando tags `go-playground/validator`
+- Funções de fábrica (`NewX(...)`) DEVEM chamar `Validate()` antes de retornar
+- Métodos mutadores (`AddUser`, `Archive`, etc.) DEVEM chamar `Validate()` após a mutação
+- Erros de domínio DEVEM usar os tipos customizados definidos em `internal/domain/errors.go`:
   `ValidationError`, `ConflictError`, `ResourceNotFoundError`, `UnauthorizedError`, `ForbiddenError`
-- Each error type MUST carry the correct HTTP status code as part of its definition
-- Controllers MUST NOT define business error messages — they propagate domain errors directly
+- Cada tipo de erro DEVE carregar o código de status HTTP correto como parte de sua definição
+- Controllers NÃO DEVEM definir mensagens de erro de negócio — eles propagam erros de domínio diretamente
 
-**Rationale**: Centralising validation in the domain ensures consistency across all entry
-points (REST, CLI, queue consumers) and makes domain invariants explicit and testable.
+**Justificativa**: Centralizar a validação no domínio garante consistência em todos os pontos de
+entrada (REST, CLI, consumidores de fila) e torna os invariantes de domínio explícitos e testáveis.
 
-### IV. Consistent API Contract
+### IV. Contrato de API Consistente
 
-All REST controllers MUST follow a strict, uniform request-response flow to ensure
-predictable client behavior.
+Todos os controllers REST DEVEM seguir um fluxo de requisição-resposta estrito e uniforme para
+garantir comportamento previsível ao cliente.
 
-- Handler signature: `func (c *XController) Method(ctx *fiber.Ctx) error`
-- Request flow: `BodyParser` → `dto.Validate()` → `mapXToDomain` → service call →
-  `mapXFromDomain` → response
-- `BodyParser` failure MUST return `fiber.NewError(fiber.StatusUnprocessableEntity)`
-- All other errors MUST be returned directly (error handler maps domain errors to HTTP status)
-- Resource creation MUST return `ctx.Status(fiber.StatusCreated).JSON(...)`
-- All other successful responses MUST return `ctx.JSON(...)`
-- Route parameters MUST use `ctx.Params("paramName")`, never `ctx.Query` for resource IDs
-- Auth user ID MUST be extracted via `c.AuthTokenManager.GetAuthUserID(ctx.Locals("user"))`
-- Swagger annotations MUST be maintained for all endpoints; `make generate-docs` MUST pass
-- Query parameters in Swagger MUST be defined individually (never `schema: "$ref"`)
+- Assinatura de handler: `func (c *XController) Method(ctx *fiber.Ctx) error`
+- Fluxo de requisição: `BodyParser` → `dto.Validate()` → `mapXToDomain` → chamada ao service →
+  `mapXFromDomain` → resposta
+- Falha em `BodyParser` DEVE retornar `fiber.NewError(fiber.StatusUnprocessableEntity)`
+- Todos os outros erros DEVEM ser retornados diretamente (o error handler mapeia erros de domínio para status HTTP)
+- Criação de recurso DEVE retornar `ctx.Status(fiber.StatusCreated).JSON(...)`
+- Todas as outras respostas bem-sucedidas DEVEM retornar `ctx.JSON(...)`
+- Parâmetros de rota DEVEM usar `ctx.Params("paramName")`, nunca `ctx.Query` para IDs de recursos
+- ID do usuário autenticado DEVE ser extraído via `c.AuthTokenManager.GetAuthUserID(ctx.Locals("user"))`
+- Anotações Swagger DEVEM ser mantidas para todos os endpoints; `make generate-docs` DEVE passar
+- Parâmetros de query no Swagger DEVEM ser definidos individualmente (nunca `schema: "$ref"`)
 
-**Rationale**: Uniform controller flow reduces cognitive load and prevents error-handling
-inconsistencies that leak internal details to clients.
+**Justificativa**: Fluxo uniforme de controller reduz carga cognitiva e previne inconsistências
+no tratamento de erros que vazam detalhes internos para os clientes.
 
-### V. Infrastructure Abstraction
+### V. Abstração de Infraestrutura
 
-All external dependencies MUST be accessed through interfaces, never through concrete types.
+Todas as dependências externas DEVEM ser acessadas através de interfaces, nunca por tipos concretos.
 
-- Repositories MUST inject the `DB` interface, never `*sqlx.DB` directly
-- All SQL queries MUST use `squirrel` with `PlaceholderFormat(squirrel.Dollar)`
-- Write operations MUST use `ExecContext`, single-row reads `GetContext`,
-  multi-row reads `SelectContext`
-- `sql.ErrNoRows` MUST be mapped to `domain.NewResourceNotFoundError`
-- PostgreSQL unique violation (`pq.Error`) MUST be mapped to `domain.NewConflictError`
-- All other errors MUST be wrapped: `fmt.Errorf("context message: %w", err)`
-- Multi-step writes MUST use transactions: `BeginTxx` → `defer tx.Rollback()` →
-  operations → `tx.Commit()`
-- Mocks MUST be generated with `go.uber.org/mock/mockgen` via `//go:generate` directives;
-  interface changes require `go generate ./...` to be re-run
+- Repositórios DEVEM injetar a interface `DB`, nunca `*sqlx.DB` diretamente
+- Todas as queries SQL DEVEM usar `squirrel` com `PlaceholderFormat(squirrel.Dollar)`
+- Operações de escrita DEVEM usar `ExecContext`, leituras de linha única `GetContext`,
+  leituras de múltiplas linhas `SelectContext`
+- `sql.ErrNoRows` DEVE ser mapeado para `domain.NewResourceNotFoundError`
+- Violação de unicidade PostgreSQL (`pq.Error`) DEVE ser mapeada para `domain.NewConflictError`
+- Todos os outros erros DEVEM ser encapsulados: `fmt.Errorf("mensagem de contexto: %w", err)`
+- Escritas em múltiplos passos DEVEM usar transações: `BeginTxx` → `defer tx.Rollback()` →
+  operações → `tx.Commit()`
+- Mocks DEVEM ser gerados com `go.uber.org/mock/mockgen` via diretivas `//go:generate`;
+  mudanças de interface requerem reexecução de `go generate ./...`
 
-**Rationale**: Interface-driven design enables isolated unit tests and decouples business
-logic from specific infrastructure choices (database engine, storage backend).
+**Justificativa**: Design orientado a interfaces permite testes unitários isolados e desacopla a
+lógica de negócio de escolhas específicas de infraestrutura (engine de banco, backend de storage).
 
-### VI. Simplicity & YAGNI
+### VI. Simplicidade & YAGNI
 
-Every abstraction MUST earn its place by solving a present problem, not a hypothetical
-future one. Complexity requires explicit justification.
+Toda abstração DEVE justificar sua existência resolvendo um problema presente, não um hipotético
+futuro. Complexidade requer justificativa explícita.
 
-- No helpers, utilities, or abstractions for one-time operations
-- No speculative features, extra configuration, or backwards-compatibility shims
-- No docstrings, comments, or type annotations added to code that was not changed
-- Error handling MUST NOT be added for scenarios that cannot happen given current invariants
-- Mapper functions MUST be private and co-located with the type they serve
-- Slices MUST be pre-allocated with `make([]T, 0, len(src))` before iteration
-- Three similar lines of code is preferable to a premature abstraction
+- Sem helpers, utilitários ou abstrações para operações únicas
+- Sem features especulativas, configuração extra ou shims de compatibilidade retroativa
+- Sem docstrings, comentários ou anotações de tipo adicionados a código que não foi alterado
+- Tratamento de erro NÃO DEVE ser adicionado para cenários que não podem ocorrer dados os invariantes atuais
+- Funções mapeadoras DEVEM ser privadas e co-localizadas com o tipo que servem
+- Slices DEVEM ser pré-alocados com `make([]T, 0, len(src))` antes da iteração
+- Três linhas de código semelhantes são preferíveis a uma abstração prematura
 
-**Rationale**: Premature abstractions increase maintenance cost and obscure intent. The
-right amount of complexity is exactly what the task requires.
+**Justificativa**: Abstrações prematuras aumentam o custo de manutenção e obscurecem a intenção. A
+quantidade certa de complexidade é exatamente o que a tarefa requer.
 
-### VII. Performance & Observability
+### VII. Performance & Observabilidade
 
-The API MUST remain responsive under expected load. Errors MUST be observable without
-exposing internal details to clients.
+A API DEVE permanecer responsiva sob a carga esperada. Erros DEVEM ser observáveis sem
+expor detalhes internos aos clientes.
 
-- All repository methods MUST pass `context.Context` to enable timeout propagation
-- `log.Println` MUST be called for significant infrastructure errors before returning them
-- Pagination MUST be applied to all list/search endpoints via `Limit` + `Offset` filters
-- Default pagination values MUST be defined as constants in the domain layer
-  (e.g., `DefaultGroupLimit = 15`)
-- Sort direction and sort field MUST be validated via `go-playground/validator` `oneof` tags
-- HTTP response times MUST remain suitable for interactive use (target p95 < 200ms for
-  standard CRUD; no explicit SLO enforcement mechanism required at this stage)
+- Todos os métodos de repositório DEVEM passar `context.Context` para habilitar propagação de timeout
+- `log.Println` DEVE ser chamado para erros significativos de infraestrutura antes de retorná-los
+- Paginação DEVE ser aplicada a todos os endpoints de listagem/busca via filtros `Limit` + `Offset`
+- Valores padrão de paginação DEVEM ser definidos como constantes na camada de domínio
+  (ex.: `DefaultGroupLimit = 15`)
+- Direção e campo de ordenação DEVEM ser validados via tags `oneof` do `go-playground/validator`
+- Tempos de resposta HTTP DEVEM ser adequados para uso interativo (meta p95 < 200ms para
+  CRUD padrão; nenhum mecanismo de enforcement de SLO obrigatório neste estágio)
 
-**Rationale**: Context propagation and structured error logging are the minimum viable
-observability baseline. Pagination prevents unbounded queries from degrading the database.
+**Justificativa**: Propagação de contexto e logging estruturado de erros são a linha de base mínima
+de observabilidade. Paginação previne queries sem limite de degradar o banco de dados.
 
-## Technology Standards
+### VIII. Idioma dos Artefatos (INEGOCIÁVEL)
 
-**Language**: Go (latest stable release)
-**Web Framework**: Fiber v2 — use only idiomatic Fiber patterns
-**Database**: PostgreSQL via `sqlx` + `squirrel` query builder
-**Migrations**: `golang-migrate` — migration files MUST be committed alongside schema changes
-**Authentication**: `golang-jwt` — JWT tokens; secret key and session duration via env vars
-**Validation**: `go-playground/validator` — struct tags are the canonical validation source
-**Testing**: `testify/assert` for assertions, `go.uber.org/mock/mockgen` for mocks
-**Documentation**: `go-swagger` — `make generate-docs` MUST succeed at all times
-**Identity**: UUID v4 via `internal/infra/outgoing/identity` (injected as `IdentityGenerator`)
-**Configuration**: `caarlos0/env` — all config via environment variables; `.env.example` MUST
-be kept up to date
+Existe uma separação rígida de idioma entre linguagem humana e linguagem de máquina:
 
-Required environment variables: `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`,
+**Português brasileiro (pt-BR) OBRIGATÓRIO em**:
+- Todos os artefatos do speckit: `spec.md`, `plan.md`, `tasks.md`, checklists, relatórios de análise
+- Títulos de seções, descrições, critérios de aceite, requisitos funcionais e critérios de sucesso
+- Comentários em código-fonte (explicações do porquê, não do quê)
+- Documentação Swagger (`summary`, `description` das anotações)
+- Mensagens de commit e descrições de pull request
+- Respostas e explicações da IA assistente
+
+**Inglês OBRIGATÓRIO em**:
+- Todo código-fonte: nomes de funções, variáveis, tipos, structs, constantes, pacotes
+- Mensagens de erro retornadas pelo sistema (strings em `errors.New`, `fmt.Errorf`, `fiber.NewError`)
+- Descrições de subtestes (`t.Run("should ... when ...", ...)`) conforme o Princípio II
+- Nomes de branch, identificadores técnicos (FR-001, SC-001, P1, etc.), caminhos de arquivo
+- Placeholders de template (ex.: `[FEATURE NAME]`, `[DATE]`)
+- Tags de validação, nomes de campos JSON/query, headers HTTP
+
+**Justificativa**: O time de desenvolvimento opera em português brasileiro, mas código em inglês
+é padrão universal na indústria e facilita onboarding, uso de bibliotecas e colaboração open source.
+Misturar idiomas em código cria inconsistência e dificulta manutenção. A separação clara elimina
+ambiguidades sobre onde cada idioma se aplica.
+
+## Padrões Tecnológicos
+
+**Linguagem**: Go (versão estável mais recente)
+**Framework Web**: Fiber v2 — usar apenas padrões idiomáticos do Fiber
+**Banco de Dados**: PostgreSQL via `sqlx` + query builder `squirrel`
+**Migrações**: `golang-migrate` — arquivos de migração DEVEM ser commitados junto com mudanças de schema
+**Autenticação**: `golang-jwt` — tokens JWT; chave secreta e duração da sessão via variáveis de ambiente
+**Validação**: `go-playground/validator` — tags de struct são a fonte canônica de validação
+**Testes**: `testify/assert` para asserções, `go.uber.org/mock/mockgen` para mocks
+**Documentação**: `go-swagger` — `make generate-docs` DEVE ter sucesso sempre
+**Identidade**: UUID v4 via `internal/infra/outgoing/identity` (injetado como `IdentityGenerator`)
+**Configuração**: `caarlos0/env` — toda configuração via variáveis de ambiente; `.env.example` DEVE
+ser mantido atualizado
+
+Variáveis de ambiente obrigatórias: `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`,
 `DB_PASSWORD`, `AUTH_SECRET_KEY`, `AUTH_SESSION_DURATION`.
 
-## Development Workflow
+## Workflow de Desenvolvimento
 
-- For files over 100 lines or complex changes: outline the plan and confirm approach before editing
-- Alternative perspectives MUST be raised when there is opportunity to improve quality
-- `context.Context` MUST be the first parameter of every service and repository method
-- `error` MUST be the last return value of every method that can fail
-- After every interface change, run `go generate ./...` to regenerate mocks
-- After every DTO or route change, run `make generate-docs` to update Swagger spec
-- All unit tests MUST pass before marking any task as complete (`make test`)
-- Commit messages MUST be descriptive and reference the layer changed
-  (e.g., `feat(domain): add group archiving logic`)
+- Para arquivos com mais de 100 linhas ou mudanças complexas: esboçar o plano e confirmar a abordagem antes de editar
+- Perspectivas alternativas DEVEM ser levantadas quando houver oportunidade de melhorar a qualidade
+- `context.Context` DEVE ser o primeiro parâmetro de todo método de service e repositório
+- `error` DEVE ser o último valor de retorno de todo método que pode falhar
+- Após toda mudança de interface, executar `go generate ./...` para regenerar mocks
+- Após toda mudança de DTO ou rota, executar `make generate-docs` para atualizar a spec Swagger
+- Todos os testes unitários DEVEM passar antes de marcar qualquer tarefa como concluída (`make test`)
+- Mensagens de commit DEVEM ser descritivas e referenciar a camada alterada
+  (ex.: `feat(domain): add group archiving logic`)
 
-**Quality Gates** (all MUST pass before a feature is considered done):
+**Gates de Qualidade** (todos DEVEM passar antes de uma feature ser considerada concluída):
 
-1. `make build` — compiles without errors
-2. `make test` — all unit tests pass
-3. `make generate-docs` — Swagger spec generates without errors
-4. No unexplained bracket tokens remain in any spec or plan document
+1. `make build` — compila sem erros
+2. `make test` — todos os testes unitários passam
+3. `make generate-docs` — spec Swagger gerada sem erros
+4. Nenhum token de placeholder inexplicado permanece em nenhum documento de spec ou plano
 
-## Governance
+## Governança
 
-This constitution supersedes all other project practices and coding guidelines. Any rule
-in CLAUDE.md or `.claude/rules/` that conflicts with this constitution MUST be reconciled
-in favor of this document, and the conflicting rule updated accordingly.
+Esta constituição substitui todas as outras práticas e diretrizes de código do projeto. Qualquer regra
+no `CLAUDE.md` ou em `.claude/rules/` que conflite com esta constituição DEVE ser reconciliada
+em favor deste documento, e a regra conflitante atualizada de acordo.
 
-**Amendment procedure**:
-1. Propose change with rationale in a pull request description
-2. Update `CONSTITUTION_VERSION` according to semantic versioning:
-   - MAJOR: principle removal, redefinition, or backward-incompatible governance change
-   - MINOR: new principle or section added, or materially expanded guidance
-   - PATCH: clarification, wording fix, or non-semantic refinement
-3. Update `LAST_AMENDED_DATE` to the amendment date (ISO format YYYY-MM-DD)
-4. Run the consistency propagation checklist against all `.specify/templates/` files
-5. Document impact in the Sync Impact Report comment at the top of this file
+**Procedimento de emenda**:
+1. Propor mudança com justificativa na descrição do pull request
+2. Atualizar `CONSTITUTION_VERSION` conforme versionamento semântico:
+   - MAJOR: remoção de princípio, redefinição ou mudança de governança incompatível com versão anterior
+   - MINOR: novo princípio ou seção adicionado, ou orientação materialmente expandida
+   - PATCH: esclarecimento, correção de texto ou refinamento não-semântico
+3. Atualizar `LAST_AMENDED_DATE` para a data da emenda (formato ISO YYYY-MM-DD)
+4. Executar o checklist de propagação de consistência contra todos os arquivos em `.specify/templates/`
+5. Documentar o impacto no comentário do Relatório de Impacto de Sincronização no topo deste arquivo
 
-**Compliance review**: Every feature plan MUST include a "Constitution Check" gate
-confirming that the proposed design does not violate any principle. Violations MUST be
-justified in a Complexity Tracking table in the plan document.
+**Revisão de conformidade**: Todo plano de feature DEVE incluir um gate "Verificação da Constituição"
+confirmando que o design proposto não viola nenhum princípio. Violações DEVEM ser
+justificadas em uma tabela de Rastreamento de Complexidade no documento de plano.
 
-Runtime development guidance: see `CLAUDE.md` and `.claude/rules/` for language-specific
-conventions that complement these principles.
+Orientação de desenvolvimento em tempo real: ver `CLAUDE.md` e `.claude/rules/` para convenções
+específicas da linguagem que complementam estes princípios.
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-28 | **Last Amended**: 2026-03-28
+**Versão**: 1.1.0 | **Ratificada**: 2026-03-28 | **Última Emenda**: 2026-06-21

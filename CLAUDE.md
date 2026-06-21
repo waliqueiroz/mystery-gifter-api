@@ -4,7 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Language
 
-Always respond in **Brazilian Portuguese (pt-BR)**.
+There is a strict language separation between human language and machine language:
+
+**Brazilian Portuguese (pt-BR) — mandatory for**:
+- All responses and explanations
+- Code comments (the "why", not the "what")
+- Documentation: Swagger `summary`/`description` annotations, README files, speckit artifacts (`spec.md`, `plan.md`, `tasks.md`, checklists)
+- Commit messages and pull request descriptions
+
+**English — mandatory for**:
+- All source code: function names, variables, types, structs, constants, packages
+- Error message strings (`errors.New`, `fmt.Errorf`, `fiber.NewError`, etc.)
+- Subtest descriptions (`t.Run("should ... when ...", ...)`)
+- JSON/query field names, HTTP headers, validation tags
 
 ## Commands
 
