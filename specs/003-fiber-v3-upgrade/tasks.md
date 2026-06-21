@@ -18,9 +18,9 @@
 
 **PR boundary**: Este checkpoint vira um PR independente antes de iniciar o Checkpoint 2.
 
-- [ ] T001 [US1] Atualizar diretiva `go 1.25.1` para `go 1.26.4` em `go.mod`
-- [ ] T002 [US1] Executar `go mod tidy` para sincronizar `go.sum` com o novo toolchain; atualizar dependências indiretas que falharem a compilação
-- [ ] T003 [US1] Verificar build e testes: `make build && make test` — ambos devem passar sem erros
+- [x] T001 [US1] Atualizar diretiva `go 1.25.1` para `go 1.26.4` em `go.mod`
+- [x] T002 [US1] Executar `go mod tidy` para sincronizar `go.sum` com o novo toolchain; atualizar dependências indiretas que falharem a compilação
+- [x] T003 [US1] Verificar build e testes: `make build && make test` — ambos devem passar sem erros
 
 **Checkpoint 1**: Go 1.26.4 funcionando. Abrir PR, aguardar merge antes de iniciar Phase 2.
 
@@ -38,34 +38,34 @@
 
 ### Atualização de dependências
 
-- [ ] T004 [US2] Atualizar dependências Fiber em `go.mod`: `go get github.com/gofiber/fiber/v3@latest && go get github.com/gofiber/contrib/v3/jwt@latest && go mod tidy`
+- [x] T004 [US2] Atualizar dependências Fiber em `go.mod`: `go get github.com/gofiber/fiber/v3@latest && go get github.com/gofiber/contrib/v3/jwt@latest && go mod tidy`
 
 ### Camada de infraestrutura (paralelos após T004)
 
-- [ ] T005 [P] [US2] Atualizar `internal/infra/runner.go`: imports `fiber/v2` → `fiber/v3`; `fiber/v2/middleware/cors` → `fiber/v3/middleware/cors`; `fiber/v2/middleware/recover` → `fiber/v3/middleware/recover`
-- [ ] T006 [P] [US3] Atualizar `internal/infra/entrypoint/middlewares.go`: import `gofiber/contrib/jwt` → `gofiber/contrib/v3/jwt`; import `fiber/v2` → `fiber/v3`; assinatura do `ErrorHandler` de `func(c *fiber.Ctx, err error) error` para `func(c fiber.Ctx, err error) error`
-- [ ] T007 [P] [US2] Atualizar `internal/infra/entrypoint/error_handler.go`: import `fiber/v2` → `fiber/v3`; assinaturas de `CustomErrorHandler` e `sendError` de `*fiber.Ctx` para `fiber.Ctx`
-- [ ] T008 [P] [US2] Atualizar `internal/infra/entrypoint/routes.go`: import `fiber/v2` → `fiber/v3`
+- [x] T005 [P] [US2] Atualizar `internal/infra/runner.go`: imports `fiber/v2` → `fiber/v3`; `fiber/v2/middleware/cors` → `fiber/v3/middleware/cors`; `fiber/v2/middleware/recover` → `fiber/v3/middleware/recover`
+- [x] T006 [P] [US3] Atualizar `internal/infra/entrypoint/middlewares.go`: import `gofiber/contrib/jwt` → `gofiber/contrib/v3/jwt`; import `fiber/v2` → `fiber/v3`; assinatura do `ErrorHandler` de `func(c *fiber.Ctx, err error) error` para `func(c fiber.Ctx, err error) error`
+- [x] T007 [P] [US2] Atualizar `internal/infra/entrypoint/error_handler.go`: import `fiber/v2` → `fiber/v3`; assinaturas de `CustomErrorHandler` e `sendError` de `*fiber.Ctx` para `fiber.Ctx`
+- [x] T008 [P] [US2] Atualizar `internal/infra/entrypoint/routes.go`: import `fiber/v2` → `fiber/v3`
 
 ### Controllers (paralelos entre si, após T004)
 
-- [ ] T009 [P] [US2] Atualizar `internal/infra/entrypoint/rest/auth_controller.go`: import `fiber/v2` → `fiber/v3`; assinatura de `Login` de `*fiber.Ctx` para `fiber.Ctx`; `ctx.BodyParser(&credentialsDTO)` → `ctx.Bind().Body(&credentialsDTO)`
-- [ ] T010 [P] [US2] Atualizar `internal/infra/entrypoint/rest/user_controller.go`: import `fiber/v2` → `fiber/v3`; todas as assinaturas de método de `*fiber.Ctx` para `fiber.Ctx`; `ctx.BodyParser(...)` → `ctx.Bind().Body(...)`; `ctx.QueryParser(...)` → `ctx.Bind().Query(...)`
-- [ ] T011 [P] [US3] Atualizar `internal/infra/entrypoint/rest/group_controller.go`: import `fiber/v2` → `fiber/v3`; adicionar import `jwtware "github.com/gofiber/contrib/v3/jwt"`; todas as assinaturas de método de `*fiber.Ctx` para `fiber.Ctx`; `ctx.BodyParser(...)` → `ctx.Bind().Body(...)`; `ctx.QueryParser(...)` → `ctx.Bind().Query(...)`; todas as ocorrências de `ctx.Locals("user")` → `jwtware.FromContext(ctx)`
-- [ ] T012 [P] [US3] Atualizar `internal/infra/entrypoint/rest/group_invite_controller.go`: import `fiber/v2` → `fiber/v3`; adicionar import `jwtware "github.com/gofiber/contrib/v3/jwt"`; todas as assinaturas de método de `*fiber.Ctx` para `fiber.Ctx`; todas as ocorrências de `ctx.Locals("user")` → `jwtware.FromContext(ctx)`
+- [x] T009 [P] [US2] Atualizar `internal/infra/entrypoint/rest/auth_controller.go`: import `fiber/v2` → `fiber/v3`; assinatura de `Login` de `*fiber.Ctx` para `fiber.Ctx`; `ctx.BodyParser(&credentialsDTO)` → `ctx.Bind().Body(&credentialsDTO)`
+- [x] T010 [P] [US2] Atualizar `internal/infra/entrypoint/rest/user_controller.go`: import `fiber/v2` → `fiber/v3`; todas as assinaturas de método de `*fiber.Ctx` para `fiber.Ctx`; `ctx.BodyParser(...)` → `ctx.Bind().Body(...)`; `ctx.QueryParser(...)` → `ctx.Bind().Query(...)`
+- [x] T011 [P] [US3] Atualizar `internal/infra/entrypoint/rest/group_controller.go`: import `fiber/v2` → `fiber/v3`; adicionar import `jwtware "github.com/gofiber/contrib/v3/jwt"`; todas as assinaturas de método de `*fiber.Ctx` para `fiber.Ctx`; `ctx.BodyParser(...)` → `ctx.Bind().Body(...)`; `ctx.QueryParser(...)` → `ctx.Bind().Query(...)`; todas as ocorrências de `ctx.Locals("user")` → `jwtware.FromContext(ctx)`
+- [x] T012 [P] [US3] Atualizar `internal/infra/entrypoint/rest/group_invite_controller.go`: import `fiber/v2` → `fiber/v3`; adicionar import `jwtware "github.com/gofiber/contrib/v3/jwt"`; todas as assinaturas de método de `*fiber.Ctx` para `fiber.Ctx`; todas as ocorrências de `ctx.Locals("user")` → `jwtware.FromContext(ctx)`
 
 ### Arquivos de teste (paralelos entre si, após T004)
 
-- [ ] T013 [P] [US2] Atualizar `internal/infra/entrypoint/error_handler_test.go`: import `fiber/v2` → `fiber/v3`; handler lambdas de `func(c *fiber.Ctx) error` para `func(c fiber.Ctx) error`
-- [ ] T014 [P] [US2] Atualizar `internal/infra/entrypoint/rest/auth_controller_test.go`: import `fiber/v2` → `fiber/v3`; handler lambdas de `*fiber.Ctx` para `fiber.Ctx`
-- [ ] T015 [P] [US2] Atualizar `internal/infra/entrypoint/rest/user_controller_test.go`: import `fiber/v2` → `fiber/v3`; handler lambdas de `*fiber.Ctx` para `fiber.Ctx`
-- [ ] T016 [P] [US3] Atualizar `internal/infra/entrypoint/rest/group_controller_test.go`: import `fiber/v2` → `fiber/v3`; handler lambdas de `*fiber.Ctx` para `fiber.Ctx`
-- [ ] T017 [P] [US3] Atualizar `internal/infra/entrypoint/rest/group_invite_controller_test.go`: import `fiber/v2` → `fiber/v3`; handler lambdas de `*fiber.Ctx` para `fiber.Ctx`
+- [x] T013 [P] [US2] Atualizar `internal/infra/entrypoint/error_handler_test.go`: import `fiber/v2` → `fiber/v3`; handler lambdas de `func(c *fiber.Ctx) error` para `func(c fiber.Ctx) error`
+- [x] T014 [P] [US2] Atualizar `internal/infra/entrypoint/rest/auth_controller_test.go`: import `fiber/v2` → `fiber/v3`; handler lambdas de `*fiber.Ctx` para `fiber.Ctx`
+- [x] T015 [P] [US2] Atualizar `internal/infra/entrypoint/rest/user_controller_test.go`: import `fiber/v2` → `fiber/v3`; handler lambdas de `*fiber.Ctx` para `fiber.Ctx`
+- [x] T016 [P] [US3] Atualizar `internal/infra/entrypoint/rest/group_controller_test.go`: import `fiber/v2` → `fiber/v3`; handler lambdas de `*fiber.Ctx` para `fiber.Ctx`
+- [x] T017 [P] [US3] Atualizar `internal/infra/entrypoint/rest/group_invite_controller_test.go`: import `fiber/v2` → `fiber/v3`; handler lambdas de `*fiber.Ctx` para `fiber.Ctx`
 
 ### Verificação e encerramento
 
-- [ ] T018 [US2] Verificar build e testes: `make build && make test` — ambos devem passar sem erros
-- [ ] T019 [US2] Verificar geração de documentação: `make generate-docs` — deve concluir sem erros
+- [x] T018 [US2] Verificar build e testes: `make build && make test` — ambos devem passar sem erros
+- [x] T019 [US2] Verificar geração de documentação: `make generate-docs` — deve concluir sem erros
 
 **Checkpoint 2**: Migração Fiber V3 completa e validada.
 
@@ -75,7 +75,7 @@
 
 **Goal**: Manter a Constituição como fonte canônica de padrões, refletindo os padrões Fiber V3.
 
-- [ ] T020 Atualizar `.specify/memory/constitution.md`: substituir `*fiber.Ctx` por `fiber.Ctx` na assinatura de handler (Princípio IV); substituir `BodyParser →` por `Bind().Body() →` no fluxo de requisição (Princípio IV); substituir `Falha em BodyParser` por `Falha em Bind().Body()` (Princípio IV); substituir `ctx.Locals("user")` por `jwtware.FromContext(ctx)` na extração de userID (Princípio IV); substituir `Fiber v2` por `Fiber v3` nos Padrões Tecnológicos; incrementar `CONSTITUTION_VERSION` de `1.1.0` para `1.2.0` e atualizar `LAST_AMENDED_DATE` para `2026-06-21`
+- [x] T020 Atualizar `.specify/memory/constitution.md`: substituir `*fiber.Ctx` por `fiber.Ctx` na assinatura de handler (Princípio IV); substituir `BodyParser →` por `Bind().Body() →` no fluxo de requisição (Princípio IV); substituir `Falha em BodyParser` por `Falha em Bind().Body()` (Princípio IV); substituir `ctx.Locals("user")` por `jwtware.FromContext(ctx)` na extração de userID (Princípio IV); substituir `Fiber v2` por `Fiber v3` nos Padrões Tecnológicos; incrementar `CONSTITUTION_VERSION` de `1.1.0` para `1.2.0` e atualizar `LAST_AMENDED_DATE` para `2026-06-21`
 
 ---
 

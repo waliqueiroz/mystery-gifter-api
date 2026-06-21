@@ -80,15 +80,15 @@ entrada (REST, CLI, consumidores de fila) e torna os invariantes de domínio exp
 Todos os controllers REST DEVEM seguir um fluxo de requisição-resposta estrito e uniforme para
 garantir comportamento previsível ao cliente.
 
-- Assinatura de handler: `func (c *XController) Method(ctx *fiber.Ctx) error`
-- Fluxo de requisição: `BodyParser` → `dto.Validate()` → `mapXToDomain` → chamada ao service →
+- Assinatura de handler: `func (c *XController) Method(ctx fiber.Ctx) error`
+- Fluxo de requisição: `Bind().Body()` → `dto.Validate()` → `mapXToDomain` → chamada ao service →
   `mapXFromDomain` → resposta
-- Falha em `BodyParser` DEVE retornar `fiber.NewError(fiber.StatusUnprocessableEntity)`
+- Falha em `Bind().Body()` DEVE retornar `fiber.NewError(fiber.StatusUnprocessableEntity)`
 - Todos os outros erros DEVEM ser retornados diretamente (o error handler mapeia erros de domínio para status HTTP)
 - Criação de recurso DEVE retornar `ctx.Status(fiber.StatusCreated).JSON(...)`
 - Todas as outras respostas bem-sucedidas DEVEM retornar `ctx.JSON(...)`
 - Parâmetros de rota DEVEM usar `ctx.Params("paramName")`, nunca `ctx.Query` para IDs de recursos
-- ID do usuário autenticado DEVE ser extraído via `c.AuthTokenManager.GetAuthUserID(ctx.Locals("user"))`
+- ID do usuário autenticado DEVE ser extraído via `c.AuthTokenManager.GetAuthUserID(jwtware.FromContext(ctx))`
 - Anotações Swagger DEVEM ser mantidas para todos os endpoints; `make generate-docs` DEVE passar
 - Parâmetros de query no Swagger DEVEM ser definidos individualmente (nunca `schema: "$ref"`)
 
@@ -175,7 +175,7 @@ ambiguidades sobre onde cada idioma se aplica.
 ## Padrões Tecnológicos
 
 **Linguagem**: Go (versão estável mais recente)
-**Framework Web**: Fiber v2 — usar apenas padrões idiomáticos do Fiber
+**Framework Web**: Fiber v3 — usar apenas padrões idiomáticos do Fiber
 **Banco de Dados**: PostgreSQL via `sqlx` + query builder `squirrel`
 **Migrações**: `golang-migrate` — arquivos de migração DEVEM ser commitados junto com mudanças de schema
 **Autenticação**: `golang-jwt` — tokens JWT; chave secreta e duração da sessão via variáveis de ambiente
@@ -231,4 +231,4 @@ justificadas em uma tabela de Rastreamento de Complexidade no documento de plano
 Orientação de desenvolvimento em tempo real: ver `CLAUDE.md` e `.claude/rules/` para convenções
 específicas da linguagem que complementam estes princípios.
 
-**Versão**: 1.1.0 | **Ratificada**: 2026-03-28 | **Última Emenda**: 2026-06-21
+**Versão**: 1.2.0 | **Ratificada**: 2026-03-28 | **Última Emenda**: 2026-06-21

@@ -4,7 +4,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/application/mock_application"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain/build_domain"

@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/application"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 )
@@ -20,10 +20,10 @@ func NewUserController(userService application.UserService, identityGenerator do
 	}
 }
 
-func (c *UserController) Create(ctx *fiber.Ctx) error {
+func (c *UserController) Create(ctx fiber.Ctx) error {
 	var createUserDTO CreateUserDTO
 
-	if err := ctx.BodyParser(&createUserDTO); err != nil {
+	if err := ctx.Bind().Body(&createUserDTO); err != nil {
 		return fiber.NewError(fiber.StatusUnprocessableEntity)
 	}
 
@@ -45,7 +45,7 @@ func (c *UserController) Create(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusCreated).JSON(userDTO)
 }
 
-func (c *UserController) GetByID(ctx *fiber.Ctx) error {
+func (c *UserController) GetByID(ctx fiber.Ctx) error {
 	userID := ctx.Params("userID")
 
 	user, err := c.userService.GetByID(ctx.Context(), userID)
@@ -61,10 +61,10 @@ func (c *UserController) GetByID(ctx *fiber.Ctx) error {
 	return ctx.JSON(userDTO)
 }
 
-func (c *UserController) Search(ctx *fiber.Ctx) error {
+func (c *UserController) Search(ctx fiber.Ctx) error {
 	var userFiltersDTO UserFiltersDTO
 
-	if err := ctx.QueryParser(&userFiltersDTO); err != nil {
+	if err := ctx.Bind().Query(&userFiltersDTO); err != nil {
 		return fiber.NewError(fiber.StatusUnprocessableEntity)
 	}
 
