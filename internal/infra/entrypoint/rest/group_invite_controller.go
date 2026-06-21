@@ -1,7 +1,8 @@
 package rest
 
 import (
-	"github.com/gofiber/fiber/v2"
+	jwtware "github.com/gofiber/contrib/v3/jwt"
+	"github.com/gofiber/fiber/v3"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/application"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 )
@@ -21,10 +22,10 @@ func NewGroupInviteController(
 	}
 }
 
-func (c *GroupInviteController) Create(ctx *fiber.Ctx) error {
+func (c *GroupInviteController) Create(ctx fiber.Ctx) error {
 	groupID := ctx.Params("groupID")
 
-	authUserID, err := c.authTokenManager.GetAuthUserID(ctx.Locals("user"))
+	authUserID, err := c.authTokenManager.GetAuthUserID(jwtware.FromContext(ctx))
 	if err != nil {
 		return err
 	}
@@ -42,10 +43,10 @@ func (c *GroupInviteController) Create(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusCreated).JSON(groupInviteDTO)
 }
 
-func (c *GroupInviteController) GetActive(ctx *fiber.Ctx) error {
+func (c *GroupInviteController) GetActive(ctx fiber.Ctx) error {
 	groupID := ctx.Params("groupID")
 
-	authUserID, err := c.authTokenManager.GetAuthUserID(ctx.Locals("user"))
+	authUserID, err := c.authTokenManager.GetAuthUserID(jwtware.FromContext(ctx))
 	if err != nil {
 		return err
 	}
@@ -63,10 +64,10 @@ func (c *GroupInviteController) GetActive(ctx *fiber.Ctx) error {
 	return ctx.JSON(groupInviteDTO)
 }
 
-func (c *GroupInviteController) Join(ctx *fiber.Ctx) error {
+func (c *GroupInviteController) Join(ctx fiber.Ctx) error {
 	inviteID := ctx.Params("inviteID")
 
-	authUserID, err := c.authTokenManager.GetAuthUserID(ctx.Locals("user"))
+	authUserID, err := c.authTokenManager.GetAuthUserID(jwtware.FromContext(ctx))
 	if err != nil {
 		return err
 	}
