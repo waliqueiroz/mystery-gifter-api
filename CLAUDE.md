@@ -71,8 +71,9 @@ Each interface file has a `//go:generate` directive pointing to its mock destina
 Required: `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `AUTH_SECRET_KEY`, `AUTH_SESSION_DURATION`. Copy `.env.example` to `.env` to get started.
 
 ## Active Technologies
-- Go (latest stable release) + Fiber v2, sqlx, squirrel, golang-migrate, caarlos0/env v11, go-playground/validator, go.uber.org/mock/mockgen, go-swagger
+- Go (latest stable release) + Fiber v3, sqlx, squirrel, golang-migrate, caarlos0/env v11, go-playground/validator, go.uber.org/mock/mockgen, go-swagger
 - PostgreSQL — tables: `users`, `groups`, `group_users`, `group_matches`, `group_invites` (migration 000004)
 
 ## Recent Changes
 - 002-backend-gaps-fix: description optional on group creation; membership check on GET /groups/:groupID (403 for non-members); matches removed from GroupDTO; GET /groups/:groupID/invites/active endpoint added; Swagger ReopenGroup description corrected
+- 003-fiber-v3-upgrade: Go 1.25.1 → 1.26.4; Fiber v2 → v3; handler signatures *fiber.Ctx → fiber.Ctx; BodyParser/QueryParser → Bind().Body()/Bind().Query(); ctx.Locals("user") → jwtware.FromContext(ctx)

@@ -8,12 +8,12 @@ paths:
 ## Controllers
 
 - Pacote `rest`, struct `XController`, construtor `NewXController`
-- Handler: `func (c *XController) Method(ctx *fiber.Ctx) error`
-- Fluxo obrigatório: `BodyParser` → `dto.Validate()` → `mapXToDomain` → service → `mapXFromDomain` → `ctx.JSON`
-- `BodyParser` falha → `fiber.NewError(fiber.StatusUnprocessableEntity)`; demais erros → retornar diretamente
+- Handler: `func (c *XController) Method(ctx fiber.Ctx) error`
+- Fluxo obrigatório: `Bind().Body()` → `dto.Validate()` → `mapXToDomain` → service → `mapXFromDomain` → `ctx.JSON`
+- `Bind().Body()` falha → `fiber.NewError(fiber.StatusUnprocessableEntity)`; demais erros → retornar diretamente
 - Criação bem-sucedida → `ctx.Status(fiber.StatusCreated).JSON(...)`; outras operações → `ctx.JSON(...)`
 - Parâmetros de rota via `ctx.Params("paramName")`, nunca `ctx.Query` para IDs de rota
-- Auth user ID: `authUserID, err := c.AuthTokenManager.GetAuthUserID(ctx.Locals("user"))`
+- Auth user ID: `authUserID, err := c.AuthTokenManager.GetAuthUserID(jwtware.FromContext(ctx))`
 - Nenhuma lógica de negócio nos controllers
 
 ## Mappers

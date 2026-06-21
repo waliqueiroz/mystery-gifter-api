@@ -1,7 +1,8 @@
 package rest
 
 import (
-	"github.com/gofiber/fiber/v2"
+	jwtware "github.com/gofiber/contrib/v3/jwt"
+	"github.com/gofiber/fiber/v3"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/application"
 	"github.com/waliqueiroz/mystery-gifter-api/internal/domain"
 )
@@ -21,10 +22,10 @@ func NewGroupController(
 	}
 }
 
-func (c *GroupController) Create(ctx *fiber.Ctx) error {
+func (c *GroupController) Create(ctx fiber.Ctx) error {
 	var createGroupDTO CreateGroupDTO
 
-	if err := ctx.BodyParser(&createGroupDTO); err != nil {
+	if err := ctx.Bind().Body(&createGroupDTO); err != nil {
 		return fiber.NewError(fiber.StatusUnprocessableEntity)
 	}
 
@@ -32,7 +33,7 @@ func (c *GroupController) Create(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	authUserID, err := c.AuthTokenManager.GetAuthUserID(ctx.Locals("user"))
+	authUserID, err := c.AuthTokenManager.GetAuthUserID(jwtware.FromContext(ctx))
 	if err != nil {
 		return err
 	}
@@ -50,10 +51,10 @@ func (c *GroupController) Create(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusCreated).JSON(groupDTO)
 }
 
-func (c *GroupController) GetByID(ctx *fiber.Ctx) error {
+func (c *GroupController) GetByID(ctx fiber.Ctx) error {
 	groupID := ctx.Params("groupID")
 
-	authUserID, err := c.AuthTokenManager.GetAuthUserID(ctx.Locals("user"))
+	authUserID, err := c.AuthTokenManager.GetAuthUserID(jwtware.FromContext(ctx))
 	if err != nil {
 		return err
 	}
@@ -71,10 +72,10 @@ func (c *GroupController) GetByID(ctx *fiber.Ctx) error {
 	return ctx.JSON(groupDTO)
 }
 
-func (c *GroupController) Search(ctx *fiber.Ctx) error {
+func (c *GroupController) Search(ctx fiber.Ctx) error {
 	var groupFiltersDTO GroupFiltersDTO
 
-	if err := ctx.QueryParser(&groupFiltersDTO); err != nil {
+	if err := ctx.Bind().Query(&groupFiltersDTO); err != nil {
 		return fiber.NewError(fiber.StatusUnprocessableEntity)
 	}
 
@@ -96,10 +97,10 @@ func (c *GroupController) Search(ctx *fiber.Ctx) error {
 	return ctx.JSON(searchResultDTO)
 }
 
-func (c *GroupController) Reopen(ctx *fiber.Ctx) error {
+func (c *GroupController) Reopen(ctx fiber.Ctx) error {
 	groupID := ctx.Params("groupID")
 
-	authUserID, err := c.AuthTokenManager.GetAuthUserID(ctx.Locals("user"))
+	authUserID, err := c.AuthTokenManager.GetAuthUserID(jwtware.FromContext(ctx))
 	if err != nil {
 		return err
 	}
@@ -117,10 +118,10 @@ func (c *GroupController) Reopen(ctx *fiber.Ctx) error {
 	return ctx.JSON(groupDTO)
 }
 
-func (c *GroupController) Archive(ctx *fiber.Ctx) error {
+func (c *GroupController) Archive(ctx fiber.Ctx) error {
 	groupID := ctx.Params("groupID")
 
-	authUserID, err := c.AuthTokenManager.GetAuthUserID(ctx.Locals("user"))
+	authUserID, err := c.AuthTokenManager.GetAuthUserID(jwtware.FromContext(ctx))
 	if err != nil {
 		return err
 	}
@@ -138,12 +139,12 @@ func (c *GroupController) Archive(ctx *fiber.Ctx) error {
 	return ctx.JSON(groupDTO)
 }
 
-func (c *GroupController) AddUser(ctx *fiber.Ctx) error {
+func (c *GroupController) AddUser(ctx fiber.Ctx) error {
 	groupID := ctx.Params("groupID")
 
 	var addUserDTO AddUserDTO
 
-	if err := ctx.BodyParser(&addUserDTO); err != nil {
+	if err := ctx.Bind().Body(&addUserDTO); err != nil {
 		return fiber.NewError(fiber.StatusUnprocessableEntity)
 	}
 
@@ -151,7 +152,7 @@ func (c *GroupController) AddUser(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	authUserID, err := c.AuthTokenManager.GetAuthUserID(ctx.Locals("user"))
+	authUserID, err := c.AuthTokenManager.GetAuthUserID(jwtware.FromContext(ctx))
 	if err != nil {
 		return err
 	}
@@ -169,11 +170,11 @@ func (c *GroupController) AddUser(ctx *fiber.Ctx) error {
 	return ctx.JSON(groupDTO)
 }
 
-func (c *GroupController) RemoveUser(ctx *fiber.Ctx) error {
+func (c *GroupController) RemoveUser(ctx fiber.Ctx) error {
 	groupID := ctx.Params("groupID")
 	targetUserID := ctx.Params("userID")
 
-	authUserID, err := c.AuthTokenManager.GetAuthUserID(ctx.Locals("user"))
+	authUserID, err := c.AuthTokenManager.GetAuthUserID(jwtware.FromContext(ctx))
 	if err != nil {
 		return err
 	}
@@ -191,10 +192,10 @@ func (c *GroupController) RemoveUser(ctx *fiber.Ctx) error {
 	return ctx.JSON(groupDTO)
 }
 
-func (c *GroupController) GenerateMatches(ctx *fiber.Ctx) error {
+func (c *GroupController) GenerateMatches(ctx fiber.Ctx) error {
 	groupID := ctx.Params("groupID")
 
-	authUserID, err := c.AuthTokenManager.GetAuthUserID(ctx.Locals("user"))
+	authUserID, err := c.AuthTokenManager.GetAuthUserID(jwtware.FromContext(ctx))
 	if err != nil {
 		return err
 	}
@@ -212,10 +213,10 @@ func (c *GroupController) GenerateMatches(ctx *fiber.Ctx) error {
 	return ctx.JSON(groupDTO)
 }
 
-func (c *GroupController) GetUserMatch(ctx *fiber.Ctx) error {
+func (c *GroupController) GetUserMatch(ctx fiber.Ctx) error {
 	groupID := ctx.Params("groupID")
 
-	authUserID, err := c.AuthTokenManager.GetAuthUserID(ctx.Locals("user"))
+	authUserID, err := c.AuthTokenManager.GetAuthUserID(jwtware.FromContext(ctx))
 	if err != nil {
 		return err
 	}
