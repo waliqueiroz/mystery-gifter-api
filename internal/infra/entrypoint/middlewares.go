@@ -8,12 +8,17 @@ import (
 	"github.com/gofiber/fiber/v3/extractors"
 )
 
+const (
+	authCookieName  = "access_token"
+	authHeaderScheme = "Bearer"
+)
+
 func NewAuthMiddleware(secretKey string) fiber.Handler {
 	return jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: []byte(secretKey)},
 		Extractor: extractors.Chain(
 			extractors.FromCookie(authCookieName),
-			extractors.FromAuthHeader("Bearer"),
+			extractors.FromAuthHeader(authHeaderScheme),
 		),
 		ErrorHandler: func(c fiber.Ctx, err error) error {
 			if errors.Is(err, extractors.ErrNotFound) {
