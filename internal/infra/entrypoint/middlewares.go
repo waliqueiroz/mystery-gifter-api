@@ -6,13 +6,14 @@ import (
 	jwtware "github.com/gofiber/contrib/v3/jwt"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/extractors"
+	"github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest"
 )
 
 func NewAuthMiddleware(secretKey string) fiber.Handler {
 	return jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: []byte(secretKey)},
 		Extractor: extractors.Chain(
-			extractors.FromCookie(authCookieName),
+			extractors.FromCookie(rest.AuthCookieName),
 			extractors.FromAuthHeader("Bearer"),
 		),
 		ErrorHandler: func(c fiber.Ctx, err error) error {

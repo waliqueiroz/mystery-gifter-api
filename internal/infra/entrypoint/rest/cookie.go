@@ -6,11 +6,11 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-const authCookieName = "access_token"
+const AuthCookieName = "access_token"
 
 func setCookie(ctx fiber.Ctx, token string, expiresIn int64, secure bool) {
 	ctx.Cookie(&fiber.Cookie{
-		Name:     authCookieName,
+		Name:     AuthCookieName,
 		Value:    token,
 		Expires:  time.Unix(expiresIn, 0),
 		HTTPOnly: true,
@@ -21,7 +21,7 @@ func setCookie(ctx fiber.Ctx, token string, expiresIn int64, secure bool) {
 
 func clearCookie(ctx fiber.Ctx) {
 	ctx.Cookie(&fiber.Cookie{
-		Name:     authCookieName,
+		Name:     AuthCookieName,
 		Value:    "",
 		Expires:  time.Unix(0, 0),
 		MaxAge:   -1,
