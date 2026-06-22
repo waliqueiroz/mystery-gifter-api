@@ -79,6 +79,17 @@ func (c *GroupController) Search(ctx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusUnprocessableEntity)
 	}
 
+	authUserID, err := c.AuthTokenManager.GetAuthUserID(jwtware.FromContext(ctx))
+	if err != nil {
+		return err
+	}
+
+	if groupFiltersDTO.OwnerID != "" && groupFiltersDTO.OwnerID != authUserID {
+		return fiber.NewError(fiber.StatusForbidden, "owner_id must match authenticated user")
+	}
+
+	groupFiltersDTO.UserID = authUserID
+
 	filters, err := mapGroupFiltersDTOToDomain(groupFiltersDTO)
 	if err != nil {
 		return err

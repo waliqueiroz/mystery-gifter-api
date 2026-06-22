@@ -1484,8 +1484,10 @@ func Test_GroupController_Archive(t *testing.T) {
 func Test_GroupController_Search(t *testing.T) {
 	route := "/api/v1/groups"
 
-	t.Run("should return status 200 and search result when search is successful", func(t *testing.T) {
+	t.Run("should return status 200 and filter by authUserID ignoring query user_id", func(t *testing.T) {
 		// given
+		authUserID := uuid.New().String()
+
 		groupSummaries := []domain.GroupSummary{
 			build_domain.NewGroupSummaryBuilder().WithName("Birthday Party").WithStatus(domain.GroupStatusOpen).WithUserCount(5).Build(),
 			build_domain.NewGroupSummaryBuilder().WithName("Christmas Exchange").WithStatus(domain.GroupStatusMatched).WithUserCount(8).Build(),
@@ -1498,14 +1500,17 @@ func Test_GroupController_Search(t *testing.T) {
 			WithOffset(0).
 			Build()
 
-		groupFilters := build_domain.NewGroupFiltersBuilder().WithName("Party").Build()
+		groupFilters := build_domain.NewGroupFiltersBuilder().WithName("Party").WithUserID(authUserID).Build()
 
 		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
 
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
 		mockedGroupService.EXPECT().Search(gomock.Any(), groupFilters).Return(&searchResult, nil)
 
-		groupController := rest.NewGroupController(mockedGroupService, nil)
+		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
 		req := httptest.NewRequest(fiber.MethodGet, route+"?name=Party", nil)
 
@@ -1557,6 +1562,8 @@ func Test_GroupController_Search(t *testing.T) {
 
 	t.Run("should return status 200 and empty result when no groups found", func(t *testing.T) {
 		// given
+		authUserID := uuid.New().String()
+
 		searchResult := build_domain.NewSearchResultBuilder[domain.GroupSummary]().
 			WithResult([]domain.GroupSummary{}).
 			WithTotal(0).
@@ -1566,10 +1573,13 @@ func Test_GroupController_Search(t *testing.T) {
 
 		mockCtrl := gomock.NewController(t)
 
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
 		mockedGroupService.EXPECT().Search(gomock.Any(), gomock.Any()).Return(&searchResult, nil)
 
-		groupController := rest.NewGroupController(mockedGroupService, nil)
+		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
 		req := httptest.NewRequest(fiber.MethodGet, route+"?name=NonExistent", nil)
 
@@ -1598,10 +1608,12 @@ func Test_GroupController_Search(t *testing.T) {
 		assert.Equal(t, expectedSearchResultDTO, result)
 	})
 
-	t.Run("should return status 200 with custom filters when valid query parameters are provided", func(t *testing.T) {
+	t.Run("should return status 200 with custom filters when owner_id matches authUserID", func(t *testing.T) {
 		// given
+		authUserID := "550e8400-e29b-41d4-a716-446655440000"
+
 		groupSummaries := []domain.GroupSummary{
-			build_domain.NewGroupSummaryBuilder().WithName("Birthday Party").WithStatus(domain.GroupStatusOpen).WithOwnerID("550e8400-e29b-41d4-a716-446655440000").WithUserCount(5).Build(),
+			build_domain.NewGroupSummaryBuilder().WithName("Birthday Party").WithStatus(domain.GroupStatusOpen).WithOwnerID(authUserID).WithUserCount(5).Build(),
 		}
 
 		searchResult := build_domain.NewSearchResultBuilder[domain.GroupSummary]().
@@ -1613,12 +1625,15 @@ func Test_GroupController_Search(t *testing.T) {
 
 		mockCtrl := gomock.NewController(t)
 
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
 		expectedFilters := build_domain.NewGroupFiltersBuilder().
 			WithName("Birthday").
 			WithStatuses(domain.GroupStatusOpen).
-			WithOwnerID("550e8400-e29b-41d4-a716-446655440000").
-			WithUserID("550e8400-e29b-41d4-a716-446655440001").
+			WithOwnerID(authUserID).
+			WithUserID(authUserID).
 			WithLimit(10).
 			WithOffset(5).
 			WithSortDirection(domain.SortDirectionTypeDesc).
@@ -1627,9 +1642,9 @@ func Test_GroupController_Search(t *testing.T) {
 
 		mockedGroupService.EXPECT().Search(gomock.Any(), expectedFilters).Return(&searchResult, nil)
 
-		groupController := rest.NewGroupController(mockedGroupService, nil)
+		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
-		req := httptest.NewRequest(fiber.MethodGet, route+"?name=Birthday&status=OPEN&owner_id=550e8400-e29b-41d4-a716-446655440000&user_id=550e8400-e29b-41d4-a716-446655440001&limit=10&offset=5&sort_direction=DESC&sort_by=name", nil)
+		req := httptest.NewRequest(fiber.MethodGet, route+fmt.Sprintf("?name=Birthday&status=OPEN&owner_id=%s&limit=10&offset=5&sort_direction=DESC&sort_by=name", authUserID), nil)
 
 		app := fiber.New(fiber.Config{
 			ErrorHandler: entrypoint.CustomErrorHandler,
@@ -1668,6 +1683,8 @@ func Test_GroupController_Search(t *testing.T) {
 
 	t.Run("should return status 200 with multiple status filters when valid query parameters are provided", func(t *testing.T) {
 		// given
+		authUserID := uuid.New().String()
+
 		groupSummaries := []domain.GroupSummary{
 			build_domain.NewGroupSummaryBuilder().WithName("Birthday Party").WithStatus(domain.GroupStatusOpen).WithUserCount(3).Build(),
 			build_domain.NewGroupSummaryBuilder().WithName("Christmas Exchange").WithStatus(domain.GroupStatusMatched).WithUserCount(6).Build(),
@@ -1682,14 +1699,18 @@ func Test_GroupController_Search(t *testing.T) {
 
 		mockCtrl := gomock.NewController(t)
 
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
 		mockedGroupService := mock_application.NewMockGroupService(mockCtrl)
 		expectedFilters := build_domain.NewGroupFiltersBuilder().
 			WithStatuses(domain.GroupStatusOpen, domain.GroupStatusMatched).
+			WithUserID(authUserID).
 			Build()
 
 		mockedGroupService.EXPECT().Search(gomock.Any(), expectedFilters).Return(&searchResult, nil)
 
-		groupController := rest.NewGroupController(mockedGroupService, nil)
+		groupController := rest.NewGroupController(mockedGroupService, mockedAuthTokenManager)
 
 		req := httptest.NewRequest(fiber.MethodGet, route+"?status=OPEN&status=MATCHED", nil)
 
@@ -1739,9 +1760,78 @@ func Test_GroupController_Search(t *testing.T) {
 		assert.Equal(t, expectedSearchResultDTO, result)
 	})
 
+	t.Run("should return forbidden when owner_id does not match authUserID", func(t *testing.T) {
+		// given
+		authUserID := uuid.New().String()
+		otherUserID := uuid.New().String()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
+		groupController := rest.NewGroupController(nil, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodGet, route+fmt.Sprintf("?owner_id=%s", otherUserID), nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, groupController.Search)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusForbidden, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, "forbidden", result.Code)
+		assert.Equal(t, "owner_id must match authenticated user", result.Message)
+	})
+
+	t.Run("should return unauthorized when GetAuthUserID fails", func(t *testing.T) {
+		// given
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return("", domain.NewUnauthorizedError("invalid token"))
+
+		groupController := rest.NewGroupController(nil, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodGet, route, nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Get(route, groupController.Search)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusUnauthorized, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+
+		assert.Equal(t, "unauthorized", result.Code)
+	})
+
 	t.Run("should return bad_request with an error message when status filter value is invalid", func(t *testing.T) {
 		// given
-		groupController := rest.NewGroupController(nil, nil)
+		authUserID := uuid.New().String()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
+		groupController := rest.NewGroupController(nil, mockedAuthTokenManager)
 
 		req := httptest.NewRequest(fiber.MethodGet, route+"?status=INVALID", nil)
 
@@ -1765,7 +1855,14 @@ func Test_GroupController_Search(t *testing.T) {
 
 	t.Run("should return bad_request with an error message when sort_direction is invalid", func(t *testing.T) {
 		// given
-		groupController := rest.NewGroupController(nil, nil)
+		authUserID := uuid.New().String()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
+		groupController := rest.NewGroupController(nil, mockedAuthTokenManager)
 
 		req := httptest.NewRequest(fiber.MethodGet, route+"?sort_direction=INVALID", nil)
 
@@ -1789,7 +1886,14 @@ func Test_GroupController_Search(t *testing.T) {
 
 	t.Run("should return bad_request with an error message when sort_by is invalid", func(t *testing.T) {
 		// given
-		groupController := rest.NewGroupController(nil, nil)
+		authUserID := uuid.New().String()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(authUserID, nil)
+
+		groupController := rest.NewGroupController(nil, mockedAuthTokenManager)
 
 		req := httptest.NewRequest(fiber.MethodGet, route+"?sort_by=invalid_field", nil)
 

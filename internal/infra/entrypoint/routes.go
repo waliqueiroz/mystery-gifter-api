@@ -125,8 +125,9 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//
 	// Search groups with filters and pagination
 	//
-	// This endpoint searches for groups based on filters and returns paginated results.
-	// Requires authentication.
+	// Returns groups where the authenticated user is a member.
+	// The user_id filter is always set to the authenticated user automatically.
+	// If owner_id is provided, it must match the authenticated user — otherwise 403.
 	//
 	// ---
 	// tags:
@@ -143,12 +144,7 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//   type: string
 	// - name: owner_id
 	//   in: query
-	//   description: Filter by group owner ID
-	//   required: false
-	//   type: string
-	// - name: user_id
-	//   in: query
-	//   description: Filter by group user ID
+	//   description: Filter by group owner ID — must equal the authenticated user ID, otherwise 403
 	//   required: false
 	//   type: string
 	// - name: status
@@ -192,6 +188,8 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//     description: Invalid search parameters
 	//   '401':
 	//     description: Authentication required
+	//   '403':
+	//     description: owner_id does not match authenticated user
 	//   '422':
 	//     description: Invalid query parameters
 	api.Get("/groups", groupController.Search)

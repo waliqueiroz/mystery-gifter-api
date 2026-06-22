@@ -417,57 +417,6 @@ definitions:
             - updated_at
         type: object
         x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
-    UserFiltersDTO:
-        description: UserFiltersDTO represents the filters for searching users
-        properties:
-            email:
-                description: Filter by user's email
-                example: joao@example.com
-                type: string
-                x-go-name: Email
-            limit:
-                description: Maximum number of results to return
-                example: 10
-                format: int64
-                type: integer
-                x-go-name: Limit
-            name:
-                description: Filter by user's first name
-                example: João
-                type: string
-                x-go-name: Name
-            offset:
-                description: Number of results to skip
-                example: 0
-                format: int64
-                type: integer
-                x-go-name: Offset
-            sort_by:
-                description: Field to sort by
-                enum:
-                    - name
-                    - surname
-                    - email
-                    - created_at
-                    - updated_at
-                example: name
-                type: string
-                x-go-name: SortBy
-            sort_direction:
-                description: Sort direction (ASC or DESC)
-                enum:
-                    - ASC
-                    - DESC
-                example: ASC
-                type: string
-                x-go-name: SortDirection
-            surname:
-                description: Filter by user's last name
-                example: Silva
-                type: string
-                x-go-name: Surname
-        type: object
-        x-go-package: github.com/waliqueiroz/mystery-gifter-api/internal/infra/entrypoint/rest
     UserSearchResultDTO:
         description: UserSearchResultDTO represents a paginated search result for users
         properties:
@@ -511,21 +460,18 @@ paths:
     /api/v1/groups:
         get:
             description: |-
-                This endpoint searches for groups based on filters and returns paginated results.
-                Requires authentication.
+                Returns groups where the authenticated user is a member.
+                The user_id filter is always set to the authenticated user automatically.
+                If owner_id is provided, it must match the authenticated user — otherwise 403.
             operationId: SearchGroups
             parameters:
                 - description: Filter by group name
                   in: query
                   name: name
                   type: string
-                - description: Filter by group owner ID
+                - description: Filter by group owner ID — must equal the authenticated user ID, otherwise 403
                   in: query
                   name: owner_id
-                  type: string
-                - description: Filter by group user ID
-                  in: query
-                  name: user_id
                   type: string
                 - collectionFormat: multi
                   description: Filter by group status (can be specified multiple times)
@@ -565,6 +511,8 @@ paths:
                     description: Invalid search parameters
                 "401":
                     description: Authentication required
+                "403":
+                    description: owner_id does not match authenticated user
                 "422":
                     description: Invalid query parameters
             security:
@@ -978,58 +926,6 @@ paths:
             tags:
                 - auth
     /api/v1/users:
-        get:
-            description: |-
-                This endpoint searches for users based on filters and returns paginated results.
-                Requires authentication.
-            operationId: SearchUsers
-            parameters:
-                - description: Filter by user name
-                  in: query
-                  name: name
-                  type: string
-                - description: Filter by user surname
-                  in: query
-                  name: surname
-                  type: string
-                - description: Filter by user email
-                  in: query
-                  name: email
-                  type: string
-                - description: Number of results per page
-                  in: query
-                  name: limit
-                  type: integer
-                - description: Number of results to skip
-                  in: query
-                  name: offset
-                  type: integer
-                - description: Sort direction (ASC or DESC)
-                  in: query
-                  name: sort_direction
-                  type: string
-                - description: Field to sort by
-                  in: query
-                  name: sort_by
-                  type: string
-            produces:
-                - application/json
-            responses:
-                "200":
-                    description: Search completed successfully
-                    schema:
-                        $ref: '#/definitions/UserSearchResultDTO'
-                "400":
-                    description: Invalid search parameters
-                "401":
-                    description: Authentication required
-                "422":
-                    description: Invalid query parameters
-            security:
-                - Bearer: []
-            summary: Search users with filters and pagination
-            tags:
-                - users
         post:
             consumes:
                 - application/json
@@ -1056,34 +952,6 @@ paths:
                 "422":
                     description: Invalid request body
             summary: Create a new user
-            tags:
-                - users
-    /api/v1/users/{userID}:
-        get:
-            description: |-
-                This endpoint retrieves a specific user by their ID.
-                Requires authentication.
-            operationId: GetUserByID
-            parameters:
-                - description: Unique user identifier
-                  in: path
-                  name: userID
-                  required: true
-                  type: string
-            produces:
-                - application/json
-            responses:
-                "200":
-                    description: User found successfully
-                    schema:
-                        $ref: '#/definitions/UserDTO'
-                "401":
-                    description: Authentication required
-                "404":
-                    description: User not found
-            security:
-                - Bearer: []
-            summary: Get user by ID
             tags:
                 - users
     /api/v1/users/me:
