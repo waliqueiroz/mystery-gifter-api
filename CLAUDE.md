@@ -9,7 +9,7 @@ There is a strict language separation between human language and machine languag
 **Brazilian Portuguese (pt-BR) — mandatory for**:
 - All responses and explanations
 - Code comments (the "why", not the "what")
-- Documentation: Swagger `summary`/`description` annotations, README files, speckit artifacts (`spec.md`, `plan.md`, `tasks.md`, checklists)
+- Functional documentation: README files, speckit artifacts (`spec.md`, `plan.md`, `tasks.md`, checklists)
 - Commit messages and pull request descriptions
 
 **English — mandatory for**:
@@ -17,6 +17,7 @@ There is a strict language separation between human language and machine languag
 - Error message strings (`errors.New`, `fmt.Errorf`, `fiber.NewError`, etc.)
 - Subtest descriptions (`t.Run("should ... when ...", ...)`)
 - JSON/query field names, HTTP headers, validation tags
+- Swagger `summary`/`description` annotations (API technical documentation)
 
 ## Commands
 
@@ -73,6 +74,8 @@ Required: `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `AU
 ## Active Technologies
 - Go (latest stable release) + Fiber v3, sqlx, squirrel, golang-migrate, caarlos0/env v11, go-playground/validator, go.uber.org/mock/mockgen, go-swagger
 - PostgreSQL — tables: `users`, `groups`, `group_users`, `group_matches`, `group_invites` (migration 000004)
+- Go 1.26.4 + Fiber v3 (v3.3.0), gofiber/contrib/v3/jwt (v1.1.6), fiber/v3/extractors (transitivo), golang-jwt/jwt v5.3.1 (004-jwt-cookie-auth)
+- PostgreSQL — sem migrações (feature é puramente HTTP) (004-jwt-cookie-auth)
 
 ## Recent Changes
 - 002-backend-gaps-fix: description optional on group creation; membership check on GET /groups/:groupID (403 for non-members); matches removed from GroupDTO; GET /groups/:groupID/invites/active endpoint added; Swagger ReopenGroup description corrected

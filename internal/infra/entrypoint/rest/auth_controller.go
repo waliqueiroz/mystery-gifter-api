@@ -6,13 +6,20 @@ import (
 )
 
 type AuthController struct {
-	authService application.AuthService
+	authService  application.AuthService
+	cookieSecure bool
 }
 
-func NewAuthController(authService application.AuthService) *AuthController {
+func NewAuthController(authService application.AuthService, cookieSecure bool) *AuthController {
 	return &AuthController{
-		authService,
+		authService:  authService,
+		cookieSecure: cookieSecure,
 	}
+}
+
+func (c *AuthController) Logout(ctx fiber.Ctx) error {
+	clearCookie(ctx)
+	return ctx.SendStatus(fiber.StatusNoContent)
 }
 
 func (c *AuthController) Login(ctx fiber.Ctx) error {
@@ -36,6 +43,8 @@ func (c *AuthController) Login(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+
+	setCookie(ctx, authSession.AccessToken, authSession.ExpiresIn, c.cookieSecure)
 
 	return ctx.JSON(authSessionDTO)
 }

@@ -50,7 +50,7 @@ func Run() error {
 
 	userRepository := postgres.NewUserRepository(db)
 	userService := application.NewUserService(userRepository)
-	userController := rest.NewUserController(userService, uuidIdentityGenerator, bcryptPasswordManager)
+	userController := rest.NewUserController(userService, uuidIdentityGenerator, bcryptPasswordManager, jwtAuthTokenManager)
 
 	groupRepository := postgres.NewGroupRepository(db)
 	groupService := application.NewGroupService(groupRepository, userService, uuidIdentityGenerator)
@@ -61,7 +61,7 @@ func Run() error {
 	groupInviteController := rest.NewGroupInviteController(groupInviteService, jwtAuthTokenManager)
 
 	authService := application.NewAuthService(cfg.Auth.SessionDuration, userRepository, bcryptPasswordManager, jwtAuthTokenManager)
-	authController := rest.NewAuthController(authService)
+	authController := rest.NewAuthController(authService, cfg.Auth.CookieSecure)
 
 	authMiddleware := entrypoint.NewAuthMiddleware(cfg.Auth.SecretKey)
 

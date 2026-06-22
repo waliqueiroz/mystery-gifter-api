@@ -15,6 +15,33 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+func Test_AuthController_Logout(t *testing.T) {
+	route := "/api/v1/logout"
+
+	t.Run("should clear auth cookie and return 204 on logout", func(t *testing.T) {
+		// given
+		authController := rest.NewAuthController(nil, false)
+
+		req := httptest.NewRequest(fiber.MethodPost, route, nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Post(route, authController.Logout)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusNoContent, response.StatusCode)
+
+		setCookieHeader := response.Header.Get("Set-Cookie")
+		assert.Contains(t, setCookieHeader, "access_token=;")
+		assert.Contains(t, setCookieHeader, "max-age=0")
+	})
+}
+
 func Test_AuthController_Login(t *testing.T) {
 	route := "/api/v1/login"
 
@@ -36,7 +63,7 @@ func Test_AuthController_Login(t *testing.T) {
 		mockedAuthService := mock_application.NewMockAuthService(mockCtrl)
 		mockedAuthService.EXPECT().Login(gomock.Any(), credentials).Return(&authSession, nil)
 
-		authController := rest.NewAuthController(mockedAuthService)
+		authController := rest.NewAuthController(mockedAuthService, false)
 
 		payload := helper.EncodeJSON(t, credentialsDTO)
 
@@ -76,7 +103,7 @@ func Test_AuthController_Login(t *testing.T) {
 		mockedAuthService := mock_application.NewMockAuthService(mockCtrl)
 		mockedAuthService.EXPECT().Login(gomock.Any(), credentials).Return(&authSession, nil)
 
-		authController := rest.NewAuthController(mockedAuthService)
+		authController := rest.NewAuthController(mockedAuthService, false)
 
 		payload := helper.EncodeJSON(t, credentialsDTO)
 
@@ -120,7 +147,7 @@ func Test_AuthController_Login(t *testing.T) {
 		mockedAuthService := mock_application.NewMockAuthService(mockCtrl)
 		mockedAuthService.EXPECT().Login(gomock.Any(), credentials).Return(nil, assert.AnError)
 
-		authController := rest.NewAuthController(mockedAuthService)
+		authController := rest.NewAuthController(mockedAuthService, false)
 
 		payload := helper.EncodeJSON(t, credentialsDTO)
 
@@ -152,7 +179,7 @@ func Test_AuthController_Login(t *testing.T) {
 
 		credentialsDTO := build_rest.NewCredentialsDTOBuilder().WithEmail("").WithPassword(password).Build()
 
-		authController := rest.NewAuthController(nil)
+		authController := rest.NewAuthController(nil, false)
 
 		payload := helper.EncodeJSON(t, credentialsDTO)
 
@@ -185,7 +212,7 @@ func Test_AuthController_Login(t *testing.T) {
 
 	t.Run("should return unprocessable_entity when payload is malformed", func(t *testing.T) {
 		// given
-		authController := rest.NewAuthController(nil)
+		authController := rest.NewAuthController(nil, false)
 
 		payload := helper.EncodeJSON(t, "invalid_payload")
 
@@ -209,5 +236,46 @@ func Test_AuthController_Login(t *testing.T) {
 
 		assert.Equal(t, "unprocessable_entity", result.Code)
 		assert.Equal(t, "Unprocessable Entity", result.Message)
+	})
+
+	t.Run("should set auth cookie on successful login", func(t *testing.T) {
+		// given
+		email := "test@mail.com"
+		password := "some_password"
+		user := build_domain.NewUserBuilder().WithEmail(email).Build()
+
+		credentials := build_domain.NewCredentialsBuilder().WithEmail(email).WithPassword(password).Build()
+		credentialsDTO := build_rest.NewCredentialsDTOBuilder().WithEmail(email).WithPassword(password).Build()
+
+		authSession := build_domain.NewAuthSessionBuilder().WithUser(user).Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthService := mock_application.NewMockAuthService(mockCtrl)
+		mockedAuthService.EXPECT().Login(gomock.Any(), credentials).Return(&authSession, nil)
+
+		authController := rest.NewAuthController(mockedAuthService, false)
+
+		payload := helper.EncodeJSON(t, credentialsDTO)
+
+		req := httptest.NewRequest(fiber.MethodPost, route, payload)
+		req.Header.Set("Content-Type", "application/json")
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Post(route, authController.Login)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, response.StatusCode)
+
+		setCookieHeader := response.Header.Get("Set-Cookie")
+		assert.Contains(t, setCookieHeader, "access_token=")
+		assert.Contains(t, setCookieHeader, "HttpOnly")
+		assert.Contains(t, setCookieHeader, "SameSite=Lax")
 	})
 }

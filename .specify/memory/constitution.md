@@ -155,7 +155,6 @@ Existe uma separação rígida de idioma entre linguagem humana e linguagem de m
 - Todos os artefatos do speckit: `spec.md`, `plan.md`, `tasks.md`, checklists, relatórios de análise
 - Títulos de seções, descrições, critérios de aceite, requisitos funcionais e critérios de sucesso
 - Comentários em código-fonte (explicações do porquê, não do quê)
-- Documentação Swagger (`summary`, `description` das anotações)
 - Mensagens de commit e descrições de pull request
 - Respostas e explicações da IA assistente
 
@@ -166,6 +165,7 @@ Existe uma separação rígida de idioma entre linguagem humana e linguagem de m
 - Nomes de branch, identificadores técnicos (FR-001, SC-001, P1, etc.), caminhos de arquivo
 - Placeholders de template (ex.: `[FEATURE NAME]`, `[DATE]`)
 - Tags de validação, nomes de campos JSON/query, headers HTTP
+- Documentação Swagger: `summary`, `description` de operações e parâmetros (documentação técnica de API)
 
 **Justificativa**: O time de desenvolvimento opera em português brasileiro, mas código em inglês
 é padrão universal na indústria e facilita onboarding, uso de bibliotecas e colaboração open source.
