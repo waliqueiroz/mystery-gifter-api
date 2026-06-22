@@ -41,6 +41,23 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//     description: Invalid request body
 	api.Post("/login", authController.Login)
 
+	// swagger:operation POST /api/v1/logout Logout
+	//
+	// Encerrar sessão e remover cookie de autenticação
+	//
+	// Este endpoint remove o cookie de autenticação do navegador.
+	// Não requer autenticação — a remoção do cookie ocorre no lado do cliente.
+	//
+	// ---
+	// tags:
+	// - auth
+	// produces:
+	// - application/json
+	// responses:
+	//   '204':
+	//     description: Sessão encerrada com sucesso
+	api.Post("/logout", authController.Logout)
+
 	// swagger:operation POST /api/v1/users CreateUser
 	//
 	// Create a new user
