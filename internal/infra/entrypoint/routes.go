@@ -13,6 +13,7 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	// Authenticate user and get access token
 	//
 	// This endpoint authenticates a user with email and password and returns a JWT token.
+	// On success, it also sets an httpOnly cookie (access_token) with SameSite=Lax for web clients.
 	//
 	// ---
 	// tags:
@@ -43,10 +44,10 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 
 	// swagger:operation POST /api/v1/logout Logout
 	//
-	// Encerrar sessão e remover cookie de autenticação
+	// Log out and clear authentication cookie
 	//
-	// Este endpoint remove o cookie de autenticação do navegador.
-	// Não requer autenticação — a remoção do cookie ocorre no lado do cliente.
+	// This endpoint clears the authentication cookie from the client.
+	// Authentication is not required — cookie removal happens on the client side.
 	//
 	// ---
 	// tags:
@@ -55,7 +56,7 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	// - application/json
 	// responses:
 	//   '204':
-	//     description: Sessão encerrada com sucesso
+	//     description: Logged out successfully
 	api.Post("/logout", authController.Logout)
 
 	// swagger:operation POST /api/v1/users CreateUser
@@ -92,6 +93,33 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	api.Post("/users", userController.Create)
 
 	api.Use(authMiddleware) // from now on, all routes will require authentication
+
+	// swagger:operation GET /api/v1/users/me GetMe
+	//
+	// Get authenticated user data
+	//
+	// This endpoint returns the data of the currently authenticated user.
+	// Requires authentication via cookie or Authorization header.
+	//
+	// ---
+	// tags:
+	// - users
+	// produces:
+	// - application/json
+	// security:
+	// - Bearer: []
+	// responses:
+	//   '200':
+	//     description: User data returned successfully
+	//     schema:
+	//       "$ref": '#/definitions/UserDTO'
+	//   '400':
+	//     description: Missing token
+	//   '401':
+	//     description: Invalid or expired token
+	//   '404':
+	//     description: User not found
+	api.Get("/users/me", userController.GetMe)
 
 	// swagger:operation GET /api/v1/users SearchUsers
 	//

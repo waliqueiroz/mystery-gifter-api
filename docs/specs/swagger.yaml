@@ -936,7 +936,9 @@ paths:
         post:
             consumes:
                 - application/json
-            description: This endpoint authenticates a user with email and password and returns a JWT token.
+            description: |-
+                This endpoint authenticates a user with email and password and returns a JWT token.
+                On success, it also sets an httpOnly cookie (access_token) with SameSite=Lax for web clients.
             operationId: Login
             parameters:
                 - description: User credentials for authentication
@@ -964,15 +966,15 @@ paths:
     /api/v1/logout:
         post:
             description: |-
-                Este endpoint remove o cookie de autenticação do navegador.
-                Não requer autenticação — a remoção do cookie ocorre no lado do cliente.
+                This endpoint clears the authentication cookie from the client.
+                Authentication is not required — cookie removal happens on the client side.
             operationId: Logout
             produces:
                 - application/json
             responses:
                 "204":
-                    description: Sessão encerrada com sucesso
-            summary: Encerrar sessão e remover cookie de autenticação
+                    description: Logged out successfully
+            summary: Log out and clear authentication cookie
             tags:
                 - auth
     /api/v1/users:
@@ -1082,6 +1084,30 @@ paths:
             security:
                 - Bearer: []
             summary: Get user by ID
+            tags:
+                - users
+    /api/v1/users/me:
+        get:
+            description: |-
+                This endpoint returns the data of the currently authenticated user.
+                Requires authentication via cookie or Authorization header.
+            operationId: GetMe
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: User data returned successfully
+                    schema:
+                        $ref: '#/definitions/UserDTO'
+                "400":
+                    description: Missing token
+                "401":
+                    description: Invalid or expired token
+                "404":
+                    description: User not found
+            security:
+                - Bearer: []
+            summary: Get authenticated user data
             tags:
                 - users
 produces:

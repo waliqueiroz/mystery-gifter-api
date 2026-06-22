@@ -61,7 +61,7 @@ func Test_UserController_Create(t *testing.T) {
 			return nil
 		})
 
-		userController := rest.NewUserController(mockedUserService, mockedIdentityGenerator, mockedPasswordManager)
+		userController := rest.NewUserController(mockedUserService, mockedIdentityGenerator, mockedPasswordManager, nil)
 
 		payload := helper.EncodeJSON(t, createUserDTO)
 
@@ -119,7 +119,7 @@ func Test_UserController_Create(t *testing.T) {
 			return assert.AnError
 		})
 
-		userController := rest.NewUserController(mockedUserService, mockedIdentityGenerator, mockedPasswordManager)
+		userController := rest.NewUserController(mockedUserService, mockedIdentityGenerator, mockedPasswordManager, nil)
 
 		payload := helper.EncodeJSON(t, createUserDTO)
 
@@ -159,7 +159,7 @@ func Test_UserController_Create(t *testing.T) {
 		mockedIdentityGenerator := mock_domain.NewMockIdentityGenerator(mockCtrl)
 		mockedIdentityGenerator.EXPECT().Generate().Return("", assert.AnError)
 
-		userController := rest.NewUserController(nil, mockedIdentityGenerator, mockedPasswordManager)
+		userController := rest.NewUserController(nil, mockedIdentityGenerator, mockedPasswordManager, nil)
 
 		payload := helper.EncodeJSON(t, createUserDTO)
 
@@ -194,7 +194,7 @@ func Test_UserController_Create(t *testing.T) {
 		mockedPasswordManager := mock_domain.NewMockPasswordManager(mockCtrl)
 		mockedPasswordManager.EXPECT().Hash(createUserDTO.Password).Return("", assert.AnError)
 
-		userController := rest.NewUserController(nil, nil, mockedPasswordManager)
+		userController := rest.NewUserController(nil, nil, mockedPasswordManager, nil)
 
 		payload := helper.EncodeJSON(t, createUserDTO)
 
@@ -224,7 +224,7 @@ func Test_UserController_Create(t *testing.T) {
 		// given
 		createUserDTO := build_rest.NewCreateUserDTOBuilder().WithEmail("invalid_email").Build()
 
-		userController := rest.NewUserController(nil, nil, nil)
+		userController := rest.NewUserController(nil, nil, nil, nil)
 
 		payload := helper.EncodeJSON(t, createUserDTO)
 
@@ -259,7 +259,7 @@ func Test_UserController_Create(t *testing.T) {
 		// given
 		createUserDTO := build_rest.NewCreateUserDTOBuilder().WithPassword("12345678").WithPasswordConfirm("1234567").Build()
 
-		userController := rest.NewUserController(nil, nil, nil)
+		userController := rest.NewUserController(nil, nil, nil, nil)
 
 		payload := helper.EncodeJSON(t, createUserDTO)
 
@@ -294,7 +294,7 @@ func Test_UserController_Create(t *testing.T) {
 		// given
 		createUserDTO := build_rest.NewCreateUserDTOBuilder().WithPassword("1234567").WithPasswordConfirm("1234567").Build()
 
-		userController := rest.NewUserController(nil, nil, nil)
+		userController := rest.NewUserController(nil, nil, nil, nil)
 
 		payload := helper.EncodeJSON(t, createUserDTO)
 
@@ -327,7 +327,7 @@ func Test_UserController_Create(t *testing.T) {
 
 	t.Run("should return unprocessable_entity with an error message when receive an invalid payload", func(t *testing.T) {
 		// given
-		userController := rest.NewUserController(nil, nil, nil)
+		userController := rest.NewUserController(nil, nil, nil, nil)
 
 		payload := helper.EncodeJSON(t, "invalid_payload")
 
@@ -355,7 +355,7 @@ func Test_UserController_Create(t *testing.T) {
 
 	t.Run("should return unprocessable_entity with an error message when receive an empty payload", func(t *testing.T) {
 		// given
-		userController := rest.NewUserController(nil, nil, nil)
+		userController := rest.NewUserController(nil, nil, nil, nil)
 
 		req := httptest.NewRequest(fiber.MethodPost, route, nil)
 		req.Header.Set("Content-Type", "application/json")
@@ -393,7 +393,7 @@ func Test_UserController_GetByID(t *testing.T) {
 		mockedUserService := mock_application.NewMockUserService(mockCtrl)
 		mockedUserService.EXPECT().GetByID(gomock.Any(), userID).Return(&user, nil)
 
-		userController := rest.NewUserController(mockedUserService, nil, nil)
+		userController := rest.NewUserController(mockedUserService, nil, nil, nil)
 
 		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/users/%s", userID), nil)
 
@@ -433,7 +433,7 @@ func Test_UserController_GetByID(t *testing.T) {
 		mockedUserService := mock_application.NewMockUserService(mockCtrl)
 		mockedUserService.EXPECT().GetByID(gomock.Any(), userID).Return(&user, nil)
 
-		userController := rest.NewUserController(mockedUserService, nil, nil)
+		userController := rest.NewUserController(mockedUserService, nil, nil, nil)
 
 		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/users/%s", userID), nil)
 
@@ -470,7 +470,7 @@ func Test_UserController_GetByID(t *testing.T) {
 		mockedUserService := mock_application.NewMockUserService(mockCtrl)
 		mockedUserService.EXPECT().GetByID(gomock.Any(), userID).Return(nil, assert.AnError)
 
-		userController := rest.NewUserController(mockedUserService, nil, nil)
+		userController := rest.NewUserController(mockedUserService, nil, nil, nil)
 
 		req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/api/v1/users/%s", userID), nil)
 
@@ -518,7 +518,7 @@ func Test_UserController_Search(t *testing.T) {
 		mockedUserService := mock_application.NewMockUserService(mockCtrl)
 		mockedUserService.EXPECT().Search(gomock.Any(), userFilters).Return(&searchResult, nil)
 
-		userController := rest.NewUserController(mockedUserService, nil, nil)
+		userController := rest.NewUserController(mockedUserService, nil, nil, nil)
 
 		req := httptest.NewRequest(fiber.MethodGet, route+"?name=John", nil)
 
@@ -580,7 +580,7 @@ func Test_UserController_Search(t *testing.T) {
 		mockedUserService := mock_application.NewMockUserService(mockCtrl)
 		mockedUserService.EXPECT().Search(gomock.Any(), gomock.Any()).Return(&searchResult, nil)
 
-		userController := rest.NewUserController(mockedUserService, nil, nil)
+		userController := rest.NewUserController(mockedUserService, nil, nil, nil)
 
 		req := httptest.NewRequest(fiber.MethodGet, route+"?name=NonExistent", nil)
 
@@ -637,7 +637,7 @@ func Test_UserController_Search(t *testing.T) {
 
 		mockedUserService.EXPECT().Search(gomock.Any(), expectedFilters).Return(&searchResult, nil)
 
-		userController := rest.NewUserController(mockedUserService, nil, nil)
+		userController := rest.NewUserController(mockedUserService, nil, nil, nil)
 
 		req := httptest.NewRequest(fiber.MethodGet, route+"?name=Alice&surname=Johnson&email=alice@example.com&limit=10&offset=5&sort_direction=DESC&sort_by=name", nil)
 
@@ -677,7 +677,7 @@ func Test_UserController_Search(t *testing.T) {
 
 	t.Run("should return bad_request with an error message when sort_direction is invalid", func(t *testing.T) {
 		// given
-		userController := rest.NewUserController(nil, nil, nil)
+		userController := rest.NewUserController(nil, nil, nil, nil)
 
 		req := httptest.NewRequest(fiber.MethodGet, route+"?sort_direction=INVALID", nil)
 
@@ -707,7 +707,7 @@ func Test_UserController_Search(t *testing.T) {
 
 	t.Run("should return bad_request with an error message when sort_by is invalid", func(t *testing.T) {
 		// given
-		userController := rest.NewUserController(nil, nil, nil)
+		userController := rest.NewUserController(nil, nil, nil, nil)
 
 		req := httptest.NewRequest(fiber.MethodGet, route+"?sort_by=invalid_field", nil)
 
@@ -742,7 +742,7 @@ func Test_UserController_Search(t *testing.T) {
 		mockedUserService := mock_application.NewMockUserService(mockCtrl)
 		mockedUserService.EXPECT().Search(gomock.Any(), gomock.Any()).Return(nil, assert.AnError)
 
-		userController := rest.NewUserController(mockedUserService, nil, nil)
+		userController := rest.NewUserController(mockedUserService, nil, nil, nil)
 
 		req := httptest.NewRequest(fiber.MethodGet, route+"?name=John", nil)
 
@@ -783,7 +783,7 @@ func Test_UserController_Search(t *testing.T) {
 		mockedUserService := mock_application.NewMockUserService(mockCtrl)
 		mockedUserService.EXPECT().Search(gomock.Any(), gomock.Any()).Return(&searchResult, nil)
 
-		userController := rest.NewUserController(mockedUserService, nil, nil)
+		userController := rest.NewUserController(mockedUserService, nil, nil, nil)
 
 		req := httptest.NewRequest(fiber.MethodGet, route+"?name=John", nil)
 
@@ -813,7 +813,7 @@ func Test_UserController_Search(t *testing.T) {
 
 	t.Run("should return unprocessable_entity with an error message when query parsing fails", func(t *testing.T) {
 		// given
-		userController := rest.NewUserController(nil, nil, nil)
+		userController := rest.NewUserController(nil, nil, nil, nil)
 
 		// Creating a request with invalid query parameter that will cause parsing to fail
 		req := httptest.NewRequest(fiber.MethodGet, route+"?limit=invalid_number", nil)
@@ -835,5 +835,105 @@ func Test_UserController_Search(t *testing.T) {
 
 		assert.Equal(t, "unprocessable_entity", result.Code)
 		assert.Equal(t, "Unprocessable Entity", result.Message)
+	})
+}
+
+func Test_UserController_GetMe(t *testing.T) {
+	route := "/api/v1/users/me"
+
+	t.Run("should return authenticated user data successfully", func(t *testing.T) {
+		// given
+		user := build_domain.NewUserBuilder().Build()
+		userDTO := build_rest.NewUserDTOBuilder().
+			WithID(user.ID).
+			WithName(user.Name).
+			WithSurname(user.Surname).
+			WithEmail(user.Email).
+			WithCreatedAt(user.CreatedAt).
+			WithUpdatedAt(user.UpdatedAt).
+			Build()
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(user.ID, nil)
+
+		mockedUserService := mock_application.NewMockUserService(mockCtrl)
+		mockedUserService.EXPECT().GetByID(gomock.Any(), user.ID).Return(&user, nil)
+
+		userController := rest.NewUserController(mockedUserService, nil, nil, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodGet, route, nil)
+
+		app := fiber.New(fiber.Config{ErrorHandler: entrypoint.CustomErrorHandler})
+		app.Get(route, userController.GetMe)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, response.StatusCode)
+
+		var result rest.UserDTO
+		helper.DecodeJSON(t, response.Body, &result)
+		assert.Equal(t, userDTO, result)
+	})
+
+	t.Run("should return unauthorized when token extraction fails", func(t *testing.T) {
+		// given
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return("", domain.NewUnauthorizedError("invalid token"))
+
+		userController := rest.NewUserController(nil, nil, nil, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodGet, route, nil)
+
+		app := fiber.New(fiber.Config{ErrorHandler: entrypoint.CustomErrorHandler})
+		app.Get(route, userController.GetMe)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusUnauthorized, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+		assert.Equal(t, "unauthorized", result.Code)
+	})
+
+	t.Run("should return not_found when user does not exist", func(t *testing.T) {
+		// given
+		userID := fmt.Sprintf("%s", uuid.New())
+
+		mockCtrl := gomock.NewController(t)
+
+		mockedAuthTokenManager := mock_domain.NewMockAuthTokenManager(mockCtrl)
+		mockedAuthTokenManager.EXPECT().GetAuthUserID(gomock.Any()).Return(userID, nil)
+
+		mockedUserService := mock_application.NewMockUserService(mockCtrl)
+		mockedUserService.EXPECT().GetByID(gomock.Any(), userID).Return(nil, domain.NewResourceNotFoundError("user not found"))
+
+		userController := rest.NewUserController(mockedUserService, nil, nil, mockedAuthTokenManager)
+
+		req := httptest.NewRequest(fiber.MethodGet, route, nil)
+
+		app := fiber.New(fiber.Config{ErrorHandler: entrypoint.CustomErrorHandler})
+		app.Get(route, userController.GetMe)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusNotFound, response.StatusCode)
+
+		var result entrypoint.WebError
+		helper.DecodeJSON(t, response.Body, &result)
+		assert.Equal(t, "not_found", result.Code)
 	})
 }
