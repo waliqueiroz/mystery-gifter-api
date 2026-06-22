@@ -937,12 +937,11 @@ paths:
             consumes:
                 - application/json
             description: |-
-                Este endpoint autentica o usuário com email e senha e retorna um JWT.
-                Além de retornar o token no corpo da resposta, define um cookie httpOnly
-                (access_token) com SameSite=Lax para uso em clientes web.
+                This endpoint authenticates a user with email and password and returns a JWT token.
+                On success, it also sets an httpOnly cookie (access_token) with SameSite=Lax for web clients.
             operationId: Login
             parameters:
-                - description: Credenciais de autenticação do usuário
+                - description: User credentials for authentication
                   in: body
                   name: CredentialsDTO
                   required: true
@@ -952,30 +951,30 @@ paths:
                 - application/json
             responses:
                 "200":
-                    description: Autenticação bem-sucedida
+                    description: Authentication successful
                     schema:
                         $ref: '#/definitions/AuthSessionDTO'
                 "400":
-                    description: Credenciais inválidas
+                    description: Invalid credentials
                 "401":
-                    description: Falha na autenticação
+                    description: Authentication failed
                 "422":
-                    description: Payload inválido
-            summary: Autenticar usuário e obter token de acesso
+                    description: Invalid request body
+            summary: Authenticate user and get access token
             tags:
                 - auth
     /api/v1/logout:
         post:
             description: |-
-                Este endpoint remove o cookie de autenticação do navegador.
-                Não requer autenticação — a remoção do cookie ocorre no lado do cliente.
+                This endpoint clears the authentication cookie from the client.
+                Authentication is not required — cookie removal happens on the client side.
             operationId: Logout
             produces:
                 - application/json
             responses:
                 "204":
-                    description: Sessão encerrada com sucesso
-            summary: Encerrar sessão e remover cookie de autenticação
+                    description: Logged out successfully
+            summary: Log out and clear authentication cookie
             tags:
                 - auth
     /api/v1/users:
@@ -1090,25 +1089,25 @@ paths:
     /api/v1/users/me:
         get:
             description: |-
-                Este endpoint retorna os dados do usuário atualmente autenticado.
-                Requer autenticação via cookie ou cabeçalho Authorization.
+                This endpoint returns the data of the currently authenticated user.
+                Requires authentication via cookie or Authorization header.
             operationId: GetMe
             produces:
                 - application/json
             responses:
                 "200":
-                    description: Dados do usuário retornados com sucesso
+                    description: User data returned successfully
                     schema:
                         $ref: '#/definitions/UserDTO'
                 "400":
-                    description: Token ausente
+                    description: Missing token
                 "401":
-                    description: Token inválido ou expirado
+                    description: Invalid or expired token
                 "404":
-                    description: Usuário não encontrado
+                    description: User not found
             security:
                 - Bearer: []
-            summary: Obter dados do usuário autenticado
+            summary: Get authenticated user data
             tags:
                 - users
 produces:

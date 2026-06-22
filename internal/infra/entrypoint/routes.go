@@ -10,11 +10,10 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 
 	// swagger:operation POST /api/v1/login Login
 	//
-	// Autenticar usuário e obter token de acesso
+	// Authenticate user and get access token
 	//
-	// Este endpoint autentica o usuário com email e senha e retorna um JWT.
-	// Além de retornar o token no corpo da resposta, define um cookie httpOnly
-	// (access_token) com SameSite=Lax para uso em clientes web.
+	// This endpoint authenticates a user with email and password and returns a JWT token.
+	// On success, it also sets an httpOnly cookie (access_token) with SameSite=Lax for web clients.
 	//
 	// ---
 	// tags:
@@ -26,29 +25,29 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	// parameters:
 	// - name: CredentialsDTO
 	//   in: body
-	//   description: Credenciais de autenticação do usuário
+	//   description: User credentials for authentication
 	//   required: true
 	//   schema:
 	//     "$ref": '#/definitions/CredentialsDTO'
 	// responses:
 	//   '200':
-	//     description: Autenticação bem-sucedida
+	//     description: Authentication successful
 	//     schema:
 	//       "$ref": '#/definitions/AuthSessionDTO'
 	//   '400':
-	//     description: Credenciais inválidas
+	//     description: Invalid credentials
 	//   '401':
-	//     description: Falha na autenticação
+	//     description: Authentication failed
 	//   '422':
-	//     description: Payload inválido
+	//     description: Invalid request body
 	api.Post("/login", authController.Login)
 
 	// swagger:operation POST /api/v1/logout Logout
 	//
-	// Encerrar sessão e remover cookie de autenticação
+	// Log out and clear authentication cookie
 	//
-	// Este endpoint remove o cookie de autenticação do navegador.
-	// Não requer autenticação — a remoção do cookie ocorre no lado do cliente.
+	// This endpoint clears the authentication cookie from the client.
+	// Authentication is not required — cookie removal happens on the client side.
 	//
 	// ---
 	// tags:
@@ -57,7 +56,7 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	// - application/json
 	// responses:
 	//   '204':
-	//     description: Sessão encerrada com sucesso
+	//     description: Logged out successfully
 	api.Post("/logout", authController.Logout)
 
 	// swagger:operation POST /api/v1/users CreateUser
@@ -97,10 +96,10 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 
 	// swagger:operation GET /api/v1/users/me GetMe
 	//
-	// Obter dados do usuário autenticado
+	// Get authenticated user data
 	//
-	// Este endpoint retorna os dados do usuário atualmente autenticado.
-	// Requer autenticação via cookie ou cabeçalho Authorization.
+	// This endpoint returns the data of the currently authenticated user.
+	// Requires authentication via cookie or Authorization header.
 	//
 	// ---
 	// tags:
@@ -111,15 +110,15 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	// - Bearer: []
 	// responses:
 	//   '200':
-	//     description: Dados do usuário retornados com sucesso
+	//     description: User data returned successfully
 	//     schema:
 	//       "$ref": '#/definitions/UserDTO'
 	//   '400':
-	//     description: Token ausente
+	//     description: Missing token
 	//   '401':
-	//     description: Token inválido ou expirado
+	//     description: Invalid or expired token
 	//   '404':
-	//     description: Usuário não encontrado
+	//     description: User not found
 	api.Get("/users/me", userController.GetMe)
 
 	// swagger:operation GET /api/v1/users SearchUsers
