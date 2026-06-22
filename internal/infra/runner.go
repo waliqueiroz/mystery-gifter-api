@@ -61,7 +61,7 @@ func Run() error {
 	groupInviteController := rest.NewGroupInviteController(groupInviteService, jwtAuthTokenManager)
 
 	authService := application.NewAuthService(cfg.Auth.SessionDuration, userRepository, bcryptPasswordManager, jwtAuthTokenManager)
-	authController := rest.NewAuthController(authService)
+	authController := rest.NewAuthController(authService, cfg.Auth.CookieSecure)
 
 	authMiddleware := entrypoint.NewAuthMiddleware(cfg.Auth.SecretKey)
 

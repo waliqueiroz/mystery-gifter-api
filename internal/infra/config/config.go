@@ -27,6 +27,7 @@ type DatabaseConfig struct {
 type AuthConfig struct {
 	SecretKey       string        `env:"AUTH_SECRET_KEY"`
 	SessionDuration time.Duration `env:"AUTH_SESSION_DURATION"`
+	CookieSecure    bool          `env:"AUTH_COOKIE_SECURE" envDefault:"true"`
 }
 
 func Load() (*Config, error) {
