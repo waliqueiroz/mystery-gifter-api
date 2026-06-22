@@ -936,10 +936,13 @@ paths:
         post:
             consumes:
                 - application/json
-            description: This endpoint authenticates a user with email and password and returns a JWT token.
+            description: |-
+                Este endpoint autentica o usuário com email e senha e retorna um JWT.
+                Além de retornar o token no corpo da resposta, define um cookie httpOnly
+                (access_token) com SameSite=Lax para uso em clientes web.
             operationId: Login
             parameters:
-                - description: User credentials for authentication
+                - description: Credenciais de autenticação do usuário
                   in: body
                   name: CredentialsDTO
                   required: true
@@ -949,16 +952,16 @@ paths:
                 - application/json
             responses:
                 "200":
-                    description: Authentication successful
+                    description: Autenticação bem-sucedida
                     schema:
                         $ref: '#/definitions/AuthSessionDTO'
                 "400":
-                    description: Invalid credentials
+                    description: Credenciais inválidas
                 "401":
-                    description: Authentication failed
+                    description: Falha na autenticação
                 "422":
-                    description: Invalid request body
-            summary: Authenticate user and get access token
+                    description: Payload inválido
+            summary: Autenticar usuário e obter token de acesso
             tags:
                 - auth
     /api/v1/logout:
@@ -1082,6 +1085,30 @@ paths:
             security:
                 - Bearer: []
             summary: Get user by ID
+            tags:
+                - users
+    /api/v1/users/me:
+        get:
+            description: |-
+                Este endpoint retorna os dados do usuário atualmente autenticado.
+                Requer autenticação via cookie ou cabeçalho Authorization.
+            operationId: GetMe
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Dados do usuário retornados com sucesso
+                    schema:
+                        $ref: '#/definitions/UserDTO'
+                "400":
+                    description: Token ausente
+                "401":
+                    description: Token inválido ou expirado
+                "404":
+                    description: Usuário não encontrado
+            security:
+                - Bearer: []
+            summary: Obter dados do usuário autenticado
             tags:
                 - users
 produces:

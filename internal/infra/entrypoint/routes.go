@@ -10,9 +10,11 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 
 	// swagger:operation POST /api/v1/login Login
 	//
-	// Authenticate user and get access token
+	// Autenticar usuário e obter token de acesso
 	//
-	// This endpoint authenticates a user with email and password and returns a JWT token.
+	// Este endpoint autentica o usuário com email e senha e retorna um JWT.
+	// Além de retornar o token no corpo da resposta, define um cookie httpOnly
+	// (access_token) com SameSite=Lax para uso em clientes web.
 	//
 	// ---
 	// tags:
@@ -24,21 +26,21 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	// parameters:
 	// - name: CredentialsDTO
 	//   in: body
-	//   description: User credentials for authentication
+	//   description: Credenciais de autenticação do usuário
 	//   required: true
 	//   schema:
 	//     "$ref": '#/definitions/CredentialsDTO'
 	// responses:
 	//   '200':
-	//     description: Authentication successful
+	//     description: Autenticação bem-sucedida
 	//     schema:
 	//       "$ref": '#/definitions/AuthSessionDTO'
 	//   '400':
-	//     description: Invalid credentials
+	//     description: Credenciais inválidas
 	//   '401':
-	//     description: Authentication failed
+	//     description: Falha na autenticação
 	//   '422':
-	//     description: Invalid request body
+	//     description: Payload inválido
 	api.Post("/login", authController.Login)
 
 	// swagger:operation POST /api/v1/logout Logout
@@ -92,6 +94,33 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	api.Post("/users", userController.Create)
 
 	api.Use(authMiddleware) // from now on, all routes will require authentication
+
+	// swagger:operation GET /api/v1/users/me GetMe
+	//
+	// Obter dados do usuário autenticado
+	//
+	// Este endpoint retorna os dados do usuário atualmente autenticado.
+	// Requer autenticação via cookie ou cabeçalho Authorization.
+	//
+	// ---
+	// tags:
+	// - users
+	// produces:
+	// - application/json
+	// security:
+	// - Bearer: []
+	// responses:
+	//   '200':
+	//     description: Dados do usuário retornados com sucesso
+	//     schema:
+	//       "$ref": '#/definitions/UserDTO'
+	//   '400':
+	//     description: Token ausente
+	//   '401':
+	//     description: Token inválido ou expirado
+	//   '404':
+	//     description: Usuário não encontrado
+	api.Get("/users/me", userController.GetMe)
 
 	// swagger:operation GET /api/v1/users SearchUsers
 	//

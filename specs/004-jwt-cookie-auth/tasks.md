@@ -77,13 +77,13 @@
 
 ### Implementação para US3
 
-- [ ] T016 [US3] Adicionar campo `authTokenManager domain.AuthTokenManager` à struct `UserController` e atualizar `NewUserController` em `internal/infra/entrypoint/rest/user_controller.go` para receber `authTokenManager domain.AuthTokenManager` como terceiro parâmetro após `bcryptPasswordManager`
-- [ ] T017 [US3] Adicionar handler `GetMe(ctx fiber.Ctx) error` em `internal/infra/entrypoint/rest/user_controller.go`: extrair `userID` via `c.authTokenManager.GetAuthUserID(jwtware.FromContext(ctx))`; chamar `c.userService.GetByID(ctx.Context(), userID)`; mapear com `mapUserFromDomain` e retornar `ctx.JSON(userDTO)`
-- [ ] T018 [US3] Registrar rota `api.Get("/users/me", userController.GetMe)` em `internal/infra/entrypoint/routes.go` **antes** da linha `api.Get("/users/:userID", ...)` (ambas após `api.Use(authMiddleware)`)
-- [ ] T019 [US3] Adicionar anotação Swagger para `GET /api/v1/users/me` em `internal/infra/entrypoint/routes.go` com tag `users`, security `Bearer`, resposta 200 referenciando `UserDTO`, 401 e 404
-- [ ] T020 [US3] Atualizar `NewUserController` em `internal/infra/runner.go` passando `jwtAuthTokenManager` como terceiro argumento
-- [ ] T021 [P] [US3] Adicionar função `Test_UserController_GetMe` em `internal/infra/entrypoint/rest/user_controller_test.go` com cenários: `"should return authenticated user data successfully"` (200 com UserDTO correto), `"should return unauthorized when token extraction fails"` (401), `"should return not_found when user does not exist"` (404); atualizar chamadas existentes a `NewUserController` para o novo número de argumentos
-- [ ] T022 [US3] Executar `make test` e `make generate-docs` e corrigir eventuais falhas
+- [x] T016 [US3] Adicionar campo `authTokenManager domain.AuthTokenManager` à struct `UserController` e atualizar `NewUserController` em `internal/infra/entrypoint/rest/user_controller.go` para receber `authTokenManager domain.AuthTokenManager` como terceiro parâmetro após `bcryptPasswordManager`
+- [x] T017 [US3] Adicionar handler `GetMe(ctx fiber.Ctx) error` em `internal/infra/entrypoint/rest/user_controller.go`: extrair `userID` via `c.authTokenManager.GetAuthUserID(jwtware.FromContext(ctx))`; chamar `c.userService.GetByID(ctx.Context(), userID)`; mapear com `mapUserFromDomain` e retornar `ctx.JSON(userDTO)`
+- [x] T018 [US3] Registrar rota `api.Get("/users/me", userController.GetMe)` em `internal/infra/entrypoint/routes.go` **antes** da linha `api.Get("/users/:userID", ...)` (ambas após `api.Use(authMiddleware)`)
+- [x] T019 [US3] Adicionar anotação Swagger para `GET /api/v1/users/me` em `internal/infra/entrypoint/routes.go` com tag `users`, security `Bearer`, resposta 200 referenciando `UserDTO`, 401 e 404
+- [x] T020 [US3] Atualizar `NewUserController` em `internal/infra/runner.go` passando `jwtAuthTokenManager` como terceiro argumento
+- [x] T021 [P] [US3] Adicionar função `Test_UserController_GetMe` em `internal/infra/entrypoint/rest/user_controller_test.go` com cenários: `"should return authenticated user data successfully"` (200 com UserDTO correto), `"should return unauthorized when token extraction fails"` (401), `"should return not_found when user does not exist"` (404); atualizar chamadas existentes a `NewUserController` para o novo número de argumentos
+- [x] T022 [US3] Executar `make test` e `make generate-docs` e corrigir eventuais falhas
 
 **Checkpoint**: `GET /users/me` funcional para cookie e header; sem conflito com `GET /users/:userID`; documentado no Swagger ✓
 
@@ -93,10 +93,10 @@
 
 **Objetivo**: Garantir consistência, documentação e validação end-to-end da feature completa
 
-- [ ] T023 Atualizar anotação Swagger de `POST /api/v1/login` em `internal/infra/entrypoint/routes.go` adicionando nota na `description` sobre o cookie `access_token` definido na resposta (`HttpOnly`, `SameSite=Lax`)
-- [ ] T024 [P] Executar `make build` para confirmar compilação limpa
-- [ ] T025 [P] Executar `make test` final para confirmar que todos os testes passam
-- [ ] T026 Executar `make generate-docs` e `make serve-docs` e validar os novos endpoints `POST /logout` e `GET /users/me` na UI do Swagger em `http://localhost:8081`
+- [x] T023 Atualizar anotação Swagger de `POST /api/v1/login` em `internal/infra/entrypoint/routes.go` adicionando nota na `description` sobre o cookie `access_token` definido na resposta (`HttpOnly`, `SameSite=Lax`)
+- [x] T024 [P] Executar `make build` para confirmar compilação limpa
+- [x] T025 [P] Executar `make test` final para confirmar que todos os testes passam
+- [x] T026 Executar `make generate-docs` e `make serve-docs` e validar os novos endpoints `POST /logout` e `GET /users/me` na UI do Swagger em `http://localhost:8081`
 - [ ] T027 Seguir o roteiro de `specs/004-jwt-cookie-auth/quickstart.md` para validar o fluxo completo: login → cookie definido → acesso com cookie → logout → acesso negado
 
 ---

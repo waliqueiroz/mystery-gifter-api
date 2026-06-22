@@ -50,7 +50,7 @@ func Run() error {
 
 	userRepository := postgres.NewUserRepository(db)
 	userService := application.NewUserService(userRepository)
-	userController := rest.NewUserController(userService, uuidIdentityGenerator, bcryptPasswordManager)
+	userController := rest.NewUserController(userService, uuidIdentityGenerator, bcryptPasswordManager, jwtAuthTokenManager)
 
 	groupRepository := postgres.NewGroupRepository(db)
 	groupService := application.NewGroupService(groupRepository, userService, uuidIdentityGenerator)
