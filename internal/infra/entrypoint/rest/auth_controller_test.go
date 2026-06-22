@@ -15,6 +15,33 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+func Test_AuthController_Logout(t *testing.T) {
+	route := "/api/v1/logout"
+
+	t.Run("should clear auth cookie and return 204 on logout", func(t *testing.T) {
+		// given
+		authController := rest.NewAuthController(nil, false)
+
+		req := httptest.NewRequest(fiber.MethodPost, route, nil)
+
+		app := fiber.New(fiber.Config{
+			ErrorHandler: entrypoint.CustomErrorHandler,
+		})
+		app.Post(route, authController.Logout)
+
+		// when
+		response, err := app.Test(req)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusNoContent, response.StatusCode)
+
+		setCookieHeader := response.Header.Get("Set-Cookie")
+		assert.Contains(t, setCookieHeader, "access_token=;")
+		assert.Contains(t, setCookieHeader, "max-age=0")
+	})
+}
+
 func Test_AuthController_Login(t *testing.T) {
 	route := "/api/v1/login"
 

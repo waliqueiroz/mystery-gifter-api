@@ -961,6 +961,20 @@ paths:
             summary: Authenticate user and get access token
             tags:
                 - auth
+    /api/v1/logout:
+        post:
+            description: |-
+                Este endpoint remove o cookie de autenticação do navegador.
+                Não requer autenticação — a remoção do cookie ocorre no lado do cliente.
+            operationId: Logout
+            produces:
+                - application/json
+            responses:
+                "204":
+                    description: Sessão encerrada com sucesso
+            summary: Encerrar sessão e remover cookie de autenticação
+            tags:
+                - auth
     /api/v1/users:
         get:
             description: |-

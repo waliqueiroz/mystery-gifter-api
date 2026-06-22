@@ -17,6 +17,11 @@ func NewAuthController(authService application.AuthService, cookieSecure bool) *
 	}
 }
 
+func (c *AuthController) Logout(ctx fiber.Ctx) error {
+	clearCookie(ctx)
+	return ctx.SendStatus(fiber.StatusNoContent)
+}
+
 func (c *AuthController) Login(ctx fiber.Ctx) error {
 	var credentialsDTO CredentialsDTO
 

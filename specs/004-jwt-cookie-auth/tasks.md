@@ -59,11 +59,11 @@
 
 ### Implementação para US2
 
-- [ ] T011 [US2] Adicionar handler `Logout(ctx fiber.Ctx) error` em `internal/infra/entrypoint/rest/auth_controller.go` que chama `clearCookie(ctx)` e retorna `ctx.SendStatus(fiber.StatusNoContent)`
-- [ ] T012 [US2] Registrar rota `api.Post("/logout", authController.Logout)` em `internal/infra/entrypoint/routes.go` **antes** de `api.Use(authMiddleware)` (logout não requer autenticação)
-- [ ] T013 [US2] Adicionar anotação Swagger para `POST /api/v1/logout` em `internal/infra/entrypoint/routes.go` com tag `auth`, resposta 204 e nota sobre remoção do cookie
-- [ ] T014 [P] [US2] Adicionar função `Test_AuthController_Logout` em `internal/infra/entrypoint/rest/auth_controller_test.go` com cenários: `"should clear auth cookie and return 204 on logout"` verificando status 204 e header `Set-Cookie` com `MaxAge=-1`
-- [ ] T015 [US2] Executar `make test` e `make generate-docs` e corrigir eventuais falhas
+- [x] T011 [US2] Adicionar handler `Logout(ctx fiber.Ctx) error` em `internal/infra/entrypoint/rest/auth_controller.go` que chama `clearCookie(ctx)` e retorna `ctx.SendStatus(fiber.StatusNoContent)`
+- [x] T012 [US2] Registrar rota `api.Post("/logout", authController.Logout)` em `internal/infra/entrypoint/routes.go` **antes** de `api.Use(authMiddleware)` (logout não requer autenticação)
+- [x] T013 [US2] Adicionar anotação Swagger para `POST /api/v1/logout` em `internal/infra/entrypoint/routes.go` com tag `auth`, resposta 204 e nota sobre remoção do cookie
+- [x] T014 [P] [US2] Adicionar função `Test_AuthController_Logout` em `internal/infra/entrypoint/rest/auth_controller_test.go` com cenários: `"should clear auth cookie and return 204 on logout"` verificando status 204 e header `Set-Cookie` com `MaxAge=-1`
+- [x] T015 [US2] Executar `make test` e `make generate-docs` e corrigir eventuais falhas
 
 **Checkpoint**: Logout funcional; cookie removido na resposta; endpoint documentado no Swagger ✓
 
