@@ -10,7 +10,6 @@ import (
 )
 
 type UserRepository interface {
-	Search(ctx context.Context, filters UserFilters) (*SearchResult[User], error)
 	Create(ctx context.Context, user User) error
 	GetByID(ctx context.Context, userID string) (*User, error)
 	GetByEmail(ctx context.Context, email string) (*User, error)
@@ -64,58 +63,3 @@ func (u *User) Validate() error {
 	return nil
 }
 
-const (
-	DefaultUserLimit         = 15
-	DefaultUserOffset        = 0
-	DefaultUserSortDirection = SortDirectionTypeAsc
-	DefaultUserSortBy        = "created_at"
-)
-
-type UserFilters struct {
-	Name          string
-	Surname       string
-	Email         string
-	Limit         int               `validate:"required,min=1"`
-	Offset        int               `validate:"min=0"`
-	SortDirection SortDirectionType `validate:"required,oneof=ASC DESC"`
-	SortBy        string            `validate:"required,oneof=name surname email created_at updated_at"`
-}
-
-func NewUserFilters(name, surname, email string, limit, offset int, sortDirection SortDirectionType, sortBy string) (*UserFilters, error) {
-	if limit <= 0 {
-		limit = DefaultUserLimit
-	}
-
-	offset = max(offset, DefaultUserOffset)
-
-	if sortDirection == "" {
-		sortDirection = DefaultUserSortDirection
-	}
-
-	if sortBy == "" {
-		sortBy = DefaultUserSortBy
-	}
-
-	userFilters := UserFilters{
-		Name:          name,
-		Surname:       surname,
-		Email:         email,
-		Limit:         limit,
-		Offset:        offset,
-		SortDirection: sortDirection,
-		SortBy:        sortBy,
-	}
-
-	if err := userFilters.Validate(); err != nil {
-		return nil, err
-	}
-
-	return &userFilters, nil
-}
-
-func (u *UserFilters) Validate() error {
-	if errs := validator.Validate(u); len(errs) > 0 {
-		return NewValidationError(errs)
-	}
-	return nil
-}
