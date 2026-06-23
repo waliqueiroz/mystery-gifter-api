@@ -11,7 +11,6 @@ import (
 type UserService interface {
 	Create(ctx context.Context, user domain.User) error
 	GetByID(ctx context.Context, userID string) (*domain.User, error)
-	Search(ctx context.Context, filters domain.UserFilters) (*domain.SearchResult[domain.User], error)
 }
 
 type userService struct {
@@ -36,10 +35,3 @@ func (s *userService) GetByID(ctx context.Context, userID string) (*domain.User,
 	return s.userRepository.GetByID(ctx, userID)
 }
 
-func (s *userService) Search(ctx context.Context, filters domain.UserFilters) (*domain.SearchResult[domain.User], error) {
-	if err := filters.Validate(); err != nil {
-		return nil, err
-	}
-
-	return s.userRepository.Search(ctx, filters)
-}

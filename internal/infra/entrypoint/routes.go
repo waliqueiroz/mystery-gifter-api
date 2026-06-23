@@ -121,106 +121,13 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//     description: User not found
 	api.Get("/users/me", userController.GetMe)
 
-	// swagger:operation GET /api/v1/users SearchUsers
-	//
-	// Search users with filters and pagination
-	//
-	// This endpoint searches for users based on filters and returns paginated results.
-	// Requires authentication.
-	//
-	// ---
-	// tags:
-	// - users
-	// produces:
-	// - application/json
-	// security:
-	// - Bearer: []
-	// parameters:
-	// - name: name
-	//   in: query
-	//   description: Filter by user name
-	//   required: false
-	//   type: string
-	// - name: surname
-	//   in: query
-	//   description: Filter by user surname
-	//   required: false
-	//   type: string
-	// - name: email
-	//   in: query
-	//   description: Filter by user email
-	//   required: false
-	//   type: string
-	// - name: limit
-	//   in: query
-	//   description: Number of results per page
-	//   required: false
-	//   type: integer
-	// - name: offset
-	//   in: query
-	//   description: Number of results to skip
-	//   required: false
-	//   type: integer
-	// - name: sort_direction
-	//   in: query
-	//   description: Sort direction (ASC or DESC)
-	//   required: false
-	//   type: string
-	// - name: sort_by
-	//   in: query
-	//   description: Field to sort by
-	//   required: false
-	//   type: string
-	// responses:
-	//   '200':
-	//     description: Search completed successfully
-	//     schema:
-	//       "$ref": '#/definitions/UserSearchResultDTO'
-	//   '400':
-	//     description: Invalid search parameters
-	//   '401':
-	//     description: Authentication required
-	//   '422':
-	//     description: Invalid query parameters
-	api.Get("/users", userController.Search)
-
-	// swagger:operation GET /api/v1/users/{userID} GetUserByID
-	//
-	// Get user by ID
-	//
-	// This endpoint retrieves a specific user by their ID.
-	// Requires authentication.
-	//
-	// ---
-	// tags:
-	// - users
-	// produces:
-	// - application/json
-	// security:
-	// - Bearer: []
-	// parameters:
-	// - name: userID
-	//   in: path
-	//   description: Unique user identifier
-	//   required: true
-	//   type: string
-	// responses:
-	//   '200':
-	//     description: User found successfully
-	//     schema:
-	//       "$ref": '#/definitions/UserDTO'
-	//   '401':
-	//     description: Authentication required
-	//   '404':
-	//     description: User not found
-	api.Get("/users/:userID", userController.GetByID)
-
 	// swagger:operation GET /api/v1/groups SearchGroups
 	//
 	// Search groups with filters and pagination
 	//
-	// This endpoint searches for groups based on filters and returns paginated results.
-	// Requires authentication.
+	// Returns groups where the authenticated user is a member.
+	// The user_id filter is always set to the authenticated user automatically.
+	// If owner_id is provided, it must match the authenticated user — otherwise 403.
 	//
 	// ---
 	// tags:
@@ -237,12 +144,7 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//   type: string
 	// - name: owner_id
 	//   in: query
-	//   description: Filter by group owner ID
-	//   required: false
-	//   type: string
-	// - name: user_id
-	//   in: query
-	//   description: Filter by group user ID
+	//   description: Filter by group owner ID — must equal the authenticated user ID, otherwise 403
 	//   required: false
 	//   type: string
 	// - name: status
@@ -286,6 +188,8 @@ func CreateRoutes(router fiber.Router, authMiddleware fiber.Handler, userControl
 	//     description: Invalid search parameters
 	//   '401':
 	//     description: Authentication required
+	//   '403':
+	//     description: owner_id does not match authenticated user
 	//   '422':
 	//     description: Invalid query parameters
 	api.Get("/groups", groupController.Search)

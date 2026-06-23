@@ -76,6 +76,8 @@ Required: `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `AU
 - PostgreSQL — tables: `users`, `groups`, `group_users`, `group_matches`, `group_invites` (migration 000004)
 - Go 1.26.4 + Fiber v3 (v3.3.0), gofiber/contrib/v3/jwt (v1.1.6), fiber/v3/extractors (transitivo), golang-jwt/jwt v5.3.1 (004-jwt-cookie-auth)
 - PostgreSQL — sem migrações (feature é puramente HTTP) (004-jwt-cookie-auth)
+- Go 1.26.4 + Fiber v3, gofiber/contrib/v3/jwt, golang-jwt v5, go-playground/validator, go.uber.org/mock/mockgen, go-swagger (005-fix-user-endpoints-security)
+- PostgreSQL via sqlx + squirrel (005-fix-user-endpoints-security)
 
 ## Recent Changes
 - 002-backend-gaps-fix: description optional on group creation; membership check on GET /groups/:groupID (403 for non-members); matches removed from GroupDTO; GET /groups/:groupID/invites/active endpoint added; Swagger ReopenGroup description corrected
