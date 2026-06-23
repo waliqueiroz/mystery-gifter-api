@@ -2,7 +2,7 @@
 
 **Feature Branch**: `005-fix-user-endpoints-security`
 **Created**: 2026-06-22
-**Status**: Draft
+**Status**: Done
 **Input**: User description: "Corrigir brechas de segurança nos endpoints de usuário: remover GET /users e GET /users/:id (substituídos por /me), e forçar filtragem de grupos pelo usuário autenticado em GET /groups"
 
 ## User Scenarios & Testing *(mandatory)*

@@ -16,10 +16,10 @@
 
 **⚠️ CRÍTICO**: Nenhuma tarefa das User Stories pode começar antes desta fase.
 
-- [ ] T001 Remover método `Search` da interface `UserRepository` em `internal/domain/user.go`
-- [ ] T002 Remover método `Search` da interface `UserService` e sua implementação em `internal/application/user_service.go`
-- [ ] T003 Executar `go generate ./internal/domain/... && go generate ./internal/application/...` para regenerar os mocks `internal/domain/mock_domain/user_repository.go` e `internal/application/mock_application/user_service.go`
-- [ ] T004 [P] Excluir o arquivo `internal/domain/build_domain/user_filters_builder.go` (não mais utilizado após remoção de `UserFilters`)
+- [x] T001 Remover método `Search` da interface `UserRepository` em `internal/domain/user.go`
+- [x] T002 Remover método `Search` da interface `UserService` e sua implementação em `internal/application/user_service.go`
+- [x] T003 Executar `go generate ./internal/domain/... && go generate ./internal/application/...` para regenerar os mocks `internal/domain/mock_domain/user_repository.go` e `internal/application/mock_application/user_service.go`
+- [x] T004 [P] Excluir o arquivo `internal/domain/build_domain/user_filters_builder.go` (não mais utilizado após remoção de `UserFilters`)
 
 **Checkpoint**: `go build ./...` deve falhar apontando para os arquivos que ainda referenciam `Search` — isso é esperado e indica onde as próximas tarefas devem atuar.
 
@@ -31,14 +31,14 @@
 
 **Independent Test**: Fazer `GET /api/v1/users` e `GET /api/v1/users/{qualquer-uuid}` com um token JWT válido e verificar que ambos retornam 404.
 
-- [ ] T005 [P] [US1] Remover implementação do método `Search` de `internal/infra/outgoing/postgres/user_repository.go`
-- [ ] T006 [P] [US1] Remover `UserFiltersDTO`, `mapUserFiltersDTOToDomain` e o tipo `UserSearchResultDTO` (swagger model) de `internal/infra/entrypoint/rest/user_dto.go`
-- [ ] T007 [US1] Remover os métodos `GetByID` e `Search` de `internal/infra/entrypoint/rest/user_controller.go` (T005 e T006 devem estar concluídos)
-- [ ] T008 [US1] Remover as rotas `GET /users` e `GET /users/:userID` e seus blocos de anotação Swagger correspondentes de `internal/infra/entrypoint/routes.go` (T007 deve estar concluído)
-- [ ] T009 [P] [US1] Remover testes dos métodos `GetByID` e `Search` de `internal/infra/entrypoint/rest/user_controller_test.go`
-- [ ] T010 [P] [US1] Remover testes do método `Search` de `internal/application/user_service_test.go`
-- [ ] T011 [P] [US1] Remover testes do método `Search` de `internal/infra/outgoing/postgres/user_repository_test.go`
-- [ ] T012 [US1] Executar `make test` e corrigir qualquer falha antes de prosseguir
+- [x] T005 [P] [US1] Remover implementação do método `Search` de `internal/infra/outgoing/postgres/user_repository.go`
+- [x] T006 [P] [US1] Remover `UserFiltersDTO`, `mapUserFiltersDTOToDomain` e o tipo `UserSearchResultDTO` (swagger model) de `internal/infra/entrypoint/rest/user_dto.go`
+- [x] T007 [US1] Remover os métodos `GetByID` e `Search` de `internal/infra/entrypoint/rest/user_controller.go` (T005 e T006 devem estar concluídos)
+- [x] T008 [US1] Remover as rotas `GET /users` e `GET /users/:userID` e seus blocos de anotação Swagger correspondentes de `internal/infra/entrypoint/routes.go` (T007 deve estar concluído)
+- [x] T009 [P] [US1] Remover testes dos métodos `GetByID` e `Search` de `internal/infra/entrypoint/rest/user_controller_test.go`
+- [x] T010 [P] [US1] Remover testes do método `Search` de `internal/application/user_service_test.go`
+- [x] T011 [P] [US1] Remover testes do método `Search` de `internal/infra/outgoing/postgres/user_repository_test.go`
+- [x] T012 [US1] Executar `make test` e corrigir qualquer falha antes de prosseguir
 
 **Checkpoint**: `GET /api/v1/users` e `GET /api/v1/users/:userID` retornam 404. `GET /api/v1/users/me` continua funcionando. `make test` passa.
 
@@ -50,10 +50,10 @@
 
 **Independent Test**: Fazer `GET /api/v1/groups?user_id={idDeOutroUsuario}` e verificar que retorna apenas os grupos do usuário autenticado. Fazer `GET /api/v1/groups?owner_id={idDeOutroUsuario}` e verificar que retorna 403.
 
-- [ ] T013 [US2] Atualizar `GroupController.Search` em `internal/infra/entrypoint/rest/group_controller.go`: extrair `authUserID` via `c.AuthTokenManager.GetAuthUserID(jwtware.FromContext(ctx))`, sobrescrever `groupFiltersDTO.UserID = authUserID`, e retornar `fiber.NewError(fiber.StatusForbidden, "owner_id must match authenticated user")` se `groupFiltersDTO.OwnerID != "" && groupFiltersDTO.OwnerID != authUserID`
-- [ ] T014 [US2] Atualizar anotação Swagger de `GET /api/v1/groups` em `internal/infra/entrypoint/routes.go`: remover parâmetro `user_id`; atualizar descrição de `owner_id` para indicar que deve ser o ID do usuário autenticado, caso contrário 403
-- [ ] T015 [US2] Atualizar testes de `GroupController.Search` em `internal/infra/entrypoint/rest/group_controller_test.go`: adicionar casos que verificam que `user_id` da query é ignorado, que `authUserID` é sempre usado, e que `owner_id` diferente do `authUserID` retorna 403
-- [ ] T016 [US2] Executar `make test` e corrigir qualquer falha antes de prosseguir
+- [x] T013 [US2] Atualizar `GroupController.Search` em `internal/infra/entrypoint/rest/group_controller.go`: extrair `authUserID` via `c.AuthTokenManager.GetAuthUserID(jwtware.FromContext(ctx))`, sobrescrever `groupFiltersDTO.UserID = authUserID`, e retornar `fiber.NewError(fiber.StatusForbidden, "owner_id must match authenticated user")` se `groupFiltersDTO.OwnerID != "" && groupFiltersDTO.OwnerID != authUserID`
+- [x] T014 [US2] Atualizar anotação Swagger de `GET /api/v1/groups` em `internal/infra/entrypoint/routes.go`: remover parâmetro `user_id`; atualizar descrição de `owner_id` para indicar que deve ser o ID do usuário autenticado, caso contrário 403
+- [x] T015 [US2] Atualizar testes de `GroupController.Search` em `internal/infra/entrypoint/rest/group_controller_test.go`: adicionar casos que verificam que `user_id` da query é ignorado, que `authUserID` é sempre usado, e que `owner_id` diferente do `authUserID` retorna 403
+- [x] T016 [US2] Executar `make test` e corrigir qualquer falha antes de prosseguir
 
 **Checkpoint**: `make test` passa. O handler de grupos usa o token como fonte de verdade para filtragem.
 
@@ -63,8 +63,8 @@
 
 **Propósito**: Garantir que todos os gates de qualidade da constituição passam.
 
-- [ ] T017 Executar `make generate-docs` e verificar que a spec Swagger gerada não contém mais os endpoints `GET /users` e `GET /users/:userID` e que `GET /groups` não lista `user_id` como parâmetro aceito
-- [ ] T018 Executar `make build` e confirmar compilação limpa sem warnings
+- [x] T017 Executar `make generate-docs` e verificar que a spec Swagger gerada não contém mais os endpoints `GET /users` e `GET /users/:userID` e que `GET /groups` não lista `user_id` como parâmetro aceito
+- [x] T018 Executar `make build` e confirmar compilação limpa sem warnings
 
 ---
 
